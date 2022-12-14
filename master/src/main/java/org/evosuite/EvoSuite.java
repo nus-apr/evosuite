@@ -237,6 +237,8 @@ public class EvoSuite {
 
             CommandLineParameters.handleJVMOptions(javaOpts, line);
 
+            CommandLineParameters.handleTargetLines(line);
+
 
             if (!ClassPathHacker.isJunitCheckAvailable()) {
                 if (Properties.JUNIT_CHECK == Properties.JUnitCheckValues.TRUE) {

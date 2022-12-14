@@ -19,15 +19,21 @@
  */
 package org.evosuite;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.evosuite.classpath.ClassPathHandler;
+import org.evosuite.coverage.patch.PatchCoverageFactory;
 import org.evosuite.executionmode.*;
 import org.evosuite.utils.LoggingUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -106,6 +112,10 @@ public class CommandLineParameters {
         Option targetCP = new Option("target", true,
                 "target classpath for test generation. Either a jar file or a folder where to find the .class files");
 
+        Option targetLines = new Option("targetLines", true,
+                "absolute path to JSON-file specifying the class target lines in the format: " +
+                        "[{\"class1\": [line1, line2,...,lineN]}, {\"class2\": [line1, line2,...,lineN]}]");
+
         Option projectCP = new Option("projectCP", true,
                 "classpath of the project under test and all its dependencies");
 
@@ -147,6 +157,7 @@ public class CommandLineParameters {
         options.addOption(targetClass);
         options.addOption(targetPrefix);
         options.addOption(targetCP);
+        options.addOption(targetLines);
         options.addOption(junitPrefix);
         options.addOption(criterion);
         options.addOption(seed);
@@ -251,7 +262,58 @@ public class CommandLineParameters {
         }
     }
 
-    public static void handleJVMOptions(List<String> javaOpts, CommandLine line) {
+    public static class TargetLinesSpec {
+        private String classname;
+        private int[] targetLines;
+
+        public TargetLinesSpec() {}
+        public TargetLinesSpec(String classname, int[] targetLines) {
+            this.classname = classname;
+            this.targetLines = targetLines;
+        }
+
+        public void setClassname(String classname) {
+            this.classname = classname;
+        }
+
+        public String getClassname() {
+            return this.classname;
+        }
+
+        public void setTargetLines(int[] targetLines) {
+            this.targetLines = targetLines;
+        }
+
+        public int[] getTargetLines() {
+            return this.targetLines;
+        }
+    }
+
+    public static void handleTargetLines(CommandLine line) {
+
+        if (!line.hasOption("targetLines")) {
+            LoggingUtils.getEvoLogger().info("* No target lines specified: specify using -targetLines.");
+            return;
+        }
+
+        String targetLinesPath = line.getOptionValue("targetLines");
+        try {
+            List<TargetLinesSpec> targetLineSpecs = new ObjectMapper().readValue(new File(targetLinesPath), new TypeReference<List<TargetLinesSpec>>(){});
+
+            for (TargetLinesSpec s : targetLineSpecs) {
+                PatchCoverageFactory.addTargetLine(s.classname, s.targetLines);
+            }
+
+        } catch (JsonMappingException e) {
+            throw new Error("Error Unable to create instance of TargetLineSpec: " + e.getMessage());
+        } catch (JsonProcessingException e) {
+            throw new Error("Error while processing target lines JSON: " + e.getMessage());
+        } catch (IOException e) {
+            throw new Error("Unable to find targetLines file: " + e.getMessage());
+        }
+    }
+
+        public static void handleJVMOptions(List<String> javaOpts, CommandLine line) {
         /*
          * NOTE: JVM arguments will not be passed over from the master to the client. So for -Xmx, we need to use "mem"
          */
