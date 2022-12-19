@@ -159,6 +159,11 @@ public final class ArchiveUtils {
                         return true;
                     }
                     break;
+                case PATCHLINE:
+                    if (goal instanceof LineCoverageTestFitness) {
+                        return true;
+                    }
+                    break;
                 case OUTPUT:
                     if (goal instanceof OutputCoverageTestFitness) {
                         return true;

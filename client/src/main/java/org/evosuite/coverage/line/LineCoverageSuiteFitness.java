@@ -63,6 +63,10 @@ public class LineCoverageSuiteFitness extends TestSuiteFitnessFunction {
     private final Set<Integer> branchesToCoverBoth = new LinkedHashSet<>();
 
     public LineCoverageSuiteFitness() {
+        this(new LineCoverageFactory().getCoverageGoals());
+    }
+
+    public LineCoverageSuiteFitness(List<LineCoverageTestFitness> goals) {
         @SuppressWarnings("unused")
         String prefix = Properties.TARGET_CLASS_PREFIX;
 
@@ -71,7 +75,6 @@ public class LineCoverageSuiteFitness extends TestSuiteFitnessFunction {
 //			lines.addAll(LinePool.getLines(className));
 //		}
 
-        List<LineCoverageTestFitness> goals = new LineCoverageFactory().getCoverageGoals();
         for (LineCoverageTestFitness goal : goals) {
             lineGoals.put(goal.getLine(), goal);
             if (Properties.TEST_ARCHIVE)

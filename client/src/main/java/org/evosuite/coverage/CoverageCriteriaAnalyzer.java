@@ -174,6 +174,8 @@ public class CoverageCriteriaAnalyzer {
             case ONLYLINE:
             case LINE:
                 return RuntimeVariable.LineCoverage;
+            case PATCHLINE:
+                return RuntimeVariable.PatchLineCoverage;
             case OUTPUT:
                 return RuntimeVariable.OutputCoverage;
             case INPUT:

@@ -34,6 +34,7 @@ import org.evosuite.coverage.method.MethodNoExceptionCoverageSuiteFitness;
 import org.evosuite.coverage.method.MethodTraceCoverageSuiteFitness;
 import org.evosuite.coverage.mutation.OnlyMutationSuiteFitness;
 import org.evosuite.coverage.mutation.WeakMutationSuiteFitness;
+import org.evosuite.coverage.patch.PatchLineCoverageSuiteFitness;
 import org.evosuite.coverage.rho.RhoCoverageSuiteFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.result.TestGenerationResult;
@@ -776,6 +777,30 @@ public class SearchStatistics implements Listener<ClientStateInformation> {
         @Override
         public Double getValue(TestSuiteChromosome individual) {
             return individual.getCoverageInstanceOf(LineCoverageSuiteFitness.class);
+        }
+    }
+
+    private static class PatchLineFitnessSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+
+        public PatchLineFitnessSequenceOutputVariableFactory() {
+            super(RuntimeVariable.PatchLineFitnessTimeline);
+        }
+
+        @Override
+        public Double getValue(TestSuiteChromosome individual) {
+            return individual.getFitnessInstanceOf(PatchLineCoverageSuiteFitness.class);
+        }
+    }
+
+    private static class PatchLineCoverageSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+
+        public PatchLineCoverageSequenceOutputVariableFactory() {
+            super(RuntimeVariable.PatchLineCoverageTimeline);
+        }
+
+        @Override
+        public Double getValue(TestSuiteChromosome individual) {
+            return individual.getCoverageInstanceOf(PatchLineCoverageSuiteFitness.class);
         }
     }
 

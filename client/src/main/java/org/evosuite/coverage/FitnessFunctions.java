@@ -44,6 +44,8 @@ import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.coverage.line.OnlyLineCoverageSuiteFitness;
 import org.evosuite.coverage.method.*;
 import org.evosuite.coverage.mutation.*;
+import org.evosuite.coverage.patch.PatchLineCoverageFactory;
+import org.evosuite.coverage.patch.PatchLineCoverageSuiteFitness;
 import org.evosuite.coverage.readability.ReadabilitySuiteFitness;
 import org.evosuite.coverage.rho.RhoCoverageFactory;
 import org.evosuite.coverage.rho.RhoCoverageSuiteFitness;
@@ -122,6 +124,8 @@ public class FitnessFunctions {
                 return new InputCoverageSuiteFitness();
             case TRYCATCH:
                 return new TryCatchCoverageSuiteFitness();
+            case PATCHLINE:
+                return new PatchLineCoverageSuiteFitness();
             default:
                 logger.warn("No TestSuiteFitnessFunction defined for {}; using default one (BranchCoverageSuiteFitness)", Arrays.toString(Properties.CRITERION));
                 return new BranchCoverageSuiteFitness();
@@ -182,6 +186,8 @@ public class FitnessFunctions {
                 return new InputCoverageFactory();
             case TRYCATCH:
                 return new TryCatchCoverageFactory();
+            case PATCHLINE:
+                return new PatchLineCoverageFactory();
             default:
                 logger.warn("No TestFitnessFactory defined for " + crit
                         + " using default one (BranchCoverageFactory)");

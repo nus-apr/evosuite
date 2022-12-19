@@ -1,0 +1,5 @@
+[
+  { "classname" : "com.examples.with.different.packagename.coverage.MethodReturnsPrimitive",
+    "targetLines" : [29,33,42]
+  }
+]

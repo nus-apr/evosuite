@@ -28,7 +28,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.evosuite.classpath.ClassPathHandler;
-import org.evosuite.coverage.patch.PatchCoverageFactory;
+import org.evosuite.coverage.patch.PatchLineCoverageFactory;
 import org.evosuite.executionmode.*;
 import org.evosuite.utils.LoggingUtils;
 
@@ -301,7 +301,7 @@ public class CommandLineParameters {
             List<TargetLinesSpec> targetLineSpecs = new ObjectMapper().readValue(new File(targetLinesPath), new TypeReference<List<TargetLinesSpec>>(){});
 
             for (TargetLinesSpec s : targetLineSpecs) {
-                PatchCoverageFactory.addTargetLine(s.classname, s.targetLines);
+                PatchLineCoverageFactory.addTargetLine(s.classname, s.targetLines);
             }
 
         } catch (JsonMappingException e) {
