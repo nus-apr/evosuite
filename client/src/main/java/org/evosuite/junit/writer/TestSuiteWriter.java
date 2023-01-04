@@ -274,6 +274,91 @@ public class TestSuiteWriter implements Opcodes {
     }
 
     /**
+     * Create JUnit test case for class. Trimmed down version of {@link TestSuiteWriter.writeTestSuite}
+     *
+     * @param name      Name of the class
+     * @param directory Output directory
+     */
+    public List<File> writeTestCase(String name, String directory, ExecutionResult cachedResult) throws IllegalArgumentException {
+
+        if (name == null || name.isEmpty()) {
+            throw new IllegalArgumentException("Empty test class name");
+        }
+        if (!name.endsWith("Test")) {
+            /*
+             * This is VERY important, as otherwise tests can get ignored by "mvn test"
+             */
+            throw new IllegalArgumentException("Test classes should have name ending with 'Test'. Invalid input name: " + name);
+        }
+        if (testCases.size() != 1) {
+            throw new IllegalArgumentException("TestSuiteWriter must have exactly one test for writeTestCase().");
+        }
+
+        TestCase tc = testCases.get(0);
+        if (tc != cachedResult.test) {
+            throw new IllegalArgumentException("Cached execution result is not matching test to write.");
+        }
+
+        List<File> generated = new ArrayList<>();
+        String dir = TestSuiteWriterUtils.makeDirectory(directory);
+        String content = "";
+
+        // Execute all tests
+        executor.newObservers();
+        LoopCounter.getInstance().setActive(true); //be sure it is active here, as JUnit checks might have left it to false
+
+        // TODO: Always use cached result?
+        List<ExecutionResult> results = new ArrayList<>();
+        if (!TimeController.getInstance().hasTimeToExecuteATestCase()) {
+            logger.info("Using cached result");
+            results.add(cachedResult); // We have already checked test
+        } else {
+            ExecutionResult result = runTest(tc);
+            results.add(result);
+        }
+
+        // TODO: Implement custom naming strategy or use a fixed one
+        if (Properties.TEST_NAMING_STRATEGY == Properties.TestNamingStrategy.NUMBERED) {
+            nameGenerator = new NumberedTestNameGenerationStrategy(testCases, results);
+        } else if (Properties.TEST_NAMING_STRATEGY == Properties.TestNamingStrategy.COVERAGE) {
+            nameGenerator = new CoverageGoalTestNameGenerationStrategy(testCases, results);
+        } else {
+            throw new RuntimeException("Unsupported naming strategy: " + Properties.TEST_NAMING_STRATEGY);
+        }
+
+        // Avoid downcasts that could break
+        removeUnnecessaryDownCasts(results);
+
+        // Sometimes some timeouts lead to assertions being attached to statements
+        // related to exceptions. This is not currently handled, so as a workaround
+        // let's try to remove any remaining assertions. TODO: Better solution
+        removeAssertionsAfterException(results);
+
+        // We only generate one test, no need for merging strategy, FIXME: 0 suffix
+        File testFile = new File(dir + "/" + name + "_" + "0" + ".java"); // e.g., dir/Foo_ESTest_0.java
+        String testCode = getOneUnitTestInAFile(name, 0, results);
+        FileIOUtils.writeFile(testCode, testFile);
+        content += testCode;
+        generated.add(testFile);
+
+        if (Properties.TEST_SCAFFOLDING && !Properties.NO_RUNTIME_DEPENDENCY) {
+            String scaffoldingName = Scaffolding.getFileName(name);
+            File file = new File(dir + "/" + scaffoldingName + ".java");
+            String scaffoldingContent = Scaffolding.getScaffoldingFileContent(name, results,
+                    TestSuiteWriterUtils.hasAnySecurityException(results));
+            FileIOUtils.writeFile(scaffoldingContent, file);
+            generated.add(file);
+            content += scaffoldingContent;
+        }
+
+        // TODO: I assume we don't need this, check again.
+        //writeCoveredGoalsFile();
+
+        TestGenerationResultBuilder.getInstance().setTestSuiteCode(content);
+        return generated;
+    }
+
+    /**
      * To avoid having completely empty test classes, a no-op test is created
      *
      * @return
