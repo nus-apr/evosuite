@@ -244,6 +244,8 @@ public class FitnessFunctions {
                 return LineCoverageTestFitness.class;
             case LINE:
                 return LineCoverageTestFitness.class;
+            case PATCHLINE:
+                return LineCoverageTestFitness.class;
             case OUTPUT:
                 return OutputCoverageTestFitness.class;
             case INPUT:

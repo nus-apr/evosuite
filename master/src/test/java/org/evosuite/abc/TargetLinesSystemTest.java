@@ -52,4 +52,30 @@ public class TargetLinesSystemTest extends SystemTestBase {
         Assert.assertEquals("Non-optimal fitness: ", 0.0, best.getFitness(), 0.01);
 
     }
+
+    @Test
+    public void testMOSAPatchLineFitness() {
+        EvoSuite evosuite = new EvoSuite();
+        String targetClass = MethodReturnsPrimitive.class.getCanonicalName();
+        Properties.TARGET_CLASS = targetClass;
+
+        URL resource = this.getClass().getResource("testPatchLineFitness.json");
+
+        String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(), "-class", targetClass };
+        Properties.ASSERTIONS = false;
+        Properties.ALGORITHM = Properties.Algorithm.MOSA;
+        Properties.CRITERION = new Properties.Criterion[]{
+                Properties.Criterion.PATCHLINE
+        };
+
+        Object result = evosuite.parseCommandLine(command);
+        GeneticAlgorithm<?> ga = getGAFromResult(result);
+        TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
+        System.out.println("EvolvedTestSuite:\n" + best);
+
+        int goals = TestGenerationStrategy.getFitnessFactories().get(0).getCoverageGoals().size(); // assuming single fitness function
+        Assert.assertEquals("Wrong number of goals: ", 3, goals);
+        Assert.assertEquals("Non-optimal fitness: ", 0.0, best.getFitness(), 0.01);
+
+    }
 }
