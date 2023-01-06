@@ -1,17 +1,83 @@
 package org.evosuite.patch;
 
-//public final class TestChromosome extends AbstractTestChromosome<TestChromosome> {
-
-//public abstract class ExecutableChromosome<E extends ExecutableChromosome<E>> extends Chromosome<E> {
-
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
 
+import org.evosuite.utils.Randomness;
+import us.msu.cse.repair.core.AbstractRepairProblem;
+import us.msu.cse.repair.core.parser.ModificationPoint;
 
-//public abstract class ExecutableChromosome<E extends ExecutableChromosome<E>> extends Chromosome<E> {
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Objects;
 
 public final class PatchChromosome extends Chromosome<PatchChromosome> {
+
+    BitSet bits;
+
+    int[] array;
+
+    AbstractRepairProblem problem;
+
+    int[] numberOfAvailableManipulations;
+    int[] numberOfIngredients;
+
+    public PatchChromosome(BitSet bits, int[] array, AbstractRepairProblem problem,
+                           int[] numberOfAvailableManipulations, int[] numberOfIngredients) {
+        List<ModificationPoint> modificationPoints = problem.getModificationPoints();
+
+        int size = modificationPoints.size();
+
+        if (bits.size() != size) {
+            throw new IllegalArgumentException();
+        }
+        if (array.length != 2 * size) {
+            throw new IllegalArgumentException();
+        }
+        if (numberOfAvailableManipulations.length != size) {
+            throw new IllegalArgumentException();
+        }
+        if (numberOfIngredients.length != size) {
+            throw new IllegalArgumentException();
+        }
+
+        this.bits = bits;
+        this.array = array;
+        this.problem = problem;
+        this.numberOfAvailableManipulations = numberOfAvailableManipulations;
+        this.numberOfIngredients = numberOfIngredients;
+    }
+
+    public static int[] getNumberOfAvailableManipulations(AbstractRepairProblem problem) {
+        int size = problem.getModificationPoints().size();
+
+        int[] numberOfAvailableManipulations = new int[size];
+
+        List<List<String>> availableManipulations = problem.getAvailableManipulations();
+
+        for (int i = 0; i < size; i++) {
+            numberOfAvailableManipulations[i] = availableManipulations.get(i).size();
+        }
+
+        return numberOfAvailableManipulations;
+    }
+
+    public static int[] getNumberOfIngredients(AbstractRepairProblem problem) {
+        List<ModificationPoint> modificationPoints = problem.getModificationPoints();
+
+        int size = modificationPoints.size();
+
+        int[] numberOfIngredients = new int[size];
+
+        for (int i = 0; i < size; i++) {
+            numberOfIngredients[i] = modificationPoints.get(i).getIngredients().size();
+        }
+
+        return numberOfIngredients;
+    }
+
     /**
      * {@inheritDoc}
      * <p>
@@ -19,25 +85,23 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
      */
     @Override
     public PatchChromosome clone() {
-        return null;
+        return new PatchChromosome((BitSet) bits.clone(), Arrays.copyOf(array, array.length), problem,
+                                   numberOfAvailableManipulations, numberOfIngredients);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @param obj
-     */
     @Override
-    public boolean equals(Object obj) {
-        return false;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PatchChromosome that = (PatchChromosome) o;
+        return bits.equals(that.bits) && Arrays.equals(array, that.array) && problem == that.problem;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int hashCode() {
-        return 0;
+        int result = Objects.hash(bits);
+        result = 31 * result + Arrays.hashCode(array);
+        return result;
     }
 
     /**
@@ -56,7 +120,27 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
      */
     @Override
     public void mutate() {
+        // BitFlipUniformMutation of Arja
+        int size = bits.size();
+        double probability = 1.0 / size;
 
+        for (int i = 0; i < size; i++) {
+            if (Randomness.nextDouble() < probability) {
+                bits.flip(i);
+            }
+        }
+
+        for (int i = 0; i < size; i++) {
+            if (Randomness.nextDouble() < probability) {
+                array[i] = Randomness.nextInt(0, numberOfAvailableManipulations[i]);
+            }
+        }
+
+        for (int i = 0; i < size; i++) {
+            if (Randomness.nextDouble() < probability) {
+                array[size + i] = Randomness.nextInt(0, numberOfIngredients[i]);
+            }
+        }
     }
 
     /**
@@ -69,7 +153,7 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
      */
     @Override
     public void crossOver(PatchChromosome other, int position1, int position2) throws ConstructionFailedException {
-
+        throw new UnsupportedOperationException("Single point crossover is undefined for patch chromosomes");
     }
 
     /**
@@ -80,7 +164,7 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
      */
     @Override
     public boolean localSearch(LocalSearchObjective<PatchChromosome> objective) {
-        return false;
+        throw new UnsupportedOperationException("Local search not supported for patch chromosomes");
     }
 
     /**
@@ -90,7 +174,7 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
      */
     @Override
     public int size() {
-        return 0;
+        return bits.size();
     }
 
     /**
@@ -117,6 +201,6 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
      */
     @Override
     public PatchChromosome self() {
-        return null;
+        return this;
     }
 }

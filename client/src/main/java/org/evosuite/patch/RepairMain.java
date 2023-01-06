@@ -6,13 +6,21 @@ import org.evosuite.ga.populationlimit.PopulationLimit;
 import org.evosuite.ga.stoppingconditions.MaxGenerationStoppingCondition;
 
 import us.msu.cse.repair.Interpreter;
+import us.msu.cse.repair.ec.problems.ArjaProblem;
 
 import java.util.HashMap;
 import java.util.List;
 
 public class RepairMain {
     public static void main(String[] args) throws Exception {
-        NSGAII<PatchChromosome> repairAlg = new NSGAII<>(new PatchChromosomeFactory());
+        HashMap<String, String> parameterStrs = Interpreter.getParameterStrings(args);
+
+        HashMap<String, Object> parameters = Interpreter.getBasicParameterSetting(parameterStrs);
+        String ingredientScreenerNameS = parameterStrs.get("ingredientScreenerName");
+        if (ingredientScreenerNameS != null)
+            parameters.put("ingredientScreenerName", ingredientScreenerNameS);
+
+        NSGAII<PatchChromosome> repairAlg = new NSGAII<>(new PatchChromosomeFactory(new ArjaProblem(parameters)));
 
         repairAlg.setCrossOverFunction(new PatchCrossOver());
         repairAlg.setSelectionFunction(new BinaryTournamentSelectionCrowdedComparison<>());
@@ -22,7 +30,6 @@ public class RepairMain {
         repairAlg.addFitnessFunction(weightedFailureRatePatchFitness);
         repairAlg.addFitnessFunction(new SizePatchFitness());
 
-        HashMap<String, String> parameterStrs = Interpreter.getParameterStrings(args);
 
         String populationSizeS = parameterStrs.get("populationSize");
         final int populationSize = populationSizeS != null ? Integer.parseInt(populationSizeS) : 40;
