@@ -109,7 +109,7 @@ public class OrchestratorClient {
 
             // "cmd" property should hold an int value
             if (jsonParser.nextToken() != JsonToken.VALUE_STRING) {
-                throw new IllegalArgumentException("Cmd value must be an integer.");
+                throw new IllegalArgumentException("Cmd value must be a String.");
             }
 
             String cmd = jsonParser.getValueAsString();
