@@ -44,7 +44,7 @@ public class PatchPool {
         }
 
         // Request patch pool from orchestrator through comm server
-        List<Patch> result = PatchCommServer.getInstance().sendRequest(1, new TypeReference<List<Patch>>() {});
+        List<Patch> result = OrchestratorClient.getInstance().sendRequest("sendPatchPool", new TypeReference<List<Patch>>() {});
 
         // Add received patches to the patch pool
         logger.info("Received patch pool from orchestrator of size: " + result.size());

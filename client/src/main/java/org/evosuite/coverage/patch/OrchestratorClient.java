@@ -1,6 +1,5 @@
 package org.evosuite.coverage.patch;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
@@ -11,28 +10,22 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.ServerSocket;
-import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
+public class OrchestratorClient {
 
-public class PatchCommServer {
-    private static final Logger logger = LoggerFactory.getLogger(PatchCommServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrchestratorClient.class);
 
-    private final ServerSocket serverSocket;
-    private final Socket clientSocket;
-    private final OutputStreamWriter out;
-    private final BufferedReader in;
+    private final Socket socket;
 
     // Configure JsonFactory to not close streams after writing (otherwise Sockets will be closed too)
-    private final JsonFactory jsonFactory = new JsonFactory().configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
-    private final ObjectMapper mapper = new ObjectMapper(jsonFactory);
+    private final ObjectMapper mapper;
 
-    private static PatchCommServer instance = null;
+    private static OrchestratorClient instance = null;
 
     /**
-     * Creates a PatchCommServer instance. Data is exchanged through a TCP connection with the orchestrator.
+     * Creates a OrchestratorClient instance. Data is exchanged through a TCP connection with the orchestrator.
      * Communication format is in JSON:
      * {
      *     "cmd": cmdId,    // integer command id
@@ -41,23 +34,22 @@ public class PatchCommServer {
      *     }
      * }
      */
-    public PatchCommServer() {
+    public OrchestratorClient() {
         try {
-            serverSocket = new ServerSocket(7777); // TODO: Make port number configurable
-            logger.info("Waiting for orchestrator to establish connection.");
-            clientSocket = serverSocket.accept();
-            out = new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8);
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
+            socket = new Socket("localhost",7777); // TODO: Make port number configurable
+            mapper = new ObjectMapper();
+            mapper.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+            mapper.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
             logger.info("Connected to orchestrator through port 7777.");
         } catch (IOException e) {
-            clear();
-            throw new RuntimeException("Error while establishing connection with orchestrator: " + e.getMessage());
+            close();
+            throw new RuntimeException("Error while establishing connection with orchestrator: " + e);
         }
     }
 
-    public static PatchCommServer getInstance() {
+    public static OrchestratorClient getInstance() {
         if (instance == null) {
-            instance = new PatchCommServer();
+            instance = new OrchestratorClient();
         }
         return instance;
     }
@@ -69,11 +61,11 @@ public class PatchCommServer {
      *
      * @param cmd the id of the request (e.g., 1 to receive the patch pool) TODO: document cmd ids, implement as enum
      * @param resultType the generic Java type of the expected reply
-     * @return the JSON reply of the orchestrator as an instance of T
+     * @return the JSON reply of the orchestrator as an instance of the type represented by resultType
      * @param <T> the type of the return object
      */
-    public <T> T sendRequest (int cmd, TypeReference<T> resultType) {
-        Map<String, Object> map = new LinkedHashMap<>();
+    public <T> T sendRequest (String cmd, TypeReference<T> resultType) {
+        Map<String, Object> map = new HashMap<>();
         map.put("cmd", cmd);
         return sendRequest(map, resultType);
     }
@@ -82,50 +74,47 @@ public class PatchCommServer {
      * Sends a cmd request with data (given as key-value pairs) to the orchestrator.
      * @param request the map of key-value pairs of the request (must contain cmd and data as keys)
      * @param resultType the generic Java type of the expected reply
-     * @return the JSON reply of the orchestrator as an instance of T
+     * @return the JSON reply of the orchestrator as an instance of the type represented by resultFormat
      * @param <T> the type of the return object
      */
     public <T> T sendRequest(Map<String, Object> request, TypeReference<T> resultType) {
         try {
-            mapper.writeValue(out, request); // send request to orchestrator over socket
-            return getJSONReply((int) request.get("cmd"), resultType);
-        } catch (Exception e) {
-            throw new RuntimeException("Error while sending request: " + request.toString() + e.getMessage());
+            mapper.writeValue(socket.getOutputStream(), request); // send request to orchestrator over socket
+            return getJSONReply(request.get("cmd").toString(), resultType);
+        } catch (IOException e) {
+            throw new RuntimeException("Error while sending request: " + request.toString() + "\n" + e);
         }
     }
 
     /**
      * Unmarshalls the JSON reply of the orchestrator to the given result type.
-     * @param requestedCmd the original cmd send to the orchestrator, will be checked against the cmd in the reply
+     * @param originalCmd the original cmd send to the orchestrator, will be checked against the cmd in the reply
      * @param resultType the generic Java type of the expected reply
-     * @return the JSON reply of the orchestrator as an instance of T
+     * @return the JSON reply of the orchestrator as an instance of the type represented by resultFormat
      * @param <T> the type of the return object
      */
-    public <T> T getJSONReply(int requestedCmd, TypeReference<T> resultType) {
+    public <T> T getJSONReply(String originalCmd, TypeReference<T> resultType) {
         // Create a JsonParser instance
-        try (JsonParser jsonParser = mapper.getFactory().createParser(in)) {
+        try (JsonParser jsonParser = mapper.getFactory().createParser(socket.getInputStream())) {
 
             // Check the first token
             if (jsonParser.nextToken() != JsonToken.START_OBJECT) {
                 throw new IllegalStateException("Expected content to be a object.");
             }
 
-            // First property of object should be "cmd"
+            // First property of JSON object should be "cmd"
             if (jsonParser.nextToken() != JsonToken.FIELD_NAME || !jsonParser.getCurrentName().equals("cmd")) {
                 throw new IllegalStateException("Expected cmd field.");
             }
 
             // "cmd" property should hold an int value
-            if (jsonParser.nextToken() != JsonToken.VALUE_NUMBER_INT) {
+            if (jsonParser.nextToken() != JsonToken.VALUE_STRING) {
                 throw new IllegalArgumentException("Cmd value must be an integer.");
             }
 
-            int cmd = jsonParser.getIntValue();
-            logger.info("Read cmd: " + cmd);
-
-            // Cmd in reply should match cmd from original request
-            if (cmd != requestedCmd) {
-                throw new IllegalArgumentException("Cmd does not match original request, expected: " + requestedCmd);
+            String cmd = jsonParser.getValueAsString();
+            if (!cmd.equals(originalCmd)) {
+                throw new IllegalArgumentException("Cmd does not match original request, expected: " + originalCmd);
             }
 
             // The next property should be the data corresponding to the command
@@ -142,29 +131,23 @@ public class PatchCommServer {
             // Unmarshall JSON to instanceof T
             T result = mapper.readValue(jsonParser, resultType);
 
-            // End of reply object
+            // process "end" of reply object
             if (jsonParser.nextToken() != JsonToken.END_OBJECT) {
                 throw new IllegalStateException("Expected end of data object.");
             }
 
             return result;
         } catch (IOException e) {
-            throw new RuntimeException("Error while reading data: " + e.getMessage());
+            throw new RuntimeException("Error while reading data: " + e);
         }
     }
 
-    public void clear() {
+    public void close() {
         // clean up connections
         try {
-            if (serverSocket != null) serverSocket.close();
-            if (clientSocket != null) clientSocket.close();
-            if (in != null) in.close();
-            if (out != null) out.close();
-
+            if (socket != null) socket.close();
         } catch (IOException e) {
-            throw new RuntimeException("Error while closing streams/connections: " + e.getMessage());
+            throw new RuntimeException("Error while closing streams/connections: " + e);
         }
     }
 }
-
-
