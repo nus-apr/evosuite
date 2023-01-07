@@ -80,7 +80,7 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
         }
         request.put("data", patchInfo);
 
-        return PatchCommServer.getInstance().sendRequest(request, new TypeReference<PatchValidationResult>() {});
+        return OrchestratorClient.getInstance().sendRequest(request, new TypeReference<PatchValidationResult>() {});
     }
 
     // TODO: Cache execution/kill results as this may be executed more frequently
