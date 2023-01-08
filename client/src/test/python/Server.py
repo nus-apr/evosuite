@@ -80,7 +80,7 @@ def updateTestPopulation(json_data, conn):
 
 # Sends back dummy patch validation result for one (test, patchId) tuple.
 def getPatchValidationResult(json_data, conn):
-    test_name = json_data['data']['test']
+    test_name = json_data['data']['testId']
     patch_id = json_data['data']['patchId']
 
     if test_name == 'test1' and int(patch_id) == 7:
@@ -91,7 +91,7 @@ def getPatchValidationResult(json_data, conn):
     reply = {
             "cmd": "getPatchValidationResult",
             "data": {
-                "test": test_name,
+                "testId": test_name,
                 "patchId": patch_id,
                 "result": validation_result
                 }

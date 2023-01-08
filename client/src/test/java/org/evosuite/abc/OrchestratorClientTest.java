@@ -3,6 +3,7 @@ package org.evosuite.abc;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.evosuite.coverage.patch.OrchestratorClient;
 import org.evosuite.coverage.patch.Patch;
+import org.evosuite.coverage.patch.communication.json.PatchValidationResult;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -14,6 +15,7 @@ public class OrchestratorClientTest {
     /**
      * If this is set to true, the Python server under 'evosuite/client/src/test/python/Server.py'
      * must be started before running any tests (must be run before starting each test).
+     * TODO: Make python server listen for subsequent connections.
      */
     private static final boolean USE_PYTHON_SERVER = false;
     private OrchestratorClient client;
@@ -76,42 +78,19 @@ public class OrchestratorClientTest {
             Map<String, Object> patchValidationRequestMap = new LinkedHashMap<>();
             patchValidationRequestMap.put("cmd", "getPatchValidationResult");
             Map<String, Object> patchValidationData = new LinkedHashMap<>();
-            patchValidationData.put("test", "test1");
+            patchValidationData.put("testId", "test1");
             patchValidationData.put("patchId", "7");
             patchValidationRequestMap.put("data", patchValidationData);
 
             PatchValidationResult validationResult = client.sendRequest(patchValidationRequestMap, new TypeReference<PatchValidationResult>() {});
-            Assert.assertEquals(validationResult.test, "test1");
-            Assert.assertEquals(validationResult.patchId, 7);
-            Assert.assertEquals(validationResult.result, true);
+            Assert.assertEquals(validationResult.getTestId(), "test1");
+            Assert.assertEquals(validationResult.getPatchId(), 7);
+            Assert.assertEquals(validationResult.getResult(), true);
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to start server: " + e);
         } finally {
             client.close();
-        }
-    }
-
-    public static class PatchValidationResult {
-        private String test;
-        private int patchId;
-        private boolean result;
-
-        public PatchValidationResult() {}
-        public PatchValidationResult(String test, int patchId, boolean result) {
-            this.patchId = patchId;
-            this.test = test;
-            this.result = result;
-        }
-
-        public void setTest(String test) {
-            this.test = test;
-        }
-        public void setPatchId(int patchId) {
-            this.patchId = patchId;
-        }
-        public void setResult(boolean result) {
-            this.result = result;
         }
     }
 }

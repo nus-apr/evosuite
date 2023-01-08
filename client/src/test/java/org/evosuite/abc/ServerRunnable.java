@@ -118,7 +118,7 @@ class ServerRunnable implements Runnable {
 
     private void getPatchValidationResult(Map<String, Object> requestMap, Socket clientSocket) throws IOException{
         JsonNode rootNode = mapper.valueToTree(requestMap);
-        String testName = rootNode.at("/data/test").asText();
+        String testName = rootNode.at("/data/testId").asText();
         int patchID = rootNode.at("/data/patchId").asInt();
         boolean validationResult;
         if (testName.equals("test1") && patchID == 7) {
