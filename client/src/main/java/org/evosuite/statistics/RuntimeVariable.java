@@ -260,6 +260,13 @@ public enum RuntimeVariable {
     PatchLineCoverageTimeline,
     PatchLineCoverageBitString,
     /**
+     * The obtained patch coverage
+     */
+    PatchCoverage,
+    PatchFitnessTimeline,
+    PatchCoverageTimeline,
+    PatchCoverageBitString,
+    /**
      * The obtained output value coverage
      */
     OutputCoverage,

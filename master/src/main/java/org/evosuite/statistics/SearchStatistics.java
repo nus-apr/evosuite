@@ -34,6 +34,7 @@ import org.evosuite.coverage.method.MethodNoExceptionCoverageSuiteFitness;
 import org.evosuite.coverage.method.MethodTraceCoverageSuiteFitness;
 import org.evosuite.coverage.mutation.OnlyMutationSuiteFitness;
 import org.evosuite.coverage.mutation.WeakMutationSuiteFitness;
+import org.evosuite.coverage.patch.PatchCoverageSuiteFitness;
 import org.evosuite.coverage.patch.PatchLineCoverageSuiteFitness;
 import org.evosuite.coverage.rho.RhoCoverageSuiteFitness;
 import org.evosuite.ga.Chromosome;
@@ -146,6 +147,10 @@ public class SearchStatistics implements Listener<ClientStateInformation> {
         sequenceOutputVariableFactories.put(RuntimeVariable.WeakMutationCoverageTimeline.name(), new WeakMutationCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.OnlyMutationFitnessTimeline.name(), new OnlyMutationFitnessSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.OnlyMutationCoverageTimeline.name(), new OnlyMutationCoverageSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.PatchLineFitnessTimeline.name(), new PatchLineFitnessSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.PatchLineCoverage.name(), new PatchLineCoverageSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.PatchFitnessTimeline.name(), new PatchFitnessSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.PatchCoverageTimeline.name(), new PatchCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.DiversityTimeline.name(),
                 DirectSequenceOutputVariableFactory.getDouble(RuntimeVariable.DiversityTimeline));
 
@@ -801,6 +806,31 @@ public class SearchStatistics implements Listener<ClientStateInformation> {
         @Override
         public Double getValue(TestSuiteChromosome individual) {
             return individual.getCoverageInstanceOf(PatchLineCoverageSuiteFitness.class);
+        }
+    }
+
+
+    private static class PatchFitnessSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+
+        public PatchFitnessSequenceOutputVariableFactory() {
+            super(RuntimeVariable.PatchFitnessTimeline);
+        }
+
+        @Override
+        public Double getValue(TestSuiteChromosome individual) {
+            return individual.getFitnessInstanceOf(PatchCoverageSuiteFitness.class);
+        }
+    }
+
+    private static class PatchCoverageSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+
+        public PatchCoverageSequenceOutputVariableFactory() {
+            super(RuntimeVariable.PatchCoverageTimeline);
+        }
+
+        @Override
+        public Double getValue(TestSuiteChromosome individual) {
+            return individual.getCoverageInstanceOf(PatchCoverageSuiteFitness.class);
         }
     }
 
