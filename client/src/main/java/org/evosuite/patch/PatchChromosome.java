@@ -1,16 +1,26 @@
 package org.evosuite.patch;
 
+import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
 
 import org.evosuite.utils.Randomness;
 import us.msu.cse.repair.core.AbstractRepairProblem;
+import us.msu.cse.repair.core.filterrules.MIFilterRule;
 import us.msu.cse.repair.core.parser.ModificationPoint;
+import us.msu.cse.repair.core.testexecutors.ExternalTestExecutor;
+import us.msu.cse.repair.core.testexecutors.ITestExecutor;
+import us.msu.cse.repair.ec.problems.ArjaProblem;
 
+import javax.tools.JavaFileObject;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public final class PatchChromosome extends Chromosome<PatchChromosome> {
@@ -19,12 +29,16 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
 
     int[] array;
 
-    AbstractRepairProblem problem;
+    ArjaProblem problem;
 
     int[] numberOfAvailableManipulations;
     int[] numberOfIngredients;
 
-    public PatchChromosome(BitSet bits, int[] array, AbstractRepairProblem problem,
+    private Boolean isUndesirable = null;
+    private Double weightedFailureRate = null;
+    private Double numberOfEdits = null;
+
+    public PatchChromosome(BitSet bits, int[] array, ArjaProblem problem,
                            int[] numberOfAvailableManipulations, int[] numberOfIngredients) {
         List<ModificationPoint> modificationPoints = problem.getModificationPoints();
 
@@ -202,5 +216,126 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
     @Override
     public PatchChromosome self() {
         return this;
+    }
+
+    private void precomputeFitnesses() throws Exception {
+        isUndesirable = false;
+
+        int size = bits.size();
+        Map<String, ASTRewrite> astRewriters = new LinkedHashMap<>();
+
+        Map<Integer, Double> selectedMP = new LinkedHashMap<>();
+
+        List<ModificationPoint> modificationPoints = problem.getModificationPoints();
+        List<List<String>> availableManipulations = problem.getAvailableManipulations();
+        boolean miFilterRule = problem.getMiFilterRule();
+
+        for (int i = 0; i < size; i++) {
+            if (bits.get(i)) {
+                double suspValue = modificationPoints.get(i).getSuspValue();
+                if (miFilterRule) {
+                    String manipName = availableManipulations.get(i).get(array[i]);
+                    ModificationPoint mp = modificationPoints.get(i);
+
+                    Statement seed = null;
+                    if (!mp.getIngredients().isEmpty()) {
+                        seed = mp.getIngredients().get(array[i + size]);
+                    }
+                    int index = MIFilterRule.canFiltered(manipName, seed, modificationPoints.get(i));
+                    if (index == -1) {
+                        selectedMP.put(i, suspValue);
+                    } else if (index < mp.getIngredients().size()) {
+                        array[i + size] = index;
+                        selectedMP.put(i, suspValue);
+                    } else {
+                        bits.set(i, false);
+                    }
+                } else {
+                    selectedMP.put(i, suspValue);
+                }
+            }
+        }
+
+        if (selectedMP.isEmpty()) {
+            isUndesirable = true;
+            return;
+        }
+
+        int numberOfEdits = selectedMP.size();
+        List<Map.Entry<Integer, Double>> list = new ArrayList<>(selectedMP.entrySet());
+
+        Integer maxNumberOfEdits = problem.getMaxNumberOfEdits();
+        if (maxNumberOfEdits != null && selectedMP.size() > maxNumberOfEdits) {
+            list.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
+
+            numberOfEdits = maxNumberOfEdits;
+        }
+
+        for (int i = 0; i < numberOfEdits; i++) {
+            problem.manipulateOneModificationPoint(list.get(i).getKey(), size, array, astRewriters);
+        }
+
+        for (int i = numberOfEdits; i < selectedMP.size(); i++) {
+            bits.set(list.get(i).getKey(), false);
+        }
+
+        Map<String, String> modifiedJavaSources = problem.getModifiedJavaSources(astRewriters);
+        Map<String, JavaFileObject> compiledClasses = problem.getCompiledClassesForTestExecution(modifiedJavaSources);
+
+        if (compiledClasses != null) {
+            this.numberOfEdits = (double) numberOfEdits;
+
+            ITestExecutor testExecutor = problem.getTestExecutor(compiledClasses, problem.getSamplePositiveTests());
+
+            if (problem.useDefects4JInstrumentation) {
+                ((ExternalTestExecutor) testExecutor).enableDefects4jInstrumentation();
+            }
+
+            boolean status = testExecutor.runTests();
+
+            Double percentage = problem.getPercentage();
+            if (status && percentage != null && percentage < 1) {
+                testExecutor = problem.getTestExecutor(compiledClasses, problem.getPositiveTests());
+
+                if (problem.useDefects4JInstrumentation) {
+                    ((ExternalTestExecutor) testExecutor).enableDefects4jInstrumentation();
+                }
+
+                testExecutor.runTests();
+            }
+
+            if (!testExecutor.isExceptional()) {
+                weightedFailureRate = problem.getWeight() * testExecutor.getRatioOfFailuresInPositive()
+                                      + testExecutor.getRatioOfFailuresInNegative();
+            } else {
+                isUndesirable = true;
+            }
+        } else {
+            isUndesirable = true;
+        }
+    }
+
+    public double getSizePatchFitness() {
+        if (isUndesirable == null) {
+            try {
+                precomputeFitnesses();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return isUndesirable ? Double.MAX_VALUE : numberOfEdits;
+    }
+
+    public double getWeightedFailureRateFitness() {
+        if (isUndesirable == null) {
+            try {
+                precomputeFitnesses();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return isUndesirable ? Double.MAX_VALUE : weightedFailureRate;
     }
 }

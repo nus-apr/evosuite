@@ -13,7 +13,7 @@ public class WeightedFailureRatePatchFitness extends FitnessFunction<PatchChromo
      */
     @Override
     public double getFitness(PatchChromosome individual) {
-        return 0;
+        return individual.getWeightedFailureRateFitness();
     }
 
     /**

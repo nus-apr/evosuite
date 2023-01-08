@@ -13,7 +13,7 @@ public class SizePatchFitness extends FitnessFunction<PatchChromosome> {
      */
     @Override
     public double getFitness(PatchChromosome individual) {
-        return 0;
+        return individual.getSizePatchFitness();
     }
 
     /**
