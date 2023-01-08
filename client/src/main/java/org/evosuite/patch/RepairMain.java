@@ -49,13 +49,5 @@ public class RepairMain {
         repairAlg.addStoppingCondition(condition);
 
         repairAlg.generateSolution();
-
-        List<PatchChromosome> bestIndividuals = repairAlg.getBestIndividuals();
-
-        for (PatchChromosome chromosome : bestIndividuals) {
-            if (chromosome.getFitnessValues().get(weightedFailureRatePatchFitness) == 0) {
-                // save patch
-            }
-        }
     }
 }

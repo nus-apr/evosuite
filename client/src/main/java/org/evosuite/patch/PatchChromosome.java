@@ -12,9 +12,11 @@ import us.msu.cse.repair.core.filterrules.MIFilterRule;
 import us.msu.cse.repair.core.parser.ModificationPoint;
 import us.msu.cse.repair.core.testexecutors.ExternalTestExecutor;
 import us.msu.cse.repair.core.testexecutors.ITestExecutor;
+import us.msu.cse.repair.core.util.IO;
 import us.msu.cse.repair.ec.problems.ArjaProblem;
 
 import javax.tools.JavaFileObject;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -37,6 +39,8 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
     private Boolean isUndesirable = null;
     private Double weightedFailureRate = null;
     private Double numberOfEdits = null;
+    private List<Integer> locations = null;
+    private Map<String, String> modifiedJavaSources = null;
 
     public PatchChromosome(BitSet bits, int[] array, ArjaProblem problem,
                            int[] numberOfAvailableManipulations, int[] numberOfIngredients) {
@@ -279,7 +283,12 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
             bits.set(list.get(i).getKey(), false);
         }
 
-        Map<String, String> modifiedJavaSources = problem.getModifiedJavaSources(astRewriters);
+        locations = new ArrayList<>();
+        for (Map.Entry<Integer, Double> entry: list) {
+            locations.add(entry.getKey());
+        }
+
+        modifiedJavaSources = problem.getModifiedJavaSources(astRewriters);
         Map<String, JavaFileObject> compiledClasses = problem.getCompiledClassesForTestExecution(modifiedJavaSources);
 
         if (compiledClasses != null) {
@@ -301,7 +310,11 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
                     ((ExternalTestExecutor) testExecutor).enableDefects4jInstrumentation();
                 }
 
-                testExecutor.runTests();
+                status = testExecutor.runTests();
+
+                if (status) {
+                    save();
+                }
             }
 
             if (!testExecutor.isExceptional()) {
@@ -337,5 +350,41 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
         }
 
         return isUndesirable ? Double.MAX_VALUE : weightedFailureRate;
+    }
+
+    public void save() {
+        List<Integer> opList = new ArrayList<>();
+        List<Integer> locList = new ArrayList<>();
+        List<Integer> ingredList = new ArrayList<>();
+
+        int size = array.length / 2;
+
+        for (int i = 0; i < numberOfEdits; i++) {
+            int loc = locations.get(i);
+            int op = array[loc];
+            int ingred = array[loc + size];
+            opList.add(op);
+            locList.add(loc);
+            ingredList.add(ingred);
+        }
+
+        try {
+            if (problem.addTestAdequatePatch(opList, locList, ingredList)) {
+                if (problem.getDiffFormat()) {
+                    try {
+                        IO.savePatch(modifiedJavaSources, problem.getSrcJavaDir(),
+                                     problem.getPatchOutputRoot(), AbstractRepairProblem.getGlobalID());
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+                problem.saveTestAdequatePatch(opList, locList, ingredList);
+                AbstractRepairProblem.increaseGlobalID();
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 }
