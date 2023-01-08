@@ -7,6 +7,8 @@ import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.localsearch.LocalSearchObjective;
 
 import org.evosuite.utils.Randomness;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import us.msu.cse.repair.core.AbstractRepairProblem;
 import us.msu.cse.repair.core.filterrules.MIFilterRule;
 import us.msu.cse.repair.core.parser.ModificationPoint;
@@ -26,6 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public final class PatchChromosome extends Chromosome<PatchChromosome> {
+
+    private static final Logger logger = LoggerFactory.getLogger(PatchChromosome.class);
 
     BitSet bits;
 
@@ -288,6 +292,7 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
         modifiedJavaSources = problem.getModifiedJavaSources(astRewriters);
         Map<String, JavaFileObject> compiledClasses = problem.getCompiledClassesForTestExecution(modifiedJavaSources);
 
+        boolean status = false;
         if (compiledClasses != null) {
             this.numberOfEdits = (double) numberOfEdits;
 
@@ -297,7 +302,7 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
                 ((ExternalTestExecutor) testExecutor).enableDefects4jInstrumentation();
             }
 
-            boolean status = testExecutor.runTests();
+            status = testExecutor.runTests();
 
             Double percentage = problem.getPercentage();
             if (status && percentage != null && percentage < 1) {
@@ -309,9 +314,6 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
 
                 status = testExecutor.runTests();
 
-                if (status) {
-                    save();
-                }
             }
 
             if (!testExecutor.isExceptional()) {
@@ -322,6 +324,11 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
             }
         } else {
             isUndesirable = true;
+        }
+
+        if (status) {
+            logger.info("found a plausible patch");
+            save();
         }
     }
 
