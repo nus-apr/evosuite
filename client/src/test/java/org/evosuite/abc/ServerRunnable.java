@@ -54,6 +54,7 @@ class ServerRunnable implements Runnable {
                             getPatchValidationResult(requestMap, clientSocket);
                             break;
                         case "closeConnection":
+                            System.out.println("[Server] Closing connection.");
                             break requestLoop;
                         default:
                             System.out.println("[Server] Unknown command: " + cmd + ". Sending back echo.");
@@ -98,10 +99,10 @@ class ServerRunnable implements Runnable {
 
     private void updateTestPopulation(Map<String, Object> requestMap, Socket clientSocket) throws IOException {
         JsonNode rootNode = mapper.valueToTree(requestMap);
-        String population = rootNode.at("/data/Generation").asText();
-        List<String> testNames = mapper.treeToValue(rootNode.at("/data/Tests"), List.class);
-        String className = rootNode.at("/data/Classname").asText();
-        String filePath = rootNode.at("/data/Filepath").asText();
+        String population = rootNode.at("/data/generation").asText();
+        List<String> testNames = mapper.treeToValue(rootNode.at("/data/tests"), List.class);
+        String className = rootNode.at("/data/classname").asText();
+        String filePath = rootNode.at("/data/filepath").asText();
 
         Map<String, Object> replyMap = new LinkedHashMap<>();
         replyMap.put("cmd", "updateTestPopulation");
