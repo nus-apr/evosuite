@@ -2,8 +2,9 @@ package org.evosuite.coverage.patch;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.evosuite.Properties;
+import org.evosuite.coverage.patch.communication.OrchestratorClient;
+import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.junit.naming.methods.IDTestNameGenerationStrategy;
-import org.evosuite.junit.naming.methods.TestNameGenerationStrategy;
 import org.evosuite.junit.writer.TestSuiteWriter;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -60,7 +61,7 @@ public class PatchPool {
     }
 
     // TODO: Request generation can potentially be optimized using JsonGenerator
-    public void sendPopulationToOrchestrator(List<TestChromosome> population, int generation) {
+    public void sendTestPopulationToOrchestrator(List<TestChromosome> population, int generation) {
         List<TestCase> tests = population.stream()
                 .map(TestChromosome::getTestCase)
                 .collect(toList());
@@ -98,22 +99,5 @@ public class PatchPool {
 
     public Set<Patch> getPatchPool() {
         return patches;
-    }
-
-    /**
-     * (Unused, kept for reference only)
-     * Type representation of the patch pool to receive from the orchestrator.
-     */
-    public static class PatchPoolType {
-        private List<Patch> patches;
-
-        public PatchPoolType() {}
-        public PatchPoolType(List<Patch> patches) {
-            this.patches = patches;
-        }
-
-        public void setPatches(List<Patch> patches) {
-            this.patches = patches;
-        }
     }
 }

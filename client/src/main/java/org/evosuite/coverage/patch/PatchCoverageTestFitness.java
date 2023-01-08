@@ -2,6 +2,8 @@ package org.evosuite.coverage.patch;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.evosuite.Properties;
+import org.evosuite.coverage.patch.communication.OrchestratorClient;
+import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.coverage.patch.communication.json.PatchValidationResult;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.testcase.TestCase;

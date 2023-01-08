@@ -1,4 +1,4 @@
-package org.evosuite.coverage.patch;
+package org.evosuite.coverage.patch.communication;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;

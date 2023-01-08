@@ -1,8 +1,8 @@
 package org.evosuite.abc;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.evosuite.coverage.patch.OrchestratorClient;
-import org.evosuite.coverage.patch.Patch;
+import org.evosuite.coverage.patch.communication.OrchestratorClient;
+import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.coverage.patch.communication.json.PatchValidationResult;
 import org.junit.Assert;
 import org.junit.Test;

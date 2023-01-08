@@ -1,6 +1,6 @@
 package org.evosuite.abc;
 
-import org.evosuite.coverage.patch.Patch;
+import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.coverage.patch.PatchCoverageTestFitness;
 import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;

@@ -366,7 +366,7 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
      */
     @Override
     protected void sendPopulationToOrchestrator() {
-        PatchPool.getInstance().sendPopulationToOrchestrator(population, getAge());
+        PatchPool.getInstance().sendTestPopulationToOrchestrator(population, getAge());
     }
 
     /**
