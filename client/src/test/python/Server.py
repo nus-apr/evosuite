@@ -44,7 +44,7 @@ def start_server():
 
             print('[Server] Connection closed.')
 
-
+# Sends a dummy patch pool consisting of 10 patches to the client.
 def getPatchPool(conn):
     patch_pool = [{"id": i} for i in range(10)]
     reply = {
@@ -54,6 +54,8 @@ def getPatchPool(conn):
     
     conn.sendall(bytes(json.dumps(reply), 'UTF-8'))
 
+# Reads population data, checks if provided file exists, and sends back 
+# aggregated information (list of strings) to the client.
 def updateTestPopulation(json_data, conn):
     population = json_data['data']['generation']
     test_names = json_data['data']['tests']
@@ -62,6 +64,9 @@ def updateTestPopulation(json_data, conn):
 
     assert(exists(file_path))
 
+    # Here, the actual orchestrator would perform the patch validation, and then
+    # notify the client that validation results can be queried. For testing purposes,
+    # we simply aggregate the data and send it back to the client.
     reply_data = [population]
     reply_data.extend(test_names)
     reply_data.append(classname)
@@ -73,6 +78,7 @@ def updateTestPopulation(json_data, conn):
 
     conn.sendall(bytes(json.dumps(reply), 'UTF-8'))
 
+# Sends back dummy patch validation result for one (test, patchId) tuple.
 def getPatchValidationResult(json_data, conn):
     test_name = json_data['data']['test']
     patch_id = json_data['data']['patchId']
