@@ -1,5 +1,6 @@
 package org.evosuite.coverage.patch;
 
+import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.testsuite.AbstractFitnessFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

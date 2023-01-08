@@ -1,4 +1,4 @@
-package org.evosuite.coverage.patch;
+package org.evosuite.coverage.patch.communication.json;
 
 // TODO: Merge with TargetLinesSpec
 public class Patch {

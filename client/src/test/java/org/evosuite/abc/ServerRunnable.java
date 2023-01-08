@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import org.evosuite.coverage.patch.Patch;
+import org.evosuite.coverage.patch.communication.json.Patch;
 
 import java.io.IOException;
 import java.net.ServerSocket;
