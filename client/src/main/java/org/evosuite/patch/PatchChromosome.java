@@ -48,9 +48,6 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
 
         int size = modificationPoints.size();
 
-        if (bits.size() != size) {
-            throw new IllegalArgumentException();
-        }
         if (array.length != 2 * size) {
             throw new IllegalArgumentException();
         }
@@ -139,7 +136,7 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
     @Override
     public void mutate() {
         // BitFlipUniformMutation of Arja
-        int size = bits.size();
+        int size = problem.getNumberOfModificationPoints();
         double probability = 1.0 / size;
 
         for (int i = 0; i < size; i++) {
@@ -192,7 +189,7 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
      */
     @Override
     public int size() {
-        return bits.size();
+        return 0;
     }
 
     /**
@@ -225,7 +222,7 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
     private void precomputeFitnesses() throws Exception {
         isUndesirable = false;
 
-        int size = bits.size();
+        int size = problem.getNumberOfModificationPoints();
         Map<String, ASTRewrite> astRewriters = new LinkedHashMap<>();
 
         Map<Integer, Double> selectedMP = new LinkedHashMap<>();

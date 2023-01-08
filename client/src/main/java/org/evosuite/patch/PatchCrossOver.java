@@ -16,7 +16,7 @@ public class PatchCrossOver extends CrossOverFunction<PatchChromosome> {
     @Override
     public void crossOver(PatchChromosome parent1, PatchChromosome parent2) throws ConstructionFailedException {
         // HUXSinglePointCrossover in Arja
-        int size = parent1.bits.size();
+        int size = parent1.problem.getNumberOfModificationPoints();
 
         for (int i = 0; i < size; i++) {
             if (parent1.bits.get(i) != parent2.bits.get(i)) {
