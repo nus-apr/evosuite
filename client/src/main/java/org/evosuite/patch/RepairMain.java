@@ -25,7 +25,7 @@ public class RepairMain {
         Properties.CROSSOVER_RATE = 1;
         Properties.MUTATION_RATE = 1;
         repairAlg.setCrossOverFunction(new PatchCrossOver());
-        repairAlg.setSelectionFunction(new BinaryTournamentSelectionCrowdedComparison<>());
+        repairAlg.setSelectionFunction(new BinaryTournamentSelectionCrowdedComparison<>(false));
 
         WeightedFailureRatePatchFitness weightedFailureRatePatchFitness = new WeightedFailureRatePatchFitness();
 
