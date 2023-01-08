@@ -22,6 +22,8 @@ public class RepairMain {
 
         NSGAII<PatchChromosome> repairAlg = new NSGAII<>(new PatchChromosomeFactory(new ArjaProblem(parameters)));
 
+        Properties.CROSSOVER_RATE = 1;
+        Properties.MUTATION_RATE = 1;
         repairAlg.setCrossOverFunction(new PatchCrossOver());
         repairAlg.setSelectionFunction(new BinaryTournamentSelectionCrowdedComparison<>());
 
