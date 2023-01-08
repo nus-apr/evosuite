@@ -2,14 +2,13 @@ package org.evosuite.coverage.patch;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.evosuite.Properties;
+import org.evosuite.coverage.patch.communication.json.PatchValidationResult;
 import org.evosuite.ga.archive.Archive;
-import org.evosuite.junit.writer.TestSuiteWriter;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
 
-import java.io.File;
 import java.util.*;
 
 public class PatchCoverageTestFitness extends TestFitnessFunction {
@@ -53,40 +52,29 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
         return 0;
     }
 
-    // TODO: request generation can potentially be optimized using JsonGenerator
-    // TODO: Avoid writing out the same test suite multiple times
-    private PatchValidationResult getPatchValidationResult(TestCase tc, ExecutionResult cachedResult) {
-        // Write out test suite
-        TestSuiteWriter suiteWriter = new TestSuiteWriter();
-        suiteWriter.insertTest(tc);
+    // TODO: Can potentially optimize request generation using JSONGenerator
+    private boolean getPatchValidationResult(TestCase tc) {
+        // FIXME: Inconsistent ID naming
+        String testId = "test" + tc.getID();
+        int patchId = targetPatch.getId();
 
-        String name = Properties.TARGET_CLASS.substring(Properties.TARGET_CLASS.lastIndexOf(".") + 1);
-        String testDir = "evosuite-patch-tests"; // TODO: make configurable
-        String id = String.valueOf(tc.hashCode());
-        String suffix = Properties.JUNIT_SUFFIX;
+        // Prepare request for orchestrator
+        Map<String, Object> msg = new LinkedHashMap<>();
+        msg.put("cmd", "getPatchValidationResult");
+        Map<String, Object> patchValidationData = new LinkedHashMap<>();
+        patchValidationData.put("testId", testId);
+        patchValidationData.put("patchId", patchId);
+        msg.put("data", patchValidationData);
+        PatchValidationResult validationResult = OrchestratorClient.getInstance().sendRequest(msg, new TypeReference<PatchValidationResult>() {});
 
-        List<File> tests = suiteWriter.writeTestCase(name + id + suffix, testDir, cachedResult);
-
-        // Generate request for orchestrator
-        Map<String, Object> request = new LinkedHashMap<>();
-        request.put("cmd", 2); // TODO: Refactor commands to enum/interface
-        Map<String, Object> patchInfo = new LinkedHashMap<>();
-        patchInfo.put("patchId", targetPatch.getId());
-        //patchInfo.put("testSuiteDir", testDir);
-        //patchInfo.put("testName", name + suffix);
-        patchInfo.put("testFilePath", tests.get(0).getAbsolutePath());
-        if (Properties.TEST_SCAFFOLDING && !Properties.NO_RUNTIME_DEPENDENCY) {
-            patchInfo.put("testScaffoldingFilePath", tests.get(1).getAbsolutePath());
-        }
-        request.put("data", patchInfo);
-
-        return OrchestratorClient.getInstance().sendRequest(request, new TypeReference<PatchValidationResult>() {});
+        // TODO: Check that we got the correct information (testId, patchId) back
+        return validationResult.getResult();
     }
 
     // TODO: Cache execution/kill results as this may be executed more frequently
     @Override
     public boolean isCovered(ExecutionResult result) {
-        return getPatchValidationResult(result.test, result).isKilled;
+        return getPatchValidationResult(result.test);
     }
 
     @Override
@@ -120,25 +108,4 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
     public int hashCode() {
         return targetPatch.hashCode();
     }
-
-    public static class PatchValidationResult {
-        private int patchId;
-        private boolean isKilled; // TODO: if possible, change to fitness
-
-        public PatchValidationResult() {}
-        public PatchValidationResult(int patchId, boolean isKilled) {
-            this.patchId = patchId;
-            this.isKilled = isKilled;
-        }
-
-        public void setPatchId(int patchId) {
-            this.patchId = patchId;
-        }
-
-        public void setKilled(boolean isKilled) {
-            this.isKilled = isKilled;
-        }
-    }
-
-
 }

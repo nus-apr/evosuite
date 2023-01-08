@@ -27,6 +27,7 @@ import org.evosuite.TimeController;
 import org.evosuite.coverage.dataflow.DefUseCoverageTestFitness;
 import org.evosuite.junit.UnitTestAdapter;
 import org.evosuite.junit.naming.methods.CoverageGoalTestNameGenerationStrategy;
+import org.evosuite.junit.naming.methods.IDTestNameGenerationStrategy;
 import org.evosuite.junit.naming.methods.NumberedTestNameGenerationStrategy;
 import org.evosuite.junit.naming.methods.TestNameGenerationStrategy;
 import org.evosuite.result.TestGenerationResultBuilder;
@@ -274,12 +275,12 @@ public class TestSuiteWriter implements Opcodes {
     }
 
     /**
-     * Create JUnit test case for class. Trimmed down version of {@link TestSuiteWriter.writeTestSuite}
+     * Create JUnit test suite for class. Customized version of {@link TestSuiteWriter#writeTestSuite(String, String, List)}
      *
      * @param name      Name of the class
      * @param directory Output directory
      */
-    public List<File> writeTestCase(String name, String directory, ExecutionResult cachedResult) throws IllegalArgumentException {
+    public List<File> writeValidationTestSuite(String name, String directory, List<ExecutionResult> cachedResults, TestNameGenerationStrategy nameGen) throws IllegalArgumentException {
 
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Empty test class name");
@@ -290,71 +291,44 @@ public class TestSuiteWriter implements Opcodes {
              */
             throw new IllegalArgumentException("Test classes should have name ending with 'Test'. Invalid input name: " + name);
         }
-        if (testCases.size() != 1) {
-            throw new IllegalArgumentException("TestSuiteWriter must have exactly one test for writeTestCase().");
-        }
-
-        TestCase tc = testCases.get(0);
-        if (tc != cachedResult.test) {
-            throw new IllegalArgumentException("Cached execution result is not matching test to write.");
-        }
 
         List<File> generated = new ArrayList<>();
         String dir = TestSuiteWriterUtils.makeDirectory(directory);
         String content = "";
 
-        // Execute all tests
-        executor.newObservers();
-        LoopCounter.getInstance().setActive(true); //be sure it is active here, as JUnit checks might have left it to false
-
-        // TODO: Always use cached result?
-        List<ExecutionResult> results = new ArrayList<>();
-        if (!TimeController.getInstance().hasTimeToExecuteATestCase()) {
-            logger.info("Using cached result");
-            results.add(cachedResult); // We have already checked test
-        } else {
-            ExecutionResult result = runTest(tc);
-            results.add(result);
-        }
-
-        // TODO: Implement custom naming strategy or use a fixed one
-        if (Properties.TEST_NAMING_STRATEGY == Properties.TestNamingStrategy.NUMBERED) {
-            nameGenerator = new NumberedTestNameGenerationStrategy(testCases, results);
-        } else if (Properties.TEST_NAMING_STRATEGY == Properties.TestNamingStrategy.COVERAGE) {
-            nameGenerator = new CoverageGoalTestNameGenerationStrategy(testCases, results);
-        } else {
-            throw new RuntimeException("Unsupported naming strategy: " + Properties.TEST_NAMING_STRATEGY);
-        }
+        // The default test suite writer would execute the test suite again, we use cached results by default
+        nameGenerator = nameGen;
 
         // Avoid downcasts that could break
-        removeUnnecessaryDownCasts(results);
+        removeUnnecessaryDownCasts(cachedResults);
 
         // Sometimes some timeouts lead to assertions being attached to statements
         // related to exceptions. This is not currently handled, so as a workaround
         // let's try to remove any remaining assertions. TODO: Better solution
-        removeAssertionsAfterException(results);
+        removeAssertionsAfterException(cachedResults);
 
-        // We only generate one test, no need for merging strategy, FIXME: 0 suffix
-        File testFile = new File(dir + "/" + name + "_" + "0" + ".java"); // e.g., dir/Foo_ESTest_0.java
-        String testCode = getOneUnitTestInAFile(name, 0, results);
-        FileIOUtils.writeFile(testCode, testFile);
-        content += testCode;
-        generated.add(testFile);
+        // Write all test cases into single file
+        File testSuitefile = new File(dir + "/" + name + ".java");
+        //executor.newObservers();
+        content = getUnitTestsAllInSameFile(name, cachedResults);
+        FileIOUtils.writeFile(content, testSuitefile);
+        generated.add(testSuitefile);
 
         if (Properties.TEST_SCAFFOLDING && !Properties.NO_RUNTIME_DEPENDENCY) {
             String scaffoldingName = Scaffolding.getFileName(name);
-            File file = new File(dir + "/" + scaffoldingName + ".java");
-            String scaffoldingContent = Scaffolding.getScaffoldingFileContent(name, results,
-                    TestSuiteWriterUtils.hasAnySecurityException(results));
-            FileIOUtils.writeFile(scaffoldingContent, file);
-            generated.add(file);
+            File scaffoldingFile = new File(dir + "/" + scaffoldingName + ".java");
+            String scaffoldingContent = Scaffolding.getScaffoldingFileContent(name, cachedResults,
+                    TestSuiteWriterUtils.hasAnySecurityException(cachedResults));
+            FileIOUtils.writeFile(scaffoldingContent, scaffoldingFile);
+            generated.add(scaffoldingFile);
             content += scaffoldingContent;
         }
 
-        // TODO: I assume we don't need this, check again.
-        //writeCoveredGoalsFile();
+        // No need to do this while still evolving tests
+        // writeCoveredGoalsFile();
 
-        TestGenerationResultBuilder.getInstance().setTestSuiteCode(content);
+        // TODO: Is this necessary?
+        // TestGenerationResultBuilder.getInstance().setTestSuiteCode(content);
         return generated;
     }
 

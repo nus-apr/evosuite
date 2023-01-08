@@ -23,6 +23,7 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.SelectionFunction;
 import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.exception.ExceptionCoverageSuiteFitness;
+import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
@@ -358,6 +359,14 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
         // Determine fitness
         this.calculateFitness();
         this.notifyIteration();
+    }
+
+    /**
+     * Sends the current test case population to the orchestrator for patch validation.
+     */
+    @Override
+    protected void sendPopulationToOrchestrator() {
+        PatchPool.getInstance().sendPopulationToOrchestrator(population, getAge());
     }
 
     /**
