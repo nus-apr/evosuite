@@ -3,11 +3,10 @@
   <groupId>Arja</groupId>
   <artifactId>Arja</artifactId>
   <versioning>
-    <release>cc1ad5e</release>
+    <release>6e815fe</release>
     <versions>
-      <version>b60b337</version>
-      <version>cc1ad5e</version>
+      <version>6e815fe</version>
     </versions>
-    <lastUpdated>20230107085503</lastUpdated>
+    <lastUpdated>20230108074348</lastUpdated>
   </versioning>
 </metadata>
