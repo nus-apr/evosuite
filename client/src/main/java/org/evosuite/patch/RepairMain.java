@@ -1,8 +1,8 @@
 package org.evosuite.patch;
 
+import org.evosuite.Properties;
 import org.evosuite.ga.metaheuristics.NSGAII;
 import org.evosuite.ga.operators.selection.BinaryTournamentSelectionCrowdedComparison;
-import org.evosuite.ga.populationlimit.PopulationLimit;
 import org.evosuite.ga.stoppingconditions.MaxGenerationStoppingCondition;
 
 import us.msu.cse.repair.Interpreter;
@@ -32,19 +32,12 @@ public class RepairMain {
 
 
         String populationSizeS = parameterStrs.get("populationSize");
-        final int populationSize = populationSizeS != null ? Integer.parseInt(populationSizeS) : 40;
+        Properties.POPULATION = populationSizeS != null ? Integer.parseInt(populationSizeS) : 40;
 
         String maxGenerationsS = parameterStrs.get("maxGenerations");
         final int maxGenerations = maxGenerationsS != null ? Integer.parseInt(maxGenerationsS) : 50;
         MaxGenerationStoppingCondition<PatchChromosome> condition = new MaxGenerationStoppingCondition<>();
         condition.setMaxIterations(maxGenerations);
-
-        repairAlg.setPopulationLimit(new PopulationLimit<PatchChromosome>() {
-            @Override
-            public boolean isPopulationFull(List<PatchChromosome> population) {
-                return population.size() >= populationSize;
-            }
-        });
 
         repairAlg.addStoppingCondition(condition);
 
