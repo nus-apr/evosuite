@@ -1,7 +1,11 @@
 package org.evosuite.coverage.patch.communication.json;
 
+import java.io.Serializable;
+import java.util.Objects;
+
 // TODO: Merge with TargetLinesSpec
-public class Patch {
+public class Patch implements Serializable, Comparable<Patch> {
+    private static final long serialVersionUID = -6295242867507437030L;
     private int id;
 
     public Patch() {}
@@ -27,5 +31,10 @@ public class Patch {
     @Override
     public int hashCode() {
         return id;
+    }
+
+    @Override
+    public int compareTo(Patch other) {
+        return Integer.compare(id, other.getId());
     }
 }
