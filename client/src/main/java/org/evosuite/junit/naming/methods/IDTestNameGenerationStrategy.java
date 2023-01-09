@@ -8,10 +8,14 @@ import java.util.*;
 
 
 public class IDTestNameGenerationStrategy implements TestNameGenerationStrategy {
+    /**
+     * Note: Tests can coincidentally have the same hashcode if they consist of
+     * the exact same sequence of statements. Thats why we map testIds to names.
+     * TODO: Do we really need a map? We could also directly return the testName based on the id.
+     */
+    private final Map<Integer, String> testIdToName = new HashMap<>();
 
-    private final Map<TestCase, String> testToName = new HashMap<>();
-
-    public IDTestNameGenerationStrategy(List<TestCase> testCases, List<ExecutionResult> results) {
+    public IDTestNameGenerationStrategy(List<TestCase> testCases) {
         generateNames(testCases);
     }
 
@@ -22,16 +26,16 @@ public class IDTestNameGenerationStrategy implements TestNameGenerationStrategy 
     private void generateNames(List<TestCase> testCases) {
         for (TestCase test : testCases) {
             String testName = "test" + test.getID();
-            testToName.put(test, testName);
+            testIdToName.put(test.getID(), testName);
         }
     }
 
     @Override
     public String getName(TestCase test) {
-        return testToName.get(test);
+        return testIdToName.get(test.getID());
     }
 
     public List<String> getNames() {
-        return new ArrayList<>(testToName.values());
+        return new ArrayList<>(testIdToName.values());
     }
 }

@@ -77,7 +77,7 @@ public class PatchPool {
         String testDir = "evorepair-populations"; // TODO: make configurable
         String suffix = Properties.JUNIT_SUFFIX;
 
-        IDTestNameGenerationStrategy nameGenerator = new IDTestNameGenerationStrategy(tests, results);
+        IDTestNameGenerationStrategy nameGenerator = new IDTestNameGenerationStrategy(tests);
 
         List<File> generatedTests = suiteWriter.writeValidationTestSuite(name + generation + suffix, testDir, results, nameGenerator);
 
