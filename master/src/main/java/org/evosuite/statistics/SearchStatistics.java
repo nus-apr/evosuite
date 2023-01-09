@@ -148,7 +148,7 @@ public class SearchStatistics implements Listener<ClientStateInformation> {
         sequenceOutputVariableFactories.put(RuntimeVariable.OnlyMutationFitnessTimeline.name(), new OnlyMutationFitnessSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.OnlyMutationCoverageTimeline.name(), new OnlyMutationCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.PatchLineFitnessTimeline.name(), new PatchLineFitnessSequenceOutputVariableFactory());
-        sequenceOutputVariableFactories.put(RuntimeVariable.PatchLineCoverage.name(), new PatchLineCoverageSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.PatchLineCoverageTimeline.name(), new PatchLineCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.PatchFitnessTimeline.name(), new PatchFitnessSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.PatchCoverageTimeline.name(), new PatchCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.DiversityTimeline.name(),
