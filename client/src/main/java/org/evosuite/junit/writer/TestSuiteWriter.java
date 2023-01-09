@@ -297,28 +297,61 @@ public class TestSuiteWriter implements Opcodes {
         String content = "";
 
         // The default test suite writer would execute the test suite again, we use cached results by default
+        // TODO: Investigate why the last execution result of a test case may be null
+        // Execute all tests
+        executor.newObservers();
+        LoopCounter.getInstance().setActive(true); //be sure it is active here, as JUnit checks might have left it to false
+
+        // TODO: Tests and results should be in the same order, no need to iterate over both lists every time
+        List<ExecutionResult> results = new ArrayList<>();
+        for (TestCase test : testCases) {
+            boolean added = false;
+            /**
+             * TODO: We must execute the test if the corresponding result is null, otherwise
+             *       the following methods depending on the results will break. Alternatively,
+             *       we need to add null-checks to these methods.
+             */
+
+            if (!TimeController.getInstance().hasTimeToExecuteATestCase()) {
+                logger.info("Using cached result");
+                for (ExecutionResult result : cachedResults) {
+                    if (result != null && result.test == test) {
+                        results.add(result);
+                        added = true;
+                        break;
+                    }
+                }
+            }
+            if (!added) {
+                ExecutionResult result = runTest(test);
+                results.add(result);
+            }
+        }
+
+
+
         nameGenerator = nameGen;
 
         // Avoid downcasts that could break
-        removeUnnecessaryDownCasts(cachedResults);
+        removeUnnecessaryDownCasts(results);
 
         // Sometimes some timeouts lead to assertions being attached to statements
         // related to exceptions. This is not currently handled, so as a workaround
         // let's try to remove any remaining assertions. TODO: Better solution
-        removeAssertionsAfterException(cachedResults);
+        removeAssertionsAfterException(results);
 
         // Write all test cases into single file
         File testSuitefile = new File(dir + "/" + name + ".java");
         //executor.newObservers();
-        content = getUnitTestsAllInSameFile(name, cachedResults);
+        content = getUnitTestsAllInSameFile(name, results);
         FileIOUtils.writeFile(content, testSuitefile);
         generated.add(testSuitefile);
 
         if (Properties.TEST_SCAFFOLDING && !Properties.NO_RUNTIME_DEPENDENCY) {
             String scaffoldingName = Scaffolding.getFileName(name);
             File scaffoldingFile = new File(dir + "/" + scaffoldingName + ".java");
-            String scaffoldingContent = Scaffolding.getScaffoldingFileContent(name, cachedResults,
-                    TestSuiteWriterUtils.hasAnySecurityException(cachedResults));
+            String scaffoldingContent = Scaffolding.getScaffoldingFileContent(name, results,
+                    TestSuiteWriterUtils.hasAnySecurityException(results));
             FileIOUtils.writeFile(scaffoldingContent, scaffoldingFile);
             generated.add(scaffoldingFile);
             content += scaffoldingContent;

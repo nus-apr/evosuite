@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Example implementation of an Orchestrator-Server for testing purposes.
@@ -50,7 +51,6 @@ class ServerRunnable implements Runnable {
                             updateTestPopulation(requestMap, clientSocket);
                             break;
                         case "getPatchValidationResult":
-                            System.out.println("[Server] Sending patch validation result.");
                             getPatchValidationResult(requestMap, clientSocket);
                             break;
                         case "closeConnection":
@@ -102,10 +102,17 @@ class ServerRunnable implements Runnable {
         String population = rootNode.at("/data/generation").asText();
         List<String> testNames = mapper.treeToValue(rootNode.at("/data/tests"), List.class);
         String className = rootNode.at("/data/classname").asText();
-        String filePath = rootNode.at("/data/filepath").asText();
+        String filePath = rootNode.at("/data/testSuitePath").asText();
 
         Map<String, Object> replyMap = new LinkedHashMap<>();
         replyMap.put("cmd", "updateTestPopulation");
+
+        // Pretend to do some computation
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         // Simply return concatenated data to client
         List<String> replyData = new ArrayList<>();
@@ -120,12 +127,21 @@ class ServerRunnable implements Runnable {
         JsonNode rootNode = mapper.valueToTree(requestMap);
         String testName = rootNode.at("/data/testId").asText();
         int patchID = rootNode.at("/data/patchId").asInt();
+
         boolean validationResult;
         if (testName.equals("test1") && patchID == 7) {
             validationResult = true;
         } else {
-            validationResult = false;
+            // Some random logic to determine if a test kills a patch
+            // Patches with smaller ids are more likely to get killed, while patch id 9 is unkillable
+            if (Math.abs(testName.hashCode()) % 10 > patchID) {
+                validationResult = true;
+            } else {
+                validationResult = false;
+            }
         }
+
+        //System.out.printf("[Server] Sending patch validation result (testId: %s, patchId: %d, result: %s)\n", testName, patchID, validationResult);
 
         // Add patch validation result to original request map and send back
         Map<String, Object> resultMap = (Map<String, Object>) requestMap.get("data");

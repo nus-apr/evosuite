@@ -75,8 +75,8 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
 
     // TODO: Cache execution/kill results as this may be executed more frequently
     @Override
-    public boolean isCovered(ExecutionResult result) {
-        return getPatchValidationResult(result.test);
+    public boolean isCovered(TestChromosome individual, ExecutionResult result) {
+        return getPatchValidationResult(individual.getTestCase());
     }
 
     @Override

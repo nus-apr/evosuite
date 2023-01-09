@@ -38,6 +38,7 @@ import org.evosuite.coverage.mutation.MutationTestFitness;
 import org.evosuite.coverage.mutation.OnlyMutationTestFitness;
 import org.evosuite.coverage.mutation.StrongMutationTestFitness;
 import org.evosuite.coverage.mutation.WeakMutationTestFitness;
+import org.evosuite.coverage.patch.PatchCoverageTestFitness;
 import org.evosuite.coverage.rho.RhoCoverageTestFitness;
 import org.evosuite.coverage.statement.StatementCoverageTestFitness;
 import org.evosuite.ga.FitnessFunction;
@@ -164,6 +165,10 @@ public final class ArchiveUtils {
                         return true;
                     }
                     break;
+                case PATCH:
+                    if (goal instanceof PatchCoverageTestFitness) {
+                        return true;
+                    }
                 case OUTPUT:
                     if (goal instanceof OutputCoverageTestFitness) {
                         return true;

@@ -53,7 +53,7 @@ public class PatchPool {
         }
 
         // Request patch pool from orchestrator through comm server
-        List<Patch> result = OrchestratorClient.getInstance().sendRequest("sendPatchPool", new TypeReference<List<Patch>>() {});
+        List<Patch> result = OrchestratorClient.getInstance().sendRequest("getPatchPool", new TypeReference<List<Patch>>() {});
 
         // Add received patches to the patch pool
         logger.info("Received patch pool from orchestrator of size: " + result.size());
@@ -87,6 +87,7 @@ public class PatchPool {
         Map<String, Object> populationInfo = new LinkedHashMap<>();
         populationInfo.put("generation", generation);
         populationInfo.put("tests", nameGenerator.getNames());
+        populationInfo.put("classname", name + generation + suffix);
         populationInfo.put("testSuitePath", generatedTests.get(0).getAbsolutePath());
         if (Properties.TEST_SCAFFOLDING && !Properties.NO_RUNTIME_DEPENDENCY) {
             populationInfo.put("testScaffoldingPath", generatedTests.get(1).getAbsolutePath());
