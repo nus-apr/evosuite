@@ -50,7 +50,11 @@ public class PatchValidationSystemTest extends SystemTestBase {
                 Properties.Criterion.PATCH,
         };
         // FIXME: Test suite minimization seems to break the number of covered goals in the stats
-        Properties.MINIMIZE = false;
+
+        // Debugging
+        // Properties.MINIMIZE = false;
+        Properties.EXTRA_TIMEOUT=Integer.MAX_VALUE;
+        Properties.MINIMIZATION_TIMEOUT=Integer.MAX_VALUE;
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<TestSuiteChromosome> ga = getGAFromResult(result);

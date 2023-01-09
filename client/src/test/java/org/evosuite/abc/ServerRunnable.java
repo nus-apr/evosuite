@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 class ServerRunnable implements Runnable {
     private final ServerSocket serverSocket;
     private final ObjectMapper mapper;
+    private final Map<String, Map<Integer, Boolean>> validationResultsCache;
 
     public ServerRunnable(int port) throws IOException {
         // listen on any free port
@@ -28,6 +29,7 @@ class ServerRunnable implements Runnable {
         mapper = new ObjectMapper();
         mapper.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
         mapper.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+        validationResultsCache = new HashMap<>();
     }
 
     public void run() {
@@ -139,6 +141,21 @@ class ServerRunnable implements Runnable {
             } else {
                 validationResult = false;
             }
+
+            // Overwrite with cached result if existing, otherwise put new entry.
+            if(validationResultsCache.containsKey(testName)) {
+                Map<Integer, Boolean> testResults = validationResultsCache.get(testName);
+                if (testResults.containsKey(patchID)) {
+                    validationResult = testResults.get(patchID);
+                } else {
+                    testResults.put(patchID, validationResult);
+                }
+            } else {
+                Map<Integer, Boolean> testResults = new HashMap<>();
+                testResults.put(patchID, validationResult);
+                validationResultsCache.put(testName, testResults);
+            }
+
         }
 
         //System.out.printf("[Server] Sending patch validation result (testId: %s, patchId: %d, result: %s)\n", testName, patchID, validationResult);
