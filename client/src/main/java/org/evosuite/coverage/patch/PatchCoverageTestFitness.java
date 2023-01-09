@@ -70,13 +70,19 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
         PatchValidationResult validationResult = OrchestratorClient.getInstance().sendRequest(msg, new TypeReference<PatchValidationResult>() {});
 
         // TODO: Check that we got the correct information (testId, patchId) back
+
+        // TODO: Empty tests cannot kill any patches
         return validationResult.getResult();
     }
 
     // TODO: Cache execution/kill results as this may be executed more frequently
     @Override
     public boolean isCovered(TestChromosome individual, ExecutionResult result) {
-        return getPatchValidationResult(individual.getTestCase());
+        boolean covered = getPatchValidationResult(individual.getTestCase());
+        if (covered) {
+            individual.getTestCase().addCoveredGoal(this);
+        }
+        return covered;
     }
 
     @Override
