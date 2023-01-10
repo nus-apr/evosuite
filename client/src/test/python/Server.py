@@ -1,3 +1,4 @@
+import os.path
 import socket
 import json
 from os.path import exists
@@ -23,6 +24,12 @@ def start_server():
                     break
                 json_data = json.loads(data)
                 cmd = json_data['cmd']
+
+                if cmd == 'readJsonFile':
+                    jsonFilePath = json_data['data']['path']
+                    with open(jsonFilePath, 'r') as f:
+                        json_data = json.loads(f.read())
+                        cmd = json_data['cmd']
             
                 if cmd == 'getPatchPool':
                     print('[Server] Sending patch pool.')
@@ -60,9 +67,11 @@ def updateTestPopulation(json_data, conn):
     population = json_data['data']['generation']
     test_names = json_data['data']['tests']
     classname = json_data['data']['classname']
-    file_path = json_data['data']['filepath']
+    test_path = json_data['data']['testSuitePath']
+    scaffolding_path = json_data['data']['testScaffoldingPath']
 
-    assert(exists(file_path))
+    assert(exists(test_path))
+    assert (exists(scaffolding_path))
 
     # Here, the actual orchestrator would perform the patch validation, and then
     # notify the client that validation results can be queried. For testing purposes,
@@ -71,10 +80,17 @@ def updateTestPopulation(json_data, conn):
     reply_data.extend(test_names)
     reply_data.append(classname)
 
+    # Serialize data into file
+    with open('ServerFile0.json', 'w') as f:
+        json.dump(reply_data, f)
+        jsonFilePath = f.name
+
     reply = {
             "cmd": "updateTestPopulation",
-            "data": reply_data
+            "data": {
+                "path": jsonFilePath
             }
+    }
 
     conn.sendall(bytes(json.dumps(reply), 'UTF-8'))
 

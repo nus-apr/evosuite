@@ -23,7 +23,6 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.SelectionFunction;
 import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.exception.ExceptionCoverageSuiteFitness;
-import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
@@ -207,6 +206,84 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
     }
 
     /**
+     * Generates new offspring population without calculating fitness values.
+     * @return
+     */
+    protected List<TestChromosome> breedNextGenerationWithoutEvaluation() {
+        List<TestChromosome> offspringPopulation = new ArrayList<>(Properties.POPULATION);
+        // we apply only Properties.POPULATION/2 iterations since in each generation
+        // we generate two offsprings
+        for (int i = 0; i < Properties.POPULATION / 2 && !this.isFinished(); i++) {
+            // select best individuals
+
+            /*
+             * the same individual could be selected twice! Is this a problem for crossover?
+             * Because crossing over an individual with itself will most certainly give you the
+             * same individual again...
+             */
+
+            TestChromosome parent1 = this.selectionFunction.select(this.population);
+            TestChromosome parent2 = this.selectionFunction.select(this.population);
+            TestChromosome offspring1 = parent1.clone();
+            TestChromosome offspring2 = parent2.clone();
+            // apply crossover
+            if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE) {
+                try {
+                    this.crossoverFunction.crossOver(offspring1, offspring2);
+                } catch (ConstructionFailedException e) {
+                    logger.debug("CrossOver failed.");
+                    continue;
+                }
+            }
+
+            this.removeUnusedVariables(offspring1);
+            this.removeUnusedVariables(offspring2);
+
+            // apply mutation on offspring1
+            this.mutate(offspring1, parent1);
+            if (offspring1.isChanged()) {
+                this.clearCachedResults(offspring1);
+                offspring1.updateAge(this.currentIteration);
+                //this.calculateFitness(offspring1);
+                offspringPopulation.add(offspring1);
+            }
+
+            // apply mutation on offspring2
+            this.mutate(offspring2, parent2);
+            if (offspring2.isChanged()) {
+                this.clearCachedResults(offspring2);
+                offspring2.updateAge(this.currentIteration);
+                //this.calculateFitness(offspring2);
+                offspringPopulation.add(offspring2);
+            }
+        }
+        // Add new randomly generate tests
+        for (int i = 0; i < Properties.POPULATION * Properties.P_TEST_INSERTION; i++) {
+            final TestChromosome tch;
+            if (this.getCoveredGoals().size() == 0 || Randomness.nextBoolean()) {
+                tch = this.chromosomeFactory.getChromosome();
+                tch.setChanged(true);
+            } else {
+                tch = Randomness.choice(this.getSolutions()).clone();
+                tch.mutate();
+//				tch.mutate(); // TODO why is it mutated twice?
+            }
+            if (tch.isChanged()) {
+                tch.updateAge(this.currentIteration);
+                //this.calculateFitness(tch);
+                offspringPopulation.add(tch);
+            }
+        }
+        logger.info("Number of offsprings = {}", offspringPopulation.size());
+        return offspringPopulation;
+    }
+
+    // Updates fitness for each changed test
+    protected void postCalculateFitness(List<TestChromosome> population) {
+        population.stream().filter(TestChromosome::isChanged).forEach(this::calculateFitness);
+    }
+
+    /**
      * Method used to mutate an offspring.
      *
      * @param offspring the offspring chromosome
@@ -359,14 +436,6 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
         // Determine fitness
         this.calculateFitness();
         this.notifyIteration();
-    }
-
-    /**
-     * Sends the current test case population to the orchestrator for patch validation.
-     */
-    @Override
-    protected void sendPopulationToOrchestrator() {
-        PatchPool.getInstance().sendTestPopulationToOrchestrator(population, getAge());
     }
 
     /**

@@ -5,11 +5,14 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.evosuite.Properties;
+import org.evosuite.coverage.patch.communication.json.JsonFilePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +27,8 @@ public class OrchestratorClient {
 
     private static OrchestratorClient instance = null;
 
+    private static int globalFileCounter = 0;
+
     /**
      * Creates a OrchestratorClient instance. Data is exchanged through a TCP connection with the orchestrator.
      * Communication format is in JSON:
@@ -36,11 +41,12 @@ public class OrchestratorClient {
      */
     public OrchestratorClient() {
         try {
-            socket = new Socket("localhost",7777); // TODO: Make port number configurable
+            logger.info("Connecting to orchestrator through port {}.", Properties.EVOREPAIR_PORT);
+            socket = new Socket("localhost", Properties.EVOREPAIR_PORT);
             mapper = new ObjectMapper();
             mapper.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
             mapper.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
-            logger.info("Connected to orchestrator through port 7777.");
+            logger.info("Connected to orchestrator.");
         } catch (IOException e) {
             close();
             throw new RuntimeException("Error while establishing connection with orchestrator: " + e);
@@ -139,6 +145,26 @@ public class OrchestratorClient {
             return result;
         } catch (IOException e) {
             throw new RuntimeException("Error while reading data: " + e);
+        }
+    }
+
+    private String writeJSONFile(Map<String, Object> jsonMap) throws IOException {
+        File jsonFile = Paths.get("jsonClientFiles", "File" + (globalFileCounter++) + ".json").toFile();
+        jsonFile.getParentFile().mkdirs();
+        mapper.writeValue(jsonFile, jsonMap); // TODO: Make path configurable
+        return jsonFile.getAbsolutePath();
+    }
+
+    public <T> T sendFileRequest(Map<String, Object> jsonMap, TypeReference<T> resultType) {
+        try {
+            String filePath = writeJSONFile(jsonMap);
+            Map<String, Object> msg = new HashMap<>();
+            msg.put("cmd", "readJsonFile");
+            msg.put("data", new JsonFilePath(filePath));
+            mapper.writeValue(socket.getOutputStream(), msg); // send request to orchestrator over socket
+            return getJSONReply(jsonMap.get("cmd").toString(), resultType);
+        } catch (IOException e) {
+            throw new RuntimeException("Error while sending request: " + jsonMap.toString() + "\n" + e);
         }
     }
 

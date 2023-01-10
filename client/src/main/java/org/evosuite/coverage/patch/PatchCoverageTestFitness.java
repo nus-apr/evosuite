@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.evosuite.Properties;
 import org.evosuite.coverage.patch.communication.OrchestratorClient;
 import org.evosuite.coverage.patch.communication.json.Patch;
-import org.evosuite.coverage.patch.communication.json.PatchValidationResult;
+import org.evosuite.coverage.patch.communication.json.SinglePatchValidationResult;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
@@ -49,7 +49,7 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
     @Override
     public int compareTo(TestFitnessFunction other) {
         if (other instanceof PatchCoverageTestFitness) {
-            return Integer.compare(targetPatch.getId(), ((PatchCoverageTestFitness) other).targetPatch.getId());
+            return targetPatch.getIndex().compareTo(((PatchCoverageTestFitness) other).targetPatch.getIndex());
         }
         return 0;
     }
@@ -58,7 +58,7 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
     private boolean getPatchValidationResult(TestCase tc) {
         // FIXME: Inconsistent ID naming
         String testId = "test" + tc.getID();
-        int patchId = targetPatch.getId();
+        String patchId = targetPatch.getIndex();
 
         // Prepare request for orchestrator
         Map<String, Object> msg = new LinkedHashMap<>();
@@ -67,7 +67,7 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
         patchValidationData.put("testId", testId);
         patchValidationData.put("patchId", patchId);
         msg.put("data", patchValidationData);
-        PatchValidationResult validationResult = OrchestratorClient.getInstance().sendRequest(msg, new TypeReference<PatchValidationResult>() {});
+        SinglePatchValidationResult validationResult = OrchestratorClient.getInstance().sendRequest(msg, new TypeReference<SinglePatchValidationResult>() {});
 
         // TODO: Check that we got the correct information (testId, patchId) back
 

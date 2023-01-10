@@ -33,6 +33,7 @@ import org.evosuite.ga.archive.ArchiveTestChromosomeFactory;
 import org.evosuite.ga.metaheuristics.*;
 import org.evosuite.ga.metaheuristics.mosa.DynaMOSA;
 import org.evosuite.ga.metaheuristics.mosa.MOSA;
+import org.evosuite.ga.metaheuristics.mosa.MOSAPatch;
 import org.evosuite.ga.metaheuristics.mosa.MOSATestSuiteAdapter;
 import org.evosuite.ga.metaheuristics.mulambda.MuLambdaEA;
 import org.evosuite.ga.metaheuristics.mulambda.MuPlusLambdaEA;
@@ -182,6 +183,16 @@ public class PropertiesSuiteGAFactory
                     logger.info("No specific factory for test cases given...");
                     logger.info("Using a default factory that creates tests with variable length");
                     return new MOSATestSuiteAdapter(new MOSA(new RandomLengthTestFactory()));
+                }
+            case MOSAPATCH:
+                logger.info("Chosen search algorithm: MOSAPatch");
+                if (factory instanceof TestSuiteChromosomeFactory) {
+                    final TestSuiteChromosomeFactory tscf = (TestSuiteChromosomeFactory) factory;
+                    return new MOSATestSuiteAdapter(new MOSAPatch(tscf.getTestChromosomeFactory()));
+                } else {
+                    logger.info("No specific factory for test cases given...");
+                    logger.info("Using a default factory that creates tests with variable length");
+                    return new MOSATestSuiteAdapter(new MOSAPatch(new RandomLengthTestFactory()));
                 }
             case DYNAMOSA:
                 logger.info("Chosen search algorithm: DynaMOSA");

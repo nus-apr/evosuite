@@ -567,17 +567,6 @@ public abstract class GeneticAlgorithm<T extends Chromosome<T>> implements Searc
      */
     protected void calculateFitness() {
         logger.debug("Calculating fitness for " + population.size() + " individuals");
-        // For patch mutation score, we first need to send the current population to the orchestrator to query fitness values
-        if (ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.PATCH)) {
-
-            // Ensure that the population consists of TestChromosomes
-            // TODO: Is DYNAMOSA supported?
-            if (Properties.ALGORITHM == Algorithm.MOSA) {
-                sendPopulationToOrchestrator();
-            } else {
-                throw new RuntimeException("Patch mutation score currently only supports TestChromosomes (i.e., MOSA). Chosen strategy: " + Properties.ALGORITHM);
-            }
-        }
 
         for (T c : this.population) {
             if (isFinished()) {
@@ -586,11 +575,6 @@ public abstract class GeneticAlgorithm<T extends Chromosome<T>> implements Searc
                 this.calculateFitness(c);
             }
         }
-    }
-
-    // Let AbstractMOSA override this method.
-    protected void sendPopulationToOrchestrator() {
-        throw new NotImplementedException("Override this method in class AbstractMOSA.");
     }
 
     /**

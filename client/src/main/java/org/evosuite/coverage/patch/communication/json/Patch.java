@@ -6,16 +6,16 @@ import java.util.Objects;
 // TODO: Merge with TargetLinesSpec
 public class Patch implements Serializable, Comparable<Patch> {
     private static final long serialVersionUID = -6295242867507437030L;
-    private int id;
+    private String index;
 
     public Patch() {}
 
-    public Patch(int id) {
-        this.id = id;
+    public Patch(String index) {
+        this.index = index;
     }
 
-    public int getId() {
-        return this.id;
+    public String getIndex() {
+        return this.index;
     }
 
     @Override
@@ -25,16 +25,16 @@ public class Patch implements Serializable, Comparable<Patch> {
 
         Patch patch = (Patch) o;
 
-        return id == patch.id;
+        return index.equals(patch.getIndex());
     }
 
     @Override
     public int hashCode() {
-        return id;
+        return Objects.hash(index);
     }
 
     @Override
     public int compareTo(Patch other) {
-        return Integer.compare(id, other.getId());
+        return index.compareTo(other.getIndex());
     }
 }

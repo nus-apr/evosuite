@@ -237,6 +237,8 @@ public class EvoSuite {
 
             CommandLineParameters.handleJVMOptions(javaOpts, line);
 
+            CommandLineParameters.handlePortNumber(line);
+
             CommandLineParameters.handleTargetLines(line);
 
 

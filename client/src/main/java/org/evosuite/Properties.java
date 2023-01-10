@@ -308,6 +308,9 @@ public class Properties {
     public static int MIGRANTS_COMMUNICATION_RATE = 3;
 
     // ---------------------------------------------------------------
+    // EvoRepair Config
+    public static int EVOREPAIR_PORT = 7777;
+
     // Search algorithm
     public enum Algorithm {
         // random
@@ -317,7 +320,7 @@ public class Properties {
         // mu-lambda
         ONE_PLUS_LAMBDA_LAMBDA_GA, ONE_PLUS_ONE_EA, MU_PLUS_LAMBDA_EA, MU_LAMBDA_EA,
         // many-objective algorithms
-        MOSA, DYNAMOSA, LIPS, MIO,
+        MOSA, DYNAMOSA, LIPS, MIO, MOSAPATCH,
         // multiple-objective optimisation algorithms
         NSGAII, SPEA2
     }

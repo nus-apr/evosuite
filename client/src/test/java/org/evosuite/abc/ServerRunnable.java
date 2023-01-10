@@ -92,7 +92,7 @@ class ServerRunnable implements Runnable {
 
         List<Patch> patchPool = new ArrayList<>();
         for(int i = 0; i < 10; i++) {
-            patchPool.add(new Patch(i));
+            patchPool.add(new Patch(String.valueOf(i)));
         }
 
         replyMap.put("data", patchPool);
@@ -134,28 +134,7 @@ class ServerRunnable implements Runnable {
         if (testName.equals("test1") && patchID == 7) {
             validationResult = true;
         } else {
-            // Some random logic to determine if a test kills a patch
-            // Patches with smaller ids are more likely to get killed, while patch id 9 is unkillable
-            if (Math.abs(testName.hashCode()) % 10 > patchID) {
-                validationResult = true;
-            } else {
-                validationResult = false;
-            }
-
-            // Overwrite with cached result if existing, otherwise put new entry.
-            if(validationResultsCache.containsKey(testName)) {
-                Map<Integer, Boolean> testResults = validationResultsCache.get(testName);
-                if (testResults.containsKey(patchID)) {
-                    validationResult = testResults.get(patchID);
-                } else {
-                    testResults.put(patchID, validationResult);
-                }
-            } else {
-                Map<Integer, Boolean> testResults = new HashMap<>();
-                testResults.put(patchID, validationResult);
-                validationResultsCache.put(testName, testResults);
-            }
-
+            validationResult = false;
         }
 
         //System.out.printf("[Server] Sending patch validation result (testId: %s, patchId: %d, result: %s)\n", testName, patchID, validationResult);

@@ -3,7 +3,7 @@ package org.evosuite.abc;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.evosuite.coverage.patch.communication.OrchestratorClient;
 import org.evosuite.coverage.patch.communication.json.Patch;
-import org.evosuite.coverage.patch.communication.json.PatchValidationResult;
+import org.evosuite.coverage.patch.communication.json.SinglePatchValidationResult;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -57,7 +57,7 @@ public class OrchestratorClientTest {
             // Request patch pool
             List<Patch> patchPool = client.sendRequest("getPatchPool", new TypeReference<List<Patch>>() {});
             for(int i = 0; i < 10; i++) {
-                Assert.assertEquals(i, patchPool.get(i).getId());
+                Assert.assertEquals(String.valueOf(i), patchPool.get(i).getIndex());
             }
 
             // Update population
@@ -82,7 +82,7 @@ public class OrchestratorClientTest {
             patchValidationData.put("patchId", "7");
             patchValidationRequestMap.put("data", patchValidationData);
 
-            PatchValidationResult validationResult = client.sendRequest(patchValidationRequestMap, new TypeReference<PatchValidationResult>() {});
+            SinglePatchValidationResult validationResult = client.sendRequest(patchValidationRequestMap, new TypeReference<SinglePatchValidationResult>() {});
             Assert.assertEquals(validationResult.getTestId(), "test1");
             Assert.assertEquals(validationResult.getPatchId(), 7);
             Assert.assertEquals(validationResult.getResult(), true);
