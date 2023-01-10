@@ -93,7 +93,7 @@ public class PatchChromosomeFactory implements ChromosomeFactory<PatchChromosome
                 throw new RuntimeException("missing perfect seeds (option perfectPath)");
             }
 
-            int numPerfect = (int) (initRatioOfPerfect * populationSize);
+            int numPerfect = (int) Math.round(initRatioOfPerfect * populationSize);
             int i = 0;
             for (ArjaDecisionVariable var: perfectDecisionVars) {
                 seedPopulation.add(wrapArjaDecisionVariable(var));
@@ -111,7 +111,7 @@ public class PatchChromosomeFactory implements ChromosomeFactory<PatchChromosome
                 throw new RuntimeException("missing hall of fame seeds (option hallOfFameInPath");
             }
 
-            int numFame = (int) (initRatioOfFame * populationSize);
+            int numFame = (int) Math.round(initRatioOfFame * populationSize);
             int i = 0;
             for (ArjaDecisionVariable var: fameDecisionVars) {
                 seedPopulation.add(wrapArjaDecisionVariable(var));
