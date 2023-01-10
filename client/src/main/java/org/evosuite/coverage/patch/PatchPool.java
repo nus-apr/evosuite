@@ -30,9 +30,9 @@ public class PatchPool {
 
     public PatchPool() {
         try {
-            initPatchPool();
+            getPatchPoolFromOrchestrator();
         } catch (IOException e) {
-            throw new RuntimeException("Error while receiving patch pool: " + e.getMessage());
+            throw new RuntimeException("Unable to obtain initial patch pool from orchestrator: " + e);
         }
     }
 
@@ -47,7 +47,7 @@ public class PatchPool {
      * Requests the patch pool from the orchestrator.
      * @throws IOException
      */
-    public void initPatchPool() throws IOException {
+    public void getPatchPoolFromOrchestrator() throws IOException {
         if (!patches.isEmpty()) {
             logger.warn("Patch pool not empty.");
         }
@@ -58,44 +58,6 @@ public class PatchPool {
         // Add received patches to the patch pool
         logger.info("Received patch pool from orchestrator of size: " + result.size());
         patches.addAll(result);
-    }
-
-    // TODO: Request generation can potentially be optimized using JsonGenerator
-    public void sendTestPopulationToOrchestrator(List<TestChromosome> population, int generation) {
-        List<TestCase> tests = population.stream()
-                .map(TestChromosome::getTestCase)
-                .collect(toList());
-
-        List<ExecutionResult> results = population.stream()
-                .map(TestChromosome::getLastExecutionResult)
-                .collect(toList());
-
-        TestSuiteWriter suiteWriter = new TestSuiteWriter();
-        suiteWriter.insertAllTests(tests);
-
-        String name = Properties.TARGET_CLASS.substring(Properties.TARGET_CLASS.lastIndexOf(".") + 1);
-        String testDir = "evorepair-populations"; // TODO: make configurable
-        String suffix = Properties.JUNIT_SUFFIX;
-
-        IDTestNameGenerationStrategy nameGenerator = new IDTestNameGenerationStrategy(tests);
-
-        List<File> generatedTests = suiteWriter.writeValidationTestSuite(name + generation + suffix, testDir, results, nameGenerator);
-
-        // Generate JSON message for orchestrator
-        Map<String, Object> msg = new LinkedHashMap<>();
-        msg.put("cmd", "updateTestPopulation");
-        Map<String, Object> populationInfo = new LinkedHashMap<>();
-        populationInfo.put("generation", generation);
-        populationInfo.put("tests", nameGenerator.getNames());
-        populationInfo.put("classname", name + generation + suffix);
-        populationInfo.put("testSuitePath", generatedTests.get(0).getAbsolutePath());
-        if (Properties.TEST_SCAFFOLDING && !Properties.NO_RUNTIME_DEPENDENCY) {
-            populationInfo.put("testScaffoldingPath", generatedTests.get(1).getAbsolutePath());
-        }
-        msg.put("data", populationInfo);
-
-        // TODO: Parse response
-        OrchestratorClient.getInstance().sendRequest(msg, new TypeReference<Object>() {});
     }
 
     public Set<Patch> getPatchPool() {

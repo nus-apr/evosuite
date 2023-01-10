@@ -1,38 +1,30 @@
 package org.evosuite.coverage.patch.communication.json;
 
+import java.util.List;
+
 public class PatchValidationResult {
-    private String testId;
-    private int patchId;
-    private boolean result; // TODO: if possible, change to fitness
+    private String testName;
+    private List<Integer> killedPatches;
 
-    public PatchValidationResult() {}
-    public PatchValidationResult(String testId, int patchId, boolean result) {
-        this.testId = testId;
-        this.patchId = patchId;
-        this.result = result;
+    public PatchValidationResult() {};
+    public PatchValidationResult(String testName, List<Integer> killedPatches) {
+        this.testName = testName;
+        this.killedPatches = killedPatches;
     }
 
-    public void setTestId(String testId) {
-        this.testId = testId;
+    public void setTestName(String testName) {
+        this.testName = testName;
+    }
+    public String getTestName() {
+        return this.testName;
     }
 
-    public String getTestId() {
-        return testId;
+    public void setKilledPatches(List<Integer> killedPatches) {
+        this.killedPatches = killedPatches;
     }
 
-    public void setPatchId(int patchId) {
-        this.patchId = patchId;
+    public List<Integer> getKilledPatches() {
+        return this.killedPatches;
     }
 
-    public int getPatchId() {
-        return patchId;
-    }
-
-    public void setResult(boolean result) {
-        this.result = result;
-    }
-
-    public boolean getResult() {
-        return result;
-    }
 }

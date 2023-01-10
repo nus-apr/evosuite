@@ -116,6 +116,8 @@ public class CommandLineParameters {
                 "absolute path to JSON-file specifying the class target lines in the format: " +
                         "[{\"class1\": [line1, line2,...,lineN]}, {\"class2\": [line1, line2,...,lineN]}]");
 
+        Option port = new Option("port", true, "port number of the orchestrator");
+
         Option projectCP = new Option("projectCP", true,
                 "classpath of the project under test and all its dependencies");
 
@@ -158,6 +160,7 @@ public class CommandLineParameters {
         options.addOption(targetPrefix);
         options.addOption(targetCP);
         options.addOption(targetLines);
+        options.addOption(port);
         options.addOption(junitPrefix);
         options.addOption(criterion);
         options.addOption(seed);
@@ -312,6 +315,17 @@ public class CommandLineParameters {
             throw new Error("Unable to find targetLines file: " + e.getMessage());
         }
     }
+
+    public static void handlePortNumber(CommandLine line) {
+        int port;
+        if (!line.hasOption("port")) {
+            LoggingUtils.getEvoLogger().info("* No port number specified: defaulting to {}.", Properties.EVOREPAIR_PORT);
+        } else {
+            String portString = line.getOptionValue("port");
+            Properties.EVOREPAIR_PORT = Integer.parseInt(portString);
+        }
+    }
+
 
         public static void handleJVMOptions(List<String> javaOpts, CommandLine line) {
         /*

@@ -21,14 +21,14 @@ import java.net.URL;
 import java.util.List;
 
 public class PatchValidationSystemTest extends SystemTestBase {
-    private static final boolean USE_PYTHON_SERVER = false;
+    private static final boolean USE_PYTHON_SERVER = true;
 
     @Test
     public void testWriteValidationTestSuite() {
         try {
             // Start separate server thread
             if (!USE_PYTHON_SERVER) {
-                ServerRunnable sr = new ServerRunnable(7777);
+                ServerRunnable sr = new ServerRunnable(12345);
                 Thread serverThread = new Thread(sr);
                 serverThread.start();
             }
@@ -43,16 +43,16 @@ public class PatchValidationSystemTest extends SystemTestBase {
 
         URL resource = this.getClass().getResource("testPatchLineFitness.json");
 
-        String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(), "-class", targetClass };
+        String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(),"-port", "51693", "-class", targetClass };
         Properties.ASSERTIONS = false;
-        Properties.ALGORITHM = Properties.Algorithm.MOSA;
+        Properties.ALGORITHM = Properties.Algorithm.MOSAPATCH;
         Properties.CRITERION = new Properties.Criterion[]{
-                Properties.Criterion.PATCH,
+                Properties.Criterion.PATCH, Properties.Criterion.PATCHLINE
         };
         // FIXME: Test suite minimization seems to break the number of covered goals in the stats
 
         // Debugging
-        // Properties.MINIMIZE = false;
+        Properties.MINIMIZE = false;
         Properties.EXTRA_TIMEOUT=Integer.MAX_VALUE;
         Properties.MINIMIZATION_TIMEOUT=Integer.MAX_VALUE;
 
