@@ -20,7 +20,19 @@ public class RepairMain {
         if (ingredientScreenerNameS != null)
             parameters.put("ingredientScreenerName", ingredientScreenerNameS);
 
-        NSGAII<PatchChromosome> repairAlg = new NSGAII<>(new PatchChromosomeFactory(new ArjaProblem(parameters)));
+        double initRatioOfPerfect = 0;
+        double initRatioOfFame = 0;
+
+        String initRatioOfPerfectS = parameterStrs.get("initRatioOfPerfect");
+        if (initRatioOfPerfectS != null)
+            initRatioOfPerfect = Double.parseDouble(initRatioOfPerfectS);
+
+        String initRatioOfFameS = parameterStrs.get("initRatioOfFame");
+        if (initRatioOfFameS != null)
+            initRatioOfFame = Double.parseDouble(initRatioOfFameS);
+
+        NSGAII<PatchChromosome> repairAlg = new NSGAIIWithInit(
+                new PatchChromosomeFactory(new ArjaProblem(parameters), initRatioOfPerfect, initRatioOfFame));
 
         Properties.CROSSOVER_RATE = 1;
         Properties.MUTATION_RATE = 1;
