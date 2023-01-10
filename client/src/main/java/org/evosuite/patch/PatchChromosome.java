@@ -16,6 +16,7 @@ import us.msu.cse.repair.core.testexecutors.ExternalTestExecutor;
 import us.msu.cse.repair.core.testexecutors.ITestExecutor;
 import us.msu.cse.repair.core.util.IO;
 import us.msu.cse.repair.ec.problems.ArjaProblem;
+import us.msu.cse.repair.ec.representation.ArjaSolutionSummary;
 
 import javax.tools.JavaFileObject;
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public final class PatchChromosome extends Chromosome<PatchChromosome> {
 
@@ -319,6 +321,12 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
             if (!testExecutor.isExceptional()) {
                 weightedFailureRate = problem.getWeight() * testExecutor.getRatioOfFailuresInPositive()
                                       + testExecutor.getRatioOfFailuresInNegative();
+
+                Set<String> failures = testExecutor.getFailedTests();
+                if (failures.stream().noneMatch(problem::isUserTest)) {
+                    ArjaSolutionSummary summary = new ArjaSolutionSummary(bits, array, problem);
+                    problem.appendToHallOfFameOut(summary, ArjaProblem.getGlobalID());
+                }
             } else {
                 isUndesirable = true;
             }
