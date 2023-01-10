@@ -151,7 +151,7 @@
         <dependency>
             <groupId>Arja</groupId>
             <artifactId>Arja</artifactId>
-            <version>1cdff51</version>
+            <version>e8fe439</version>
         </dependency>
     </dependencies>
 
