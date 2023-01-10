@@ -2,6 +2,8 @@ package org.evosuite.patch;
 
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.utils.Randomness;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import us.msu.cse.repair.core.parser.ModificationPoint;
 import us.msu.cse.repair.ec.problems.ArjaProblem;
@@ -14,6 +16,8 @@ import java.util.List;
 import java.util.Set;
 
 public class PatchChromosomeFactory implements ChromosomeFactory<PatchChromosome> {
+
+    private static final Logger logger = LoggerFactory.getLogger(PatchChromosomeFactory.class);
 
     ArjaProblem problem;
     int[] numberOfAvailableManipulations;
@@ -103,6 +107,7 @@ public class PatchChromosomeFactory implements ChromosomeFactory<PatchChromosome
                     break;
                 }
             }
+            logger.info("{} perfect patches are used as seeds", i);
         }
 
         Set<ArjaDecisionVariable> fameDecisionVars = problem.getFameDecisionVariables();
@@ -121,6 +126,7 @@ public class PatchChromosomeFactory implements ChromosomeFactory<PatchChromosome
                     break;
                 }
             }
+            logger.info("{} hall-of-fame patches are used as seeds", i);
         }
 
         return seedPopulation;
