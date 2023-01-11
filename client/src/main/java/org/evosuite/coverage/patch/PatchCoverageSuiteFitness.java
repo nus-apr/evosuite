@@ -24,9 +24,11 @@ public class PatchCoverageSuiteFitness extends TestSuiteFitnessFunction {
         totalGoals = goals.size();
         for (PatchCoverageTestFitness goal : goals) {
             patchGoals.add(goal);
+
+            /** We don't want to initially add these goals to the archive, will be done once patches have been killed
             if (Properties.TEST_ARCHIVE) {
                 Archive.getArchiveInstance().addTarget(goal);
-            }
+            }*/
         }
     }
 

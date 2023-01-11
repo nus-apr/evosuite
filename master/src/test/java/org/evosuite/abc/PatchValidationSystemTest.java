@@ -21,14 +21,14 @@ import java.net.URL;
 import java.util.List;
 
 public class PatchValidationSystemTest extends SystemTestBase {
-    private static final boolean USE_PYTHON_SERVER = true;
+    private static final boolean USE_PYTHON_SERVER = false;
 
     @Test
     public void testWriteValidationTestSuite() {
         try {
             // Start separate server thread
             if (!USE_PYTHON_SERVER) {
-                ServerRunnable sr = new ServerRunnable(12345);
+                ServerRunnable sr = new ServerRunnable(7777);
                 Thread serverThread = new Thread(sr);
                 serverThread.start();
             }
@@ -43,7 +43,7 @@ public class PatchValidationSystemTest extends SystemTestBase {
 
         URL resource = this.getClass().getResource("testPatchLineFitness.json");
 
-        String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(),"-port", "51693", "-class", targetClass };
+        String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(),"-port", "7777", "-class", targetClass };
         Properties.ASSERTIONS = false;
         Properties.ALGORITHM = Properties.Algorithm.MOSAPATCH;
         Properties.CRITERION = new Properties.Criterion[]{

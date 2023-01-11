@@ -3,21 +3,21 @@ package org.evosuite.coverage.patch.communication.json;
 import java.util.List;
 
 public class PatchValidationSummary {
-    private List<PatchValidationResult> results;
+    private List<PatchValidationResult> killMatrix;
     private List<Patch> patches;
     private List<FixLocation> fixLocations;
     public PatchValidationSummary() {}
     public PatchValidationSummary(List<PatchValidationResult> results, List<Patch> patches, List<FixLocation> fixLocations) {
-        this.results = results;
+        this.killMatrix = results;
         this.patches = patches;
         this.fixLocations = fixLocations;
     }
 
-    public List<PatchValidationResult> getResults() {
-        return this.results;
+    public List<PatchValidationResult> getKillMatrix() {
+        return this.killMatrix;
     }
-    public void setResults(List<PatchValidationResult> results) {
-        this.results = results;
+    public void setResults(List<PatchValidationResult> killMatrix) {
+        this.killMatrix = killMatrix;
     }
 
     public List<Patch> getPatches() {

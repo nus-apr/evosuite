@@ -4,10 +4,10 @@ import java.util.List;
 
 public class PatchValidationResult {
     private String testName;
-    private List<Integer> killedPatches;
+    private List<String> killedPatches;
 
     public PatchValidationResult() {};
-    public PatchValidationResult(String testName, List<Integer> killedPatches) {
+    public PatchValidationResult(String testName, List<String> killedPatches) {
         this.testName = testName;
         this.killedPatches = killedPatches;
     }
@@ -19,11 +19,11 @@ public class PatchValidationResult {
         return this.testName;
     }
 
-    public void setKilledPatches(List<Integer> killedPatches) {
+    public void setKilledPatches(List<String> killedPatches) {
         this.killedPatches = killedPatches;
     }
 
-    public List<Integer> getKilledPatches() {
+    public List<String> getKilledPatches() {
         return this.killedPatches;
     }
 

@@ -24,4 +24,14 @@ public class PatchCoverageFactory extends AbstractFitnessFactory<PatchCoverageTe
         goalComputationTime = System.currentTimeMillis() - start;
         return goals;
     }
+
+    public List<PatchCoverageTestFitness> getCoverageGoals(List<Patch> patches) {
+        List<PatchCoverageTestFitness> goals = new ArrayList<>();
+
+        for (Patch p : patches) {
+            goals.add(new PatchCoverageTestFitness(p));
+        }
+
+        return goals;
+    }
 }
