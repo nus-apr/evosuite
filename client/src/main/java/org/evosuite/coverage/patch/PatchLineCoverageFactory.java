@@ -32,6 +32,10 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
         return targetLineMap.get(classname);
     }
 
+    public static Map<String, Set<Integer>> getTargetLineMap() {
+        return targetLineMap;
+    }
+
     @Override
     public List<LineCoverageTestFitness> getCoverageGoals() {
         List<LineCoverageTestFitness> goals = new ArrayList<>();

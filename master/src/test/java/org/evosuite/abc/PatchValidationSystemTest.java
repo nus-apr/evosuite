@@ -20,8 +20,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
+import static org.evosuite.Properties.Criterion.*;
+
 public class PatchValidationSystemTest extends SystemTestBase {
-    private static final boolean USE_PYTHON_SERVER = false;
+    private static final boolean USE_PYTHON_SERVER = true;
 
     @Test
     public void testWriteValidationTestSuite() {
@@ -43,11 +45,11 @@ public class PatchValidationSystemTest extends SystemTestBase {
 
         URL resource = this.getClass().getResource("testPatchLineFitness.json");
 
-        String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(),"-port", "7777", "-class", targetClass };
+        String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(),"-port", "40257", "-class", targetClass };
         Properties.ASSERTIONS = false;
         Properties.ALGORITHM = Properties.Algorithm.MOSAPATCH;
         Properties.CRITERION = new Properties.Criterion[]{
-                Properties.Criterion.PATCH, Properties.Criterion.PATCHLINE
+                PATCH, PATCHLINE
         };
         // FIXME: Test suite minimization seems to break the number of covered goals in the stats
 
