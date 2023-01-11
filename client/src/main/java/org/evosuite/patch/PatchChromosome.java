@@ -1,5 +1,6 @@
 package org.evosuite.patch;
 
+import com.google.gson.Gson;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.evosuite.ga.Chromosome;
@@ -20,6 +21,9 @@ import us.msu.cse.repair.ec.representation.ArjaSolutionSummary;
 
 import javax.tools.JavaFileObject;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -323,9 +327,14 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
                                       + testExecutor.getRatioOfFailuresInNegative();
 
                 Set<String> failures = testExecutor.getFailedTests();
-                if (failures.stream().noneMatch(problem::isUserTest)) {
+                if (failures.isEmpty()) {
+                    save();
+                } else if (failures.stream().noneMatch(problem::isUserTest)) {
                     ArjaSolutionSummary summary = new ArjaSolutionSummary(bits, array, problem);
                     problem.appendToHallOfFameOut(summary, ArjaProblem.getGlobalID());
+                    if (problem.getFameOutputRoot() != null) {
+                        saveAsFame();
+                    }
                 }
             } else {
                 isUndesirable = true;
@@ -380,12 +389,21 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
             ingredList.add(ingred);
         }
 
+        ArjaSolutionSummary summary = new ArjaSolutionSummary(bits, array, problem);
+
         try {
             if (problem.addTestAdequatePatch(opList, locList, ingredList)) {
                 if (problem.getDiffFormat()) {
                     try {
+                        String patchOutputRoot = problem.getPatchOutputRoot();
+                        int globalId = AbstractRepairProblem.getGlobalID();
+
                         IO.savePatch(modifiedJavaSources, problem.getSrcJavaDir(),
-                                     problem.getPatchOutputRoot(), AbstractRepairProblem.getGlobalID());
+                                     patchOutputRoot, globalId);
+
+                        PrintStream ps = new PrintStream(
+                                Files.newOutputStream(Paths.get(patchOutputRoot, "Patch_" + globalId, "summary")));
+                        ps.println(new Gson().toJson(summary));
                     } catch (InterruptedException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
@@ -396,6 +414,49 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    public void saveAsFame() {
+        List<Integer> opList = new ArrayList<>();
+        List<Integer> locList = new ArrayList<>();
+        List<Integer> ingredList = new ArrayList<>();
+
+        int size = array.length / 2;
+
+        for (int i = 0; i < numberOfEdits; i++) {
+            int loc = locations.get(i);
+            int op = array[loc];
+            int ingred = array[loc + size];
+            opList.add(op);
+            locList.add(loc);
+            ingredList.add(ingred);
+        }
+
+        ArjaSolutionSummary summary = new ArjaSolutionSummary(bits, array, problem);
+
+        try {
+            if (problem.addFamePatch(opList, locList, ingredList)) {
+                if (problem.getDiffFormat()) {
+                    try {
+                        String fameOutputRoot = problem.getFameOutputRoot();
+                        int globalId = AbstractRepairProblem.getGlobalID();
+
+                        IO.savePatch(modifiedJavaSources, problem.getSrcJavaDir(),
+                                     fameOutputRoot, globalId);
+
+                        PrintStream ps = new PrintStream(
+                                Files.newOutputStream(Paths.get(fameOutputRoot, "Patch_" + globalId, "summary")));
+                        ps.println(new Gson().toJson(summary));
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                problem.saveFamePatch(opList, locList, ingredList);
+                AbstractRepairProblem.increaseGlobalID();
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
