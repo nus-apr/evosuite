@@ -14,21 +14,21 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
     /**
      * Map class names to arrays of target lines
      */
-    private static final Map<String, int[]> targetLineMap = new LinkedHashMap<>();
+    private static final Map<String, Set<Integer>> targetLineMap = new LinkedHashMap<>();
 
     private static final Logger logger = LoggerFactory.getLogger(PatchLineCoverageFactory.class);
 
 
-    public static void addTargetLine(String classname, int[] targetLines) {
+    public static void addTargetLine(String classname, List<Integer> targetLines) {
         if (!targetLineMap.containsKey(classname)) {
-            targetLineMap.put(classname, targetLines);
+            targetLineMap.put(classname, new LinkedHashSet<>(targetLines));
         }
         else {
             throw new IllegalArgumentException("Duplicate key for patched classes: " + classname);
         }
     }
 
-    public static int[] getTargetLinesForClass(String classname) {
+    public static Set<Integer> getTargetLinesForClass(String classname) {
         return targetLineMap.get(classname);
     }
 
@@ -50,7 +50,7 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
 
             // TODO: Should we specify the containing method by args?
 
-            int[] targetLines = targetLineMap.get(className);
+            Set<Integer> targetLines = targetLineMap.get(className);
             for (String methodName : LinePool.getKnownMethodsFor(className)) {
                 Set<Integer> methodLines = LinePool.getLines(className, methodName);
 

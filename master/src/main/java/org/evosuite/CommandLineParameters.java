@@ -29,6 +29,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.coverage.patch.PatchLineCoverageFactory;
+import org.evosuite.coverage.patch.communication.json.FixLocation;
 import org.evosuite.executionmode.*;
 import org.evosuite.utils.LoggingUtils;
 
@@ -265,33 +266,6 @@ public class CommandLineParameters {
         }
     }
 
-    public static class TargetLinesSpec {
-        private String classname;
-        private int[] targetLines;
-
-        public TargetLinesSpec() {}
-        public TargetLinesSpec(String classname, int[] targetLines) {
-            this.classname = classname;
-            this.targetLines = targetLines;
-        }
-
-        public void setClassname(String classname) {
-            this.classname = classname;
-        }
-
-        public String getClassname() {
-            return this.classname;
-        }
-
-        public void setTargetLines(int[] targetLines) {
-            this.targetLines = targetLines;
-        }
-
-        public int[] getTargetLines() {
-            return this.targetLines;
-        }
-    }
-
     public static void handleTargetLines(CommandLine line) {
 
         if (!line.hasOption("targetLines")) {
@@ -301,10 +275,10 @@ public class CommandLineParameters {
 
         String targetLinesPath = line.getOptionValue("targetLines");
         try {
-            List<TargetLinesSpec> targetLineSpecs = new ObjectMapper().readValue(new File(targetLinesPath), new TypeReference<List<TargetLinesSpec>>(){});
+            List<FixLocation> targetLineSpecs = new ObjectMapper().readValue(new File(targetLinesPath), new TypeReference<List<FixLocation>>(){});
 
-            for (TargetLinesSpec s : targetLineSpecs) {
-                PatchLineCoverageFactory.addTargetLine(s.classname, s.targetLines);
+            for (FixLocation s : targetLineSpecs) {
+                PatchLineCoverageFactory.addTargetLine(s.getClassname(), s.getTargetLines());
             }
 
         } catch (JsonMappingException e) {

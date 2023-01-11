@@ -13,6 +13,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.net.URL;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 
 import static org.evosuite.Properties.Criterion.BRANCH;
 import static org.evosuite.Properties.Criterion.PATCHLINE;
@@ -28,8 +30,8 @@ public class TargetLinesSystemTest extends SystemTestBase {
         String[] command = new String[] {"-targetLines", resource.getPath(), "-class", targetClass };
         Object result = evosuite.parseCommandLine(command);
 
-        Assert.assertArrayEquals(PatchLineCoverageFactory.getTargetLinesForClass("some.package.name.Class1"), new int[] {1,2,3});
-        Assert.assertArrayEquals(PatchLineCoverageFactory.getTargetLinesForClass("some.package.name.Class2"), new int[] {4,5,6,7,8,9});
+        Assert.assertEquals(PatchLineCoverageFactory.getTargetLinesForClass("some.package.name.Class1"), new LinkedHashSet<>(Arrays.asList(1,2,3)));
+        Assert.assertEquals(PatchLineCoverageFactory.getTargetLinesForClass("some.package.name.Class2"), new LinkedHashSet<>(Arrays.asList(4,5,6,7,8,9)));
     }
 
     @Test
