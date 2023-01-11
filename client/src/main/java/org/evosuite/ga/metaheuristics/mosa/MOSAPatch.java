@@ -2,11 +2,16 @@ package org.evosuite.ga.metaheuristics.mosa;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.evosuite.Properties;
-import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
+import org.evosuite.coverage.patch.PatchCoverageFactory;
+import org.evosuite.coverage.patch.PatchCoverageTestFitness;
+import org.evosuite.coverage.patch.PatchLineCoverageFactory;
 import org.evosuite.coverage.patch.communication.OrchestratorClient;
 import org.evosuite.coverage.patch.communication.json.JsonFilePath;
+import org.evosuite.coverage.patch.communication.json.PatchValidationSummary;
 import org.evosuite.ga.ChromosomeFactory;
+import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.archive.Archive;
 import org.evosuite.junit.naming.methods.IDTestNameGenerationStrategy;
 import org.evosuite.junit.writer.TestSuiteWriter;
 import org.evosuite.testcase.TestCase;
@@ -19,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -29,9 +33,8 @@ public class MOSAPatch extends MOSA {
 
     private static final Logger logger = LoggerFactory.getLogger(MOSAPatch.class);
 
-    private final Map<Properties.Criterion, List<TestFitnessFunction>> mappedFitnessFunctions;
-
-    private boolean fixLocationsCovered = false;
+    // Goals to use once patch kill results become available
+    private final Set<TestFitnessFunction> goalsForNextIteration;
 
     public MOSAPatch(ChromosomeFactory<TestChromosome> factory) {
         super(factory);
@@ -40,75 +43,69 @@ public class MOSAPatch extends MOSA {
             throw new RuntimeException("Criterion PATCHLINE not enabled.");
         }
 
-        this.mappedFitnessFunctions = new LinkedHashMap<>();
-        for (Properties.Criterion criterion : Properties.CRITERION) {
-            List<TestFitnessFunction> criterionFitnessFunctions = new ArrayList<>();
-            Class<?> testFit = FitnessFunctions.getTestFitnessFunctionClass(criterion);
-            for (TestFitnessFunction f : fitnessFunctions) {
-                if (testFit.isInstance(f)) {
-                    criterionFitnessFunctions.add(f);
-                }
+        this.goalsForNextIteration = new LinkedHashSet<>();
+    }
+
+    // NOTE: This should only be called before the search is started in order to properly init goals
+    @Override
+    public void addFitnessFunction(final FitnessFunction<TestChromosome> function) {
+        if (function instanceof TestFitnessFunction) {
+            if (function instanceof PatchCoverageTestFitness) {
+                // Patch coverage goals will be added once we have started killing the first set of patches
+                goalsForNextIteration.add((TestFitnessFunction) function);
+            } else {
+                // Initial goals that can serve as guidance before any patches have been killed
+                fitnessFunctions.add((TestFitnessFunction) function);
             }
-            this.mappedFitnessFunctions.put(criterion, criterionFitnessFunctions);
+        } else {
+            throw new IllegalArgumentException("Only TestFitnessFunctions are supported");
         }
     }
 
-    // TODO: When do we actually stop?
-
+    // TODO: When do we actually want to stop?
     @Override
     public boolean isFinished() {
-        return getAge() > 10;
+        return getAge() > 100;
     }
-
 
     @Override
     protected List<TestChromosome> breedNextGeneration() {
-        // First breed without evaluation
+        // First breed without evaluation, TODO: here can potentially breed + evaluate
         List<TestChromosome> offspringPopulation = breedNextGenerationWithoutEvaluation();
-
-        // Previous population did not cover all fix locations, but offspring population might do
-        if(!fixLocationsCovered) {
-            postCalculateFitness(offspringPopulation);
-            updateFixLocationsCovered();
-        }
+        postCalculateFitness(offspringPopulation);
 
         /**
-         * If all fix locations have been covered, we can notify the orchestrator and ask for results
-         * We require:
-         * - Current set of goals: Patch pool, fix locations
-         * - Patch validation results w.r.t. updated goals
-         *
-         * Workflow:
-         * 0. Perform selection based on original goals!!!
-         * 1. Update goals: Here and in Archive
-         * 2. Clear covered goals of each input of the previous population, since we recompute fitness w.r.t. new goals
-         * 3. Reset coverage archive
-         * 4. Evaluate previous population + offspring population w.r.t. patches and fix locations
+         * If all fix locations have been covered, we can notify the orchestrator and ask for patch validation results.
+         * Then, we check if any patches have been killed by the current population:
+         * If yes:
+         * - We update the current goals to reflect the previous patch pool (target lines + killed patches)
+         * - This includes updating the fitness functions, resetting the archive, and recomputing fitness/goals for tests
+         * - Finally, we "enqueue" the next set of goals that reflect the updated patch pool, which are selected once new patches have been killed
+         * If not, we continue selection/evolution based on the current fitness values.
          */
-        if(fixLocationsCovered) {
+        if(fixLocationsCovered()) {
             List<TestChromosome> union = new ArrayList<>();
             union.addAll(this.population);
             union.addAll(offspringPopulation);
-            sendTestPopulationToOrchestrator(union, getAge());
-
-            // TODO: Update goals and archive
-            updateFixLocationsCovered(); // We might need to continue covering new fix locations first
+            sendPopulationToOrchestratorAndUpdateGoals(union, getAge());
+            // Evaluate union w.r.t. previous goals (patches killed etc.)
+            postCalculateFitness(union);
         }
-
-        // Then evaluate
-        postCalculateFitness(population);
         return offspringPopulation;
     }
 
     @Override
     protected void calculateFitness(TestChromosome tc) {
         // If all fix locations have been covered, we can start computing patch mutation score
-        if (fixLocationsCovered) {
+        if (fixLocationsCovered()) {
             this.fitnessFunctions.forEach(fitnessFunction -> fitnessFunction.getFitness(tc));
         } else {
             // Otherwise, compute fix location fitness only
-            this.mappedFitnessFunctions.get(Properties.Criterion.PATCHLINE).forEach(fitnessFunction -> fitnessFunction.getFitness(tc));
+            this.fitnessFunctions.stream()
+                    .filter(LineCoverageTestFitness.class::isInstance)
+                    .forEach(fitnessFunction -> fitnessFunction.getFitness(tc));
         }
+
         // if one of the coverage criterion is Criterion.EXCEPTION, then we have to analyse the results
         // of the execution to look for generated exceptions
         /*
@@ -127,39 +124,19 @@ public class MOSAPatch extends MOSA {
     }
 
     // Checks if any of the uncovered goals correspond to fix locations
-    private void updateFixLocationsCovered() {
+    private boolean fixLocationsCovered() {
         Set<TestFitnessFunction> uncoveredGoals = super.getUncoveredGoals();
-        fixLocationsCovered = uncoveredGoals.stream().noneMatch(LineCoverageTestFitness.class::isInstance);
+        return uncoveredGoals.stream().noneMatch(LineCoverageTestFitness.class::isInstance);
     }
 
-    // Filter out patch mutation goals before all fix locations have been covered
-    // TODO: Redundant computations, optimize
-    @Override
-    protected Set<TestFitnessFunction> getUncoveredGoals() {
-        if (fixLocationsCovered) {
-            return super.getUncoveredGoals();
-        } else {
-            return super.getUncoveredGoals().stream()
-                    .filter(LineCoverageTestFitness.class::isInstance)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-        }
-    }
-    /**
-     * Cannot override because it is used as an stopping criterion.
+    // Since this method is only used as a stopping criterion, simply return 1 to never stop
     @Override
     protected int getNumberOfUncoveredGoals() {
-        if (fixLocationsCovered) {
-            return super.getNumberOfUncoveredGoals();
-        } else {
-            return (int) super.getUncoveredGoals().stream()
-                    .filter(LineCoverageTestFitness.class::isInstance)
-                    .count();
-        }
+        return 1;
     }
-    */
 
     // TODO: Request generation can potentially be optimized using JsonGenerator
-    public void sendTestPopulationToOrchestrator(List<TestChromosome> population, int generation) {
+    public void sendPopulationToOrchestratorAndUpdateGoals(List<TestChromosome> population, int generation) {
         List<TestCase> tests = population.stream()
                 .map(TestChromosome::getTestCase)
                 .collect(toList());
@@ -185,18 +162,58 @@ public class MOSAPatch extends MOSA {
         Map<String, Object> populationInfo = new LinkedHashMap<>();
         populationInfo.put("generation", generation);
         populationInfo.put("tests", nameGenerator.getNames());
-        populationInfo.put("classname", name + generation + suffix);
+        populationInfo.put("classname", Properties.TARGET_CLASS + generation + suffix);
         populationInfo.put("testSuitePath", generatedTests.get(0).getAbsolutePath());
         if (Properties.TEST_SCAFFOLDING && !Properties.NO_RUNTIME_DEPENDENCY) {
             populationInfo.put("testScaffoldingPath", generatedTests.get(1).getAbsolutePath());
         }
         msg.put("data", populationInfo);
 
-        // TODO: Parse response
-        // 1. Process patch validation results for PatchCoverageGoals to Cover
-        // 2. Update goals
         OrchestratorClient client = OrchestratorClient.getInstance();
         JsonFilePath response = client.sendFileRequest(msg, new TypeReference<JsonFilePath>() {});
-    }
+        PatchValidationSummary summary = client.getJSONReplyFromFile(response.getPath(),
+                "updateTestPopulation", new TypeReference<PatchValidationSummary>() {});
 
+        // Update patch kill matrix
+        // Note: Changes in patch goals can only happen if patches have been killed
+        boolean updated = PatchCoverageTestFitness.updateKillMatrix(summary.getKillMatrix());
+
+        if (updated) {
+            // TODO: Better to check if the new patch pool is different from the previous one
+            if(!summary.getPatches().isEmpty()) {
+                throw new RuntimeException("Patches have been killed but no update in patch pool.");
+            }
+
+            // We have successfully killed patches and can start evolving using these patch kill scores
+            // Update set of goals (patches killed in current iteration), enqueue new goals for next iteration
+            // TODO: Keep patch goals throughout evolution?
+            if (!goalsForNextIteration.isEmpty()) {
+                // Clear everything we know and update w.r.t. new goals
+                Archive.getArchiveInstance().reset();
+                this.fitnessFunctions.clear();
+
+                // Here, we add the patches for which we know the patch kill results
+                Archive.getArchiveInstance().addTargets(goalsForNextIteration);
+                this.fitnessFunctions.addAll(goalsForNextIteration);
+
+                // Updated fix locations will server as guidance towards the next set of patches
+                // TODO: Make this iterate through properties and instantiate factories from FitnessFunctions.java
+                List<TestFitnessFunction> lineGoals = new PatchLineCoverageFactory().getCoverageGoals(summary.getFixLocations());
+                Archive.getArchiveInstance().addTargets(lineGoals);
+                this.fitnessFunctions.addAll(lineGoals);
+
+                population.stream().forEach(testChromosome -> {
+                    testChromosome.setChanged(true);
+                    testChromosome.getTestCase().clearCoveredGoals();
+                    calculateFitness(testChromosome); // evaluate w.r.t. fix location distance + killed patches
+                });
+
+                // Clean up
+                goalsForNextIteration.clear();
+            }
+
+            // Save/"enqueue" patch coverage goals for next iteration
+            goalsForNextIteration.addAll(new PatchCoverageFactory().getCoverageGoals(summary.getPatches()));
+        }
+    }
 }

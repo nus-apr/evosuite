@@ -1,7 +1,9 @@
 package org.evosuite.coverage.patch;
 
 import org.evosuite.coverage.line.LineCoverageTestFitness;
+import org.evosuite.coverage.patch.communication.json.FixLocation;
 import org.evosuite.instrumentation.LinePool;
+import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testsuite.AbstractFitnessFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,4 +64,34 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
         }
         goalComputationTime = System.currentTimeMillis() - start;
         return goals;    }
+
+    public List<TestFitnessFunction> getCoverageGoals(List<FixLocation> fixLocations) {
+        List<TestFitnessFunction> goals = new ArrayList<>();
+
+        for (FixLocation fl : fixLocations) {
+            String className = fl.getClassname();
+            List<Integer> targetLines = fl.getTargetLines();
+
+            if (!LinePool.getKnownClasses().contains(className)) {
+                throw new IllegalArgumentException("Unable to find class in LinePool: " + className);
+            }
+
+            if (!isCUT(className)) {
+                throw new IllegalArgumentException("Class containing target line is not part of CUT: " + className);
+            }
+
+            for (String methodName : LinePool.getKnownMethodsFor(className)) {
+                Set<Integer> methodLines = LinePool.getLines(className, methodName);
+
+                for (int line : targetLines) {
+                    if (methodLines.contains(line)) {
+                        logger.info("Found target line " + className + ":" + line + " in  method" + methodName);
+                        goals.add(new LineCoverageTestFitness(className, methodName, line));
+                    }
+                }
+            }
+        }
+
+        return goals;
+    }
 }

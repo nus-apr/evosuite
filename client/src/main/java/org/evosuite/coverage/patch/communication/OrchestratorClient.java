@@ -148,6 +148,55 @@ public class OrchestratorClient {
         }
     }
 
+    public <T> T getJSONReplyFromFile(String jsonFilePath, String originalCmd, TypeReference<T> resultType) {
+        // Create a JsonParser instance
+        try (JsonParser jsonParser = mapper.getFactory().createParser(Paths.get(jsonFilePath).toFile())) {
+
+            // Check the first token
+            if (jsonParser.nextToken() != JsonToken.START_OBJECT) {
+                throw new IllegalStateException("Expected content to be a object.");
+            }
+
+            // First property of JSON object should be "cmd"
+            if (jsonParser.nextToken() != JsonToken.FIELD_NAME || !jsonParser.getCurrentName().equals("cmd")) {
+                throw new IllegalStateException("Expected cmd field.");
+            }
+
+            // "cmd" property should hold an int value
+            if (jsonParser.nextToken() != JsonToken.VALUE_STRING) {
+                throw new IllegalArgumentException("Cmd value must be a String.");
+            }
+
+            String cmd = jsonParser.getValueAsString();
+            if (!cmd.equals(originalCmd)) {
+                throw new IllegalArgumentException("Cmd does not match original request, expected: " + originalCmd);
+            }
+
+            // The next property should be the data corresponding to the command
+            if (jsonParser.nextToken() != JsonToken.FIELD_NAME || !jsonParser.getCurrentName().equals("data")) {
+                throw new IllegalStateException("Expected data after cmd.");
+            }
+
+            // Received data must be a JSON object or array (TODO: or should we enforce it to always be an object?)
+            JsonToken dataType = jsonParser.nextToken();
+            if (dataType != JsonToken.START_OBJECT && dataType != JsonToken.START_ARRAY) {
+                throw new IllegalStateException("Expected data content.");
+            }
+
+            // Unmarshall JSON to instanceof T
+            T result = mapper.readValue(jsonParser, resultType);
+
+            // process "end" of reply object
+            if (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+                throw new IllegalStateException("Expected end of data object.");
+            }
+
+            return result;
+        } catch (IOException e) {
+            throw new RuntimeException("Error while reading data: " + e);
+        }
+    }
+
     private String writeJSONFile(Map<String, Object> jsonMap) throws IOException {
         File jsonFile = Paths.get("jsonClientFiles", "File" + (globalFileCounter++) + ".json").toFile();
         jsonFile.getParentFile().mkdirs();

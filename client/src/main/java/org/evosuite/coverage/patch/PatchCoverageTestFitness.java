@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.evosuite.Properties;
 import org.evosuite.coverage.patch.communication.OrchestratorClient;
 import org.evosuite.coverage.patch.communication.json.Patch;
+import org.evosuite.coverage.patch.communication.json.PatchValidationResult;
 import org.evosuite.coverage.patch.communication.json.SinglePatchValidationResult;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.testcase.TestCase;
@@ -14,7 +15,8 @@ import org.evosuite.testcase.execution.ExecutionResult;
 import java.util.*;
 
 public class PatchCoverageTestFitness extends TestFitnessFunction {
-
+    // Note: If we never clear this map we can keep track of all killed patches (incl. those not part of the pool anymore)
+    private static final Map<String, Set<String>> killMatrix = new LinkedHashMap<>();
     private final Patch targetPatch;
 
     public PatchCoverageTestFitness(Patch targetPatch) {
@@ -23,6 +25,25 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
 
     public Patch getTargetPatch() {
         return targetPatch;
+    }
+
+    public static boolean updateKillMatrix(List<PatchValidationResult> results) {
+        boolean updated = false;
+        for (PatchValidationResult result : results) {
+            String testName = result.getTestName();
+            if (!result.getKilledPatches().isEmpty()) {
+                updated = true;
+            } else {
+                continue;
+            }
+
+            if (!killMatrix.containsKey(testName)) {
+                killMatrix.put(testName, new LinkedHashSet<>(result.getKilledPatches()));
+            } else {
+                killMatrix.get(testName).addAll(result.getKilledPatches());
+            }
+        }
+        return updated;
     }
 
     // TODO: Implement fitness as covering patch locations + killing it
@@ -37,7 +58,6 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
             individual.getTestCase().addCoveredGoal(this);
         }
 
-        // TODO: why is this necessary?
         if (Properties.TEST_ARCHIVE) {
             Archive.getArchiveInstance().updateArchive(this, individual, fitness);
         }
@@ -54,31 +74,19 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
         return 0;
     }
 
-    // TODO: Can potentially optimize request generation using JSONGenerator
-    private boolean getPatchValidationResult(TestCase tc) {
-        // FIXME: Inconsistent ID naming
-        String testId = "test" + tc.getID();
-        String patchId = targetPatch.getIndex();
-
-        // Prepare request for orchestrator
-        Map<String, Object> msg = new LinkedHashMap<>();
-        msg.put("cmd", "getPatchValidationResult");
-        Map<String, Object> patchValidationData = new LinkedHashMap<>();
-        patchValidationData.put("testId", testId);
-        patchValidationData.put("patchId", patchId);
-        msg.put("data", patchValidationData);
-        SinglePatchValidationResult validationResult = OrchestratorClient.getInstance().sendRequest(msg, new TypeReference<SinglePatchValidationResult>() {});
-
-        // TODO: Check that we got the correct information (testId, patchId) back
-
-        // TODO: Empty tests cannot kill any patches
-        return validationResult.getResult();
-    }
-
     // TODO: Cache execution/kill results as this may be executed more frequently
     @Override
     public boolean isCovered(TestChromosome individual, ExecutionResult result) {
-        boolean covered = getPatchValidationResult(individual.getTestCase());
+        String testName = "test" + individual.getTestCase().getID(); // TODO: Optimize
+        String patchIndex = targetPatch.getIndex();
+        boolean covered = false;
+
+        if (PatchCoverageTestFitness.killMatrix.containsKey(testName)) {
+            if (PatchCoverageTestFitness.killMatrix.get(testName).contains(patchIndex)) {
+                covered = true;
+            }
+        }
+
         if (covered) {
             individual.getTestCase().addCoveredGoal(this);
         }
