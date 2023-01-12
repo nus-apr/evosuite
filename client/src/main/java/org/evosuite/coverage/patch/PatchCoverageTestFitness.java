@@ -2,16 +2,21 @@ package org.evosuite.coverage.patch;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.evosuite.Properties;
+import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.patch.communication.OrchestratorClient;
 import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.coverage.patch.communication.json.PatchValidationResult;
 import org.evosuite.coverage.patch.communication.json.SinglePatchValidationResult;
 import org.evosuite.ga.archive.Archive;
+import org.evosuite.runtime.util.Inputs;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
+import org.evosuite.testcase.statements.Statement;
+import org.evosuite.utils.DebuggingObjectOutputStream;
 
+import java.io.*;
 import java.util.*;
 
 public class PatchCoverageTestFitness extends TestFitnessFunction {
@@ -45,6 +50,71 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
         }
         return updated;
     }
+
+    public static Map<String, Set<String>> getKillMatrix() {
+        return killMatrix;
+    }
+
+    public static void clearKillMatrix() {
+        killMatrix.clear();
+    }
+
+    public static boolean saveKillMatrix(File target) {
+        File parent = target.getParentFile();
+        if (!parent.exists()) {
+            parent.mkdirs();
+        }
+
+        try (ObjectOutputStream out = new DebuggingObjectOutputStream(new FileOutputStream(target))) {
+            out.writeObject(killMatrix);
+
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            logger.error("Failed to open/handle " + target.getAbsolutePath() + " for writing: " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    public static void loadKillMatrix(String target) throws IllegalArgumentException {
+        loadKillMatrix(new File(target));
+    }
+
+    public static void loadKillMatrix(File target) throws IllegalArgumentException {
+        Inputs.checkNull(target);
+
+        if (!killMatrix.keySet().isEmpty()) {
+            throw new RuntimeException("Trying to reload an already populated kill matrix.");
+        }
+
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(target))) {
+
+            try {
+                Object obj = in.readObject();
+                if (obj != null) {
+                    if (obj instanceof LinkedHashMap) {
+                        //this check might fail if old version is used, and EvoSuite got updated
+                        Map<String, Set<String>> loadedKillMap = (Map) obj;
+                        for (String s : loadedKillMap.keySet()) {
+                            killMatrix.put(s, loadedKillMap.get(s));
+                        }
+                    }
+                } else {
+                    throw new RuntimeException("Unable to load kill matrix.");
+                }
+            } catch (EOFException e) {
+                //fine
+            } catch (Exception e) {
+                logger.warn("Problems when reading a serialized kill matrix from " + target.getAbsolutePath() + " : " + e.getMessage());
+            }
+        } catch (FileNotFoundException e) {
+            logger.warn("Cannot load tests because file does not exist: " + target.getAbsolutePath());
+        } catch (IOException e) {
+            logger.error("Failed to open/handle " + target.getAbsolutePath() + " for reading: " + e.getMessage());
+        }
+    }
+
 
     // TODO: Implement fitness as covering patch locations + killing it
     @Override
