@@ -37,6 +37,7 @@ import org.evosuite.testcase.statements.*;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
+import org.evosuite.testsuite.TestSuiteSerialization;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.BudgetConsumptionMonitor;
 import org.evosuite.utils.LoggingUtils;
@@ -431,7 +432,12 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
         this.currentIteration = 0;
 
         // Create a random parent population P0
-        this.generateInitialPopulation(Properties.POPULATION);
+        if (Properties.EVOREPAIR_SEEDS != null) {
+            List<TestChromosome> seeds = TestSuiteSerialization.loadTests(Properties.EVOREPAIR_SEEDS);
+            this.population.addAll(seeds);
+        } else {
+            this.generateInitialPopulation(Properties.POPULATION);
+        }
 
         // Determine fitness
         this.calculateFitness();

@@ -42,13 +42,14 @@ public class TargetLinesSystemTest extends SystemTestBase {
 
         URL resource = this.getClass().getResource("testPatchLineFitness.json");
 
-        String[] command = new String[] {"-generateSuite", "-targetLines", resource.getPath(), "-class", targetClass };
+        String[] command = new String[] {"-generateSuite", "-targetLines", resource.getPath(), "-class", targetClass, "-Dorchestrator_port=1234"};
         Properties.ALGORITHM = Properties.Algorithm.MONOTONIC_GA;
         Properties.CRITERION = new Properties.Criterion[]{
                 PATCHLINE
         };
 
         Object result = evosuite.parseCommandLine(command);
+        System.out.println(Properties.EVOREPAIR_PORT);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
         System.out.println("EvolvedTestSuite:\n" + best);
