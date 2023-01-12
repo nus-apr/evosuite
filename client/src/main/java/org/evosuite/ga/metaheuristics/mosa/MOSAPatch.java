@@ -50,13 +50,13 @@ public class MOSAPatch extends MOSA {
     @Override
     public void addFitnessFunction(final FitnessFunction<TestChromosome> function) {
         if (function instanceof TestFitnessFunction) {
-            if (function instanceof PatchCoverageTestFitness) {
+        //    if (false) {
                 // Patch coverage goals will be added once we have started killing the first set of patches
                 goalsForNextIteration.add((TestFitnessFunction) function);
-            } else {
+        //    } else {
                 // Initial goals that can serve as guidance before any patches have been killed
                 fitnessFunctions.add((TestFitnessFunction) function);
-            }
+        //    }
         } else {
             throw new IllegalArgumentException("Only TestFitnessFunctions are supported");
         }
@@ -65,7 +65,7 @@ public class MOSAPatch extends MOSA {
     // TODO: When do we actually want to stop?
     @Override
     public boolean isFinished() {
-        return getAge() > 100;
+        return false;
     }
 
     @Override
@@ -83,7 +83,7 @@ public class MOSAPatch extends MOSA {
          * - Finally, we "enqueue" the next set of goals that reflect the updated patch pool, which are selected once new patches have been killed
          * If not, we continue selection/evolution based on the current fitness values.
          */
-        if(fixLocationsCovered()) {
+        if(isPopulationAdequate()) {
             List<TestChromosome> union = new ArrayList<>();
             union.addAll(this.population);
             union.addAll(offspringPopulation);
@@ -97,7 +97,7 @@ public class MOSAPatch extends MOSA {
     @Override
     protected void calculateFitness(TestChromosome tc) {
         // If all fix locations have been covered, we can start computing patch mutation score
-        if (fixLocationsCovered()) {
+        if (isPopulationAdequate()) {
             this.fitnessFunctions.forEach(fitnessFunction -> fitnessFunction.getFitness(tc));
         } else {
             // Otherwise, compute fix location fitness only
@@ -121,6 +121,11 @@ public class MOSAPatch extends MOSA {
         // update the time needed to reach the max coverage
         this.budgetMonitor.checkMaxCoverage(this.getNumberOfCoveredGoals());
 
+    }
+
+    // Whether enough goals have been covered to send the current population to the orchestrator
+    private boolean isPopulationAdequate() {
+        return fixLocationsCovered();
     }
 
     // Checks if any of the uncovered goals correspond to fix locations
@@ -158,7 +163,7 @@ public class MOSAPatch extends MOSA {
 
         // Generate JSON message for orchestrator
         Map<String, Object> msg = new LinkedHashMap<>();
-        msg.put("cmd", "updateTestPopulation");
+        msg.put("cmd", "getKillMatrixAndNewGoals");
         Map<String, Object> populationInfo = new LinkedHashMap<>();
         populationInfo.put("generation", generation);
         populationInfo.put("tests", nameGenerator.getNames());
@@ -172,7 +177,7 @@ public class MOSAPatch extends MOSA {
         OrchestratorClient client = OrchestratorClient.getInstance();
         JsonFilePath response = client.sendFileRequest(msg, new TypeReference<JsonFilePath>() {});
         PatchValidationSummary summary = client.getJSONReplyFromFile(response.getPath(),
-                "updateTestPopulation", new TypeReference<PatchValidationSummary>() {});
+                "getKillMatrixAndNewGoals", new TypeReference<PatchValidationSummary>() {});
 
         // Update patch kill matrix
         // Note: Changes in patch goals can only happen if patches have been killed
@@ -196,7 +201,7 @@ public class MOSAPatch extends MOSA {
                 Archive.getArchiveInstance().addTargets(goalsForNextIteration);
                 this.fitnessFunctions.addAll(goalsForNextIteration);
 
-                // Updated fix locations will server as guidance towards the next set of patches
+                // Updated fix locations will serve as guidance towards the next set of patches
                 // TODO: Make this iterate through properties and instantiate factories from FitnessFunctions.java
                 List<TestFitnessFunction> lineGoals = new PatchLineCoverageFactory().getCoverageGoals(summary.getFixLocations());
                 Archive.getArchiveInstance().addTargets(lineGoals);
