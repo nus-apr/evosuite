@@ -42,7 +42,7 @@ public class TargetLinesSystemTest extends SystemTestBase {
 
         URL resource = this.getClass().getResource("testPatchLineFitness.json");
 
-        String[] command = new String[] {"-generateSuite", "-targetLines", resource.getPath(), "-class", targetClass, "-Dorchestrator_port=1234"};
+        String[] command = new String[] {"-generateSuite", "-targetLines", resource.getPath(), "-class", targetClass};
         Properties.ALGORITHM = Properties.Algorithm.MONOTONIC_GA;
         Properties.CRITERION = new Properties.Criterion[]{
                 PATCHLINE
@@ -70,7 +70,7 @@ public class TargetLinesSystemTest extends SystemTestBase {
 
         String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(), "-class", targetClass };
         Properties.ASSERTIONS = false;
-        Properties.ALGORITHM = Properties.Algorithm.MOSAPATCH;
+        Properties.ALGORITHM = Properties.Algorithm.MOSA;
         Properties.CRITERION = new Properties.Criterion[]{
                 PATCHLINE, BRANCH
         };

@@ -23,14 +23,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.evosuite.classpath.ClassPathHandler;
+import org.evosuite.coverage.patch.PatchCoverageTestFitness;
 import org.evosuite.coverage.patch.PatchLineCoverageFactory;
 import org.evosuite.coverage.patch.communication.json.FixLocation;
 import org.evosuite.executionmode.*;
+import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.LoggingUtils;
 
 import java.io.File;
@@ -113,12 +116,6 @@ public class CommandLineParameters {
         Option targetCP = new Option("target", true,
                 "target classpath for test generation. Either a jar file or a folder where to find the .class files");
 
-        Option targetLines = new Option("targetLines", true,
-                "absolute path to JSON-file specifying the class target lines in the format: " +
-                        "[{\"class1\": [line1, line2,...,lineN]}, {\"class2\": [line1, line2,...,lineN]}]");
-
-        Option port = new Option("port", true, "port number of the orchestrator");
-
         Option projectCP = new Option("projectCP", true,
                 "classpath of the project under test and all its dependencies");
 
@@ -141,6 +138,14 @@ public class CommandLineParameters {
         parallel.setArgs(3);
         parallel.setArgName("n i x");
 
+        // EvoRepair options
+        Option evorepair = new Option("evorepair", true, "EvoRepair execution mode =[testgen|patchgen].");
+        Option targetLines = new Option("targetLines", true, "Path to JSON-file specifying the initial target lines");
+        Option orchestratorPort = new Option("port", true, "Port number of the orchestrator");
+        Option seedPopulation = new Option("seedPopulation", true, "Path to serialized seed population");
+        Option seedKillMatrix = new Option("seedKillMatrix", true, "Path to JSON file of kill matrix w.r.t. previous patch population");
+        Option previousPatchPopulation = new Option("previousPatchPopulation", true, "Path to JSON file of previous patch population");
+        Option updatedPatchPopulation = new Option("nextPatchPopulation", true, "Path to JSON file of updated patch population");
 
         @SuppressWarnings("static-access")
         Option property = OptionBuilder.withArgName("property=value").hasArgs(2).withValueSeparator().withDescription("use value for given property").create("D");
@@ -161,7 +166,6 @@ public class CommandLineParameters {
         options.addOption(targetPrefix);
         options.addOption(targetCP);
         options.addOption(targetLines);
-        options.addOption(port);
         options.addOption(junitPrefix);
         options.addOption(criterion);
         options.addOption(seed);
@@ -175,6 +179,13 @@ public class CommandLineParameters {
         options.addOption(heapDump);
         options.addOption(startedByCtg);
         options.addOption(parallel);
+        options.addOption(evorepair);
+        options.addOption(orchestratorPort);
+        options.addOption(seedPopulation);
+        options.addOption(seedKillMatrix);
+        options.addOption(previousPatchPopulation);
+        options.addOption(updatedPatchPopulation);
+
 
         return options;
     }
@@ -266,6 +277,45 @@ public class CommandLineParameters {
         }
     }
 
+    public static void handleEvoRepairOptions(List<String> javaOpts, CommandLine line) {
+        // Enable MOSAPatch
+        javaOpts.add("-Dalgorithm=MOSAPatch");
+        Properties.getInstance();
+        Properties.CRITERION = new Properties.Criterion[]{Properties.Criterion.PATCHLINE, Properties.Criterion.PATCH};
+
+        // TODO: Verify if we really need to disable both
+        LoggingUtils.getEvoLogger().warn("[EvoRepair] Disabling test minimization and mocking. TODO: Verify if this is really necessary.");
+        Properties.MINIMIZE = false;
+        Properties.MOCK_IF_NO_GENERATOR = false;
+
+        if (line.hasOption("orchestratorPort")) {
+            int port = Integer.parseInt(line.getOptionValue("orchestratorPort"));
+            LoggingUtils.getEvoLogger().info("[EvoRepair] Setting orchestrator port to: {}.", port);
+            Properties.EVOREPAIR_PORT = port;
+        } else {
+            LoggingUtils.getEvoLogger().info("[EvoRepair] No orchestrator port specified, defaulting to 7777.");
+            Properties.EVOREPAIR_PORT = 7777;
+        }
+
+        boolean seedPopulation = line.hasOption("seedPopulation");
+        boolean previousPatchPopulation = line.hasOption("previousPatchPopulation");
+        boolean seedKillMatrix = line.hasOption("seedKillMatrix");
+        boolean updatedPatchPopulation = line.hasOption("updatedPatchPopulation");
+
+        // Either all options are used, or none
+        if (seedPopulation && previousPatchPopulation && seedKillMatrix && updatedPatchPopulation) {
+            LoggingUtils.getEvoLogger().info("[EvoRepair] Using seed information.");
+            Properties.EVOREPAIR_SEED_POPULATION = line.getOptionValue("seedPopulation");
+            Properties.EVOREPAIR_PREVIOUS_PATCH_POPULATION = line.getOptionValue("previousPatchPopulation");
+            Properties.EVOREPAIR_SEED_KILL_MATRIX = line.getOptionValue("seedKillMatrix");
+            Properties.EVOREPAIR_UPDATED_PATCH_POPULATION = line.getOptionValue("updatedPatchPopulation");
+
+        } else if (seedPopulation || previousPatchPopulation || seedKillMatrix || updatedPatchPopulation) {
+            LoggingUtils.getEvoLogger().error("Unable to use seed information. At least one of the seed options "
+                    + "[seedPopulation|previousPatchPopulation|seedKillMatrix|updatedPatchPopulation] is missing.");
+        }
+    }
+
     public static void handleTargetLines(CommandLine line) {
 
         if (!line.hasOption("targetLines")) {
@@ -287,16 +337,6 @@ public class CommandLineParameters {
             throw new Error("Error while processing target lines JSON: " + e.getMessage());
         } catch (IOException e) {
             throw new Error("Unable to find targetLines file: " + e.getMessage());
-        }
-    }
-
-    public static void handlePortNumber(CommandLine line) {
-        int port;
-        if (!line.hasOption("port")) {
-            LoggingUtils.getEvoLogger().info("* No port number specified: defaulting to {}.", Properties.EVOREPAIR_PORT);
-        } else {
-            String portString = line.getOptionValue("port");
-            Properties.EVOREPAIR_PORT = Integer.parseInt(portString);
         }
     }
 
