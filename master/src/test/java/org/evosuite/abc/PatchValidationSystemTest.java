@@ -51,7 +51,7 @@ public class PatchValidationSystemTest extends SystemTestBase {
         Properties.JUNIT_SUFFIX = "_gen_2_ESTest";
 
         //String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(),"-port", "7777", "-class", targetClass };
-        String[] command = new String[] {"-generateMOSuite", "-targetLines", targetLinesFilePath,"-port", port, "-class", clazz,
+        String[] command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-targetLines", targetLinesFilePath,"-port", port, "-class", clazz,
         "-projectCP", projectCP, "-base_dir", base_dir};
 
         Properties.ASSERTIONS = false;
@@ -59,8 +59,8 @@ public class PatchValidationSystemTest extends SystemTestBase {
         Properties.CRITERION = new Properties.Criterion[]{
                 Properties.Criterion.PATCH, Properties.Criterion.PATCHLINE
         };
-        Properties.TIMEOUT=Integer.MAX_VALUE;
-        Properties.GLOBAL_TIMEOUT=Integer.MAX_VALUE;
+        Properties.TIMEOUT=100_000;
+        Properties.GLOBAL_TIMEOUT=100_000;
         Properties.MOCK_IF_NO_GENERATOR = false;
         // FIXME: Test suite minimization seems to break the number of covered goals in the stats
 

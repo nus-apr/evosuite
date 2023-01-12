@@ -225,6 +225,13 @@ public class EvoSuite {
              * we should check if it actually exists (ie detect typos)
              */
 
+            // EvoRepair related setup
+            if (line.hasOption("evorepair") && line.getOptionValue("evorepair").equals("testgen")) {
+                CommandLineParameters.handleEvoRepairOptions(javaOpts, line);
+            } else {
+                LoggingUtils.getEvoLogger().warn("[EvoRepair] EvoRepair Test Generation is not enabled. Enable using -evorepair=testgen");
+            }
+
             CommandLineParameters.handleSeed(javaOpts, line);
 
             CommandLineParameters.addJavaDOptions(javaOpts, line);
@@ -237,10 +244,7 @@ public class EvoSuite {
 
             CommandLineParameters.handleJVMOptions(javaOpts, line);
 
-            CommandLineParameters.handlePortNumber(line);
-
             CommandLineParameters.handleTargetLines(line);
-
 
             if (!ClassPathHacker.isJunitCheckAvailable()) {
                 if (Properties.JUNIT_CHECK == Properties.JUnitCheckValues.TRUE) {

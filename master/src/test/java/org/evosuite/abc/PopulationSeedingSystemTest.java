@@ -20,6 +20,8 @@ public class PopulationSeedingSystemTest extends SystemTestBase {
 
     private EvoSuite evosuite;
     String targetClass = ComplexConstraints.class.getCanonicalName();
+    String[] command = new String[] {"-generateMOSuite", "-class", targetClass};
+
 
     @Before
     public void setup() {
@@ -33,7 +35,6 @@ public class PopulationSeedingSystemTest extends SystemTestBase {
 
     @Test
     public void testWriteSeeds() {
-        String[] command = new String[] {"-generateMOSuite", "-class", targetClass };
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
 
@@ -56,9 +57,7 @@ public class PopulationSeedingSystemTest extends SystemTestBase {
 
     @Test
     public void testLoadSeeds() {
-        String[] command = new String[] {"-generateMOSuite", "-class", targetClass,
-                "-Dseed_population=src/test/resources/org/evosuite/abc/population.tmp"};
-
+        Properties.EVOREPAIR_SEED_POPULATION = "src/test/resources/org/evosuite/abc/population.tmp";
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
 
