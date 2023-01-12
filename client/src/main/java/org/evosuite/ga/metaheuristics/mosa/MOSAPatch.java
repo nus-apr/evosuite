@@ -14,6 +14,7 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.junit.naming.methods.IDTestNameGenerationStrategy;
 import org.evosuite.junit.writer.TestSuiteWriter;
+import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -142,11 +143,16 @@ public class MOSAPatch extends MOSA {
 
     // TODO: Request generation can potentially be optimized using JsonGenerator
     public void sendPopulationToOrchestratorAndUpdateGoals(List<TestChromosome> population, int generation) {
-        List<TestCase> tests = population.stream()
+        // Filter population to only fix-location covering tests
+        List<TestChromosome> reachingTests = population.stream()
+                .filter(t -> (t.getTestCase()).getCoveredGoals().stream().anyMatch(LineCoverageTestFitness.class::isInstance))
+                .collect(toList());
+
+        List<TestCase> tests = reachingTests.stream()
                 .map(TestChromosome::getTestCase)
                 .collect(toList());
 
-        List<ExecutionResult> results = population.stream()
+        List<ExecutionResult> results = reachingTests.stream()
                 .map(TestChromosome::getLastExecutionResult)
                 .collect(toList());
 
