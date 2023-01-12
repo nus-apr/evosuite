@@ -148,6 +148,11 @@
             <artifactId>junit-platform-runner</artifactId>
             <version>1.8.0</version>
         </dependency>
+        <dependency>
+            <groupId>Arja</groupId>
+            <artifactId>Arja</artifactId>
+            <version>1b81b5b</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -165,7 +170,36 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.evosuite.patch.RepairMain</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>evosuite-client-maven-repo</id>
+            <url>file:///${project.basedir}/local-maven-repo</url>
+        </repository>
+    </repositories>
 </project>
 	
