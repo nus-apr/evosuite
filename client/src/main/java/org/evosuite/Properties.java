@@ -311,6 +311,10 @@ public class Properties {
     // EvoRepair Config
     public static int EVOREPAIR_PORT = 7777;
 
+
+    @Parameter(key = "seed_population", group = "EvoRepair", description = "Path to serialized seed population")
+    public static String EVOREPAIR_SEEDS = null;
+
     // Search algorithm
     public enum Algorithm {
         // random
