@@ -43,12 +43,25 @@ public class PatchValidationSystemTest extends SystemTestBase {
 
         URL resource = this.getClass().getResource("testPatchLineFitness.json");
 
-        String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(),"-port", "7777", "-class", targetClass };
+        String clazz = "org.apache.commons.math3.distribution.HypergeometricDistribution";
+        String projectCP = "/home/lam/workspace/nus-apr/evoRepair/test/math_2_instr/target/classes";
+        String base_dir = "/home/lam/workspace/nus-apr/evoRepair/output/math_2_buggy-instr-230111_222410/gen-test/gen1/org.apache.commons.math3.distribution.HypergeometricDistribution";
+        String targetLinesFilePath = "/home/lam/workspace/nus-apr/evoRepair/output/math_2_buggy-instr-230111_222410/init_locations.json";
+        String port = "59359";
+        Properties.JUNIT_SUFFIX = "_gen_2_ESTest";
+
+        //String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(),"-port", "7777", "-class", targetClass };
+        String[] command = new String[] {"-generateMOSuite", "-targetLines", targetLinesFilePath,"-port", port, "-class", clazz,
+        "-projectCP", projectCP, "-base_dir", base_dir};
+
         Properties.ASSERTIONS = false;
         Properties.ALGORITHM = Properties.Algorithm.MOSAPATCH;
         Properties.CRITERION = new Properties.Criterion[]{
                 Properties.Criterion.PATCH, Properties.Criterion.PATCHLINE
         };
+        Properties.TIMEOUT=Integer.MAX_VALUE;
+        Properties.GLOBAL_TIMEOUT=Integer.MAX_VALUE;
+        Properties.MOCK_IF_NO_GENERATOR = false;
         // FIXME: Test suite minimization seems to break the number of covered goals in the stats
 
         // Debugging

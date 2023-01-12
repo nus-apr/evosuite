@@ -211,7 +211,7 @@ public class OrchestratorClient {
             msg.put("cmd", "readJsonFile");
             msg.put("data", new JsonFilePath(filePath));
             mapper.writeValue(socket.getOutputStream(), msg); // send request to orchestrator over socket
-            return getJSONReply(jsonMap.get("cmd").toString(), resultType);
+            return getJSONReply("readJsonFile", resultType);
         } catch (IOException e) {
             throw new RuntimeException("Error while sending request: " + jsonMap.toString() + "\n" + e);
         }

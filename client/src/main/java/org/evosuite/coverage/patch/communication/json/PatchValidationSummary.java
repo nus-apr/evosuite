@@ -7,8 +7,8 @@ public class PatchValidationSummary {
     private List<Patch> patches;
     private List<FixLocation> fixLocations;
     public PatchValidationSummary() {}
-    public PatchValidationSummary(List<PatchValidationResult> results, List<Patch> patches, List<FixLocation> fixLocations) {
-        this.killMatrix = results;
+    public PatchValidationSummary(List<PatchValidationResult> killMatrix, List<Patch> patches, List<FixLocation> fixLocations) {
+        this.killMatrix = killMatrix;
         this.patches = patches;
         this.fixLocations = fixLocations;
     }
