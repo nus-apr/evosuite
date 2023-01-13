@@ -404,6 +404,23 @@ public class TestSuiteWriter implements Opcodes {
         }
     }
 
+    private String getDefects4JInstrumentationCode() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(NEWLINE);
+        builder.append("@Before");
+        builder.append(NEWLINE);
+        builder.append("public void enableInstrumentation() {");
+        builder.append("System.setProperty(\"defects4j.instrumentation.enabled\", \"true\");");
+        builder.append("}");
+        builder.append(NEWLINE);
+        builder.append("@After");
+        builder.append(NEWLINE);
+        builder.append("public void disableInstrumentation() {");
+        builder.append("System.setProperty(\"defects4j.instrumentation.enabled\", \"true\");");
+        builder.append("}");
+        return builder.toString();
+    }
+
 
     /**
      * Create JUnit file for given class name
@@ -426,6 +443,8 @@ public class TestSuiteWriter implements Opcodes {
         if (!Properties.TEST_SCAFFOLDING && !Properties.NO_RUNTIME_DEPENDENCY) {
             builder.append(new Scaffolding().getBeforeAndAfterMethods(name, wasSecurityException, results));
         }
+
+        builder.append(getDefects4JInstrumentationCode());
 
         if (testCases.isEmpty()) {
             builder.append(getEmptyTest());
@@ -586,6 +605,12 @@ public class TestSuiteWriter implements Opcodes {
         // If a CodeUnderTestException happens, the test will be chopped before that exception
         // but it would still be in the imports
         importNames.remove(CodeUnderTestException.class.getCanonicalName());
+
+        // Imports for custom defects4j instrumentation
+        importNames.add("org.junit.Before");
+        importNames.add("org.junit.After");
+        importNames.add("java.lang.System");
+
 
         List<String> importsSorted = new ArrayList<>(importNames);
 
