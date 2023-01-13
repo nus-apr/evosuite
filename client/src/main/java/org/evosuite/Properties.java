@@ -309,10 +309,10 @@ public class Properties {
 
     // ---------------------------------------------------------------
     // EvoRepair Config
-    //@Parameter(key = "orchestrator_port", group = "EvoRepair", description = "Port number of the orchestrator")
+    @Parameter(key = "port", group = "EvoRepair", description = "Port number of the orchestrator")
     public static int EVOREPAIR_PORT = 7777;
 
-    //@Parameter(key = "seed_population", group = "EvoRepair", description = "Path to serialized seed population")
+    @Parameter(key = "seeds", group = "EvoRepair", description = "Path to serialized seed population")
     public static String EVOREPAIR_SEED_POPULATION = null;
 
     //@Parameter(key = "seed_kill_matrix", group = "EvoRepair", description = "Path to serialized kill matrix")
@@ -322,6 +322,7 @@ public class Properties {
 
     //public static String EVOREPAIR_UPDATED_PATCH_POPULATION = null;
 
+    @Parameter(key = "targetPatches", group = "EvoRepair", description = "Path to serialized seed population")
     public static String EVOREPAIR_TARGET_PATCHES = null;
 
 
