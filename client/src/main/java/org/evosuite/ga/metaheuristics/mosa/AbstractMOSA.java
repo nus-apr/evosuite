@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Abstract class for MOSA or variants of MOSA.
@@ -438,7 +439,13 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
             LoggingUtils.getEvoLogger().info("[EvoRepair] Successfully loaded seed population of size {}.", seeds.size());
             LoggingUtils.getEvoLogger().warn("[EvoRepair] TODO: Ensure that the population consists of enough seeds, e.g., by adding random seeds.");
 
-            this.population.addAll(seeds);
+            if (seeds.size()<= Properties.POPULATION) {
+                this.population.addAll(seeds);
+                this.generateInitialPopulation(Properties.POPULATION - population.size());
+            } else {
+                this.population.addAll(seeds.stream().limit(Properties.POPULATION).collect(Collectors.toCollection(LinkedHashSet::new)));
+            }
+
         } else {
             this.generateInitialPopulation(Properties.POPULATION);
         }

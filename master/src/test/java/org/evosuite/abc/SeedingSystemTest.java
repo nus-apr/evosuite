@@ -105,6 +105,22 @@ public class SeedingSystemTest extends SystemTestBase {
     }
 
     @Test
+    public void testLoadSeedsFromEmptyJSON() {
+        Properties.EVOREPAIR_SEED_POPULATION = "src/test/resources/org/evosuite/abc/seeds_empty.json";
+        List<TestChromosome> population = SeedHandler.getInstance().loadSeedTestPopulation();
+        Assert.assertEquals(population.size(), 0);
+
+        Map<Integer, Set<String>> expectedKillmatrix = new LinkedHashMap<>();
+
+        // Recall that the tests have been assigned new ids after deserialization
+        expectedKillmatrix.put(2, new LinkedHashSet<>(Arrays.asList("patch1", "patch2", "patch3")));
+        expectedKillmatrix.put(5, new LinkedHashSet<>(Arrays.asList("patch1")));
+
+        Map<Integer, Set<String>> actualKillMatrix = PatchCoverageTestFitness.getKillMatrix();
+        Assert.assertEquals(expectedKillmatrix,  actualKillMatrix);
+    }
+
+    @Test
     public void testLoadGoalsFromJSON() {
         targetClass = MethodReturnsPrimitive.class.getCanonicalName();
         Properties.CRITERION = new Properties.Criterion[]{
