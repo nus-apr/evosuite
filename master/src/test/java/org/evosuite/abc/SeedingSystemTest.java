@@ -92,7 +92,7 @@ public class SeedingSystemTest extends SystemTestBase {
     }
 
     @Test
-    public void testLoadSeedsFromJSON() throws IOException {
+    public void testLoadSeedsFromJSON() {
         Properties.EVOREPAIR_SEED_POPULATION = "src/test/resources/org/evosuite/abc/seeds_subset.json";
         List<TestChromosome> population = SeedHandler.getInstance().loadSeedTestPopulation();
         Assert.assertEquals(population.size(), 2);

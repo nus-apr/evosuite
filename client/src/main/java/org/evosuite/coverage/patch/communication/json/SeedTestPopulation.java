@@ -4,11 +4,14 @@ import java.util.List;
 
 public class SeedTestPopulation {
     private String serializedSuite;
+
+    private String testPrefix;
     private List<SeedTest> tests;
 
     public SeedTestPopulation() {}
-    public SeedTestPopulation(String serializedSuite, List<SeedTest> tests) {
+    public SeedTestPopulation(String serializedSuite, String testPrefix, List<SeedTest> tests) {
         this.serializedSuite = serializedSuite;
+        this.testPrefix = testPrefix;
         this.tests = tests;
     }
 
@@ -18,6 +21,14 @@ public class SeedTestPopulation {
 
     public void setSerializedSuite(String serializedSuite) {
         this.serializedSuite = serializedSuite;
+    }
+
+    public String getTestPrefix() {
+        return testPrefix;
+    }
+
+    public void setTestPrefix(String testPrefix) {
+        this.testPrefix = testPrefix;
     }
 
     public List<SeedTest> getTests() {
