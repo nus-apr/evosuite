@@ -116,5 +116,13 @@ public class SeedingSystemTest extends SystemTestBase {
         String patchFile = "src/test/resources/org/evosuite/abc/patch_population.json";
         command = new String[] {"-generateMOSuite", "-evorepair=testgen", "-targetPatches", patchFile, "-class", targetClass};
         Object result = evosuite.parseCommandLine(command);
+        GeneticAlgorithm<?> ga = getGAFromResult(result);
+        TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
+
+
+        int goals = TestGenerationStrategy.getFitnessFactories().stream()
+                .mapToInt(f -> f.getCoverageGoals().size()).sum();
+        Assert.assertEquals("Wrong number of goals: ", 7, goals); // 3 patches  + 4 target lines
+        Assert.assertEquals("Non-optimal coverage: ", 4, best.getCoveredGoals().size(), 0.01);
     }
 }
