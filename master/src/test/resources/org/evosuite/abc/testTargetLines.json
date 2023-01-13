@@ -1,8 +1,0 @@
-[
-  { "classname" : "some.package.name.Class1",
-    "targetLines" : [1,2,3]
-  },
-  { "classname" : "some.package.name.Class2",
-    "targetLines" : [4,5,6,7,8,9]
-  }
-]

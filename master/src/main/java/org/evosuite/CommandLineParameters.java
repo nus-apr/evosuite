@@ -140,7 +140,6 @@ public class CommandLineParameters {
 
         // EvoRepair options
         Option evorepair = new Option("evorepair", true, "EvoRepair execution mode =[testgen|patchgen].");
-        Option targetLines = new Option("targetLines", true, "Path to JSON file specifying the initial target lines");
         Option orchestratorPort = new Option("port", true, "Port number of the orchestrator");
         Option seedPopulation = new Option("seeds", true, "Path to JSON file specifying seed population");
         //Option seedKillMatrix = new Option("seedKillMatrix", true, "Path to JSON file of kill matrix w.r.t. previous patch population");
@@ -181,7 +180,6 @@ public class CommandLineParameters {
         options.addOption(parallel);
         options.addOption(evorepair);
         options.addOption(orchestratorPort);
-        options.addOption(targetLines);
         options.addOption(seedPopulation);
         //options.addOption(seedKillMatrix);
         //options.addOption(previousPatchPopulation);
@@ -280,7 +278,11 @@ public class CommandLineParameters {
 
     public static void handleEvoRepairOptions(List<String> javaOpts, CommandLine line) {
         // Enable MOSAPatch
-        javaOpts.add("-Dalgorithm=MOSA");
+        if (line.hasOption("generateMOSuite")) {
+            javaOpts.add("-Dalgorithm=MOSA");
+        } else {
+            LoggingUtils.getEvoLogger().warn("[EvoRepair] Multi-objective search is not enabled, enable with -generateMOSuite");
+        }
         Properties.getInstance();
 
         // TODO: Better to set these from cmdline
@@ -334,32 +336,6 @@ public class CommandLineParameters {
                     + "[seedPopulation|previousPatchPopulation|seedKillMatrix|updatedPatchPopulation] is missing.");
         }*/
     }
-
-    public static void handleTargetLines(CommandLine line) {
-
-        if (!line.hasOption("targetLines")) {
-            return;
-        } else {
-            LoggingUtils.getEvoLogger().warn("* -targetLines options should be removed.");
-        }
-
-        String targetLinesPath = line.getOptionValue("targetLines");
-        try {
-            List<FixLocation> targetLineSpecs = new ObjectMapper().readValue(new File(targetLinesPath), new TypeReference<List<FixLocation>>(){});
-
-            for (FixLocation s : targetLineSpecs) {
-                PatchLineCoverageFactory.addTargetLine(s.getClassname(), s.getTargetLines());
-            }
-
-        } catch (JsonMappingException e) {
-            throw new Error("Error Unable to create instance of TargetLineSpec: " + e.getMessage());
-        } catch (JsonProcessingException e) {
-            throw new Error("Error while processing target lines JSON: " + e.getMessage());
-        } catch (IOException e) {
-            throw new Error("Unable to find targetLines file: " + e.getMessage());
-        }
-    }
-
 
         public static void handleJVMOptions(List<String> javaOpts, CommandLine line) {
         /*
