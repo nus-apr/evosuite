@@ -41,7 +41,7 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
         for (String className : targetLineMap.keySet()) {
             // Check that target line is actually part of the CUT
             if (!LinePool.getKnownClasses().contains(className)) {
-                 logger.warn("Unable to find class in LinePool: " + className);
+                 logger.debug("Unable to find class in LinePool: " + className);
                  continue;
             }
 
@@ -74,7 +74,7 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
             List<Integer> targetLines = fl.getTargetLines();
 
             if (!LinePool.getKnownClasses().contains(className)) {
-                //logger.warn("Unable to find class in LinePool: " + className);
+                logger.debug("Unable to find class in LinePool: " + className);
                 continue;
             }
 
