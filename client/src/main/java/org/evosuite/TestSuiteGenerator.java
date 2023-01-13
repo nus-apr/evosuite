@@ -30,6 +30,7 @@ import org.evosuite.coverage.CoverageCriteriaAnalyzer;
 import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.dataflow.DefUseCoverageSuiteFitness;
+import org.evosuite.coverage.patch.SeedHandler;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
 import org.evosuite.junit.JUnitAnalyzer;
@@ -674,7 +675,11 @@ public class TestSuiteGenerator {
             LoggingUtils.getEvoLogger().info("* " + ClientProcess.getPrettyPrintIdentifier() + "Writing JUnit test case '"
                     + (name + suffix) + "' to " + testDir);
             suiteWriter.writeTestSuite(name + suffix, testDir, testSuite.getLastExecutionResults());
+
+            // EvoRepair: Serialize test suite and test names
+            SeedHandler.saveTestPopulation(testSuite);
         }
+
         return TestGenerationResultBuilder.buildSuccessResult();
     }
 
