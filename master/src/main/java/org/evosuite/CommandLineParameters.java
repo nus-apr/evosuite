@@ -140,12 +140,13 @@ public class CommandLineParameters {
 
         // EvoRepair options
         Option evorepair = new Option("evorepair", true, "EvoRepair execution mode =[testgen|patchgen].");
-        Option targetLines = new Option("targetLines", true, "Path to JSON-file specifying the initial target lines");
+        Option targetLines = new Option("targetLines", true, "Path to JSON file specifying the initial target lines");
         Option orchestratorPort = new Option("port", true, "Port number of the orchestrator");
-        Option seedPopulation = new Option("seedPopulation", true, "Path to serialized seed population");
-        Option seedKillMatrix = new Option("seedKillMatrix", true, "Path to JSON file of kill matrix w.r.t. previous patch population");
-        Option previousPatchPopulation = new Option("previousPatchPopulation", true, "Path to JSON file of previous patch population");
-        Option updatedPatchPopulation = new Option("nextPatchPopulation", true, "Path to JSON file of updated patch population");
+        Option seedPopulation = new Option("seeds", true, "Path to JSON file specifying seed population");
+        //Option seedKillMatrix = new Option("seedKillMatrix", true, "Path to JSON file of kill matrix w.r.t. previous patch population");
+        //Option previousPatchPopulation = new Option("previousPatchPopulation", true, "Path to JSON file of previous patch population");
+        //Option updatedPatchPopulation = new Option("nextPatchPopulation", true, "Path to JSON file of updated patch population");
+        Option targetPatches = new Option("targetPatches", true, "Path to JSON file specifying target patches");
 
         @SuppressWarnings("static-access")
         Option property = OptionBuilder.withArgName("property=value").hasArgs(2).withValueSeparator().withDescription("use value for given property").create("D");
@@ -165,7 +166,6 @@ public class CommandLineParameters {
         options.addOption(targetClass);
         options.addOption(targetPrefix);
         options.addOption(targetCP);
-        options.addOption(targetLines);
         options.addOption(junitPrefix);
         options.addOption(criterion);
         options.addOption(seed);
@@ -181,11 +181,12 @@ public class CommandLineParameters {
         options.addOption(parallel);
         options.addOption(evorepair);
         options.addOption(orchestratorPort);
+        options.addOption(targetLines);
         options.addOption(seedPopulation);
-        options.addOption(seedKillMatrix);
-        options.addOption(previousPatchPopulation);
-        options.addOption(updatedPatchPopulation);
-
+        //options.addOption(seedKillMatrix);
+        //options.addOption(previousPatchPopulation);
+        //options.addOption(updatedPatchPopulation);
+        options.addOption(targetPatches);
 
         return options;
     }
@@ -279,8 +280,10 @@ public class CommandLineParameters {
 
     public static void handleEvoRepairOptions(List<String> javaOpts, CommandLine line) {
         // Enable MOSAPatch
-        javaOpts.add("-Dalgorithm=MOSAPatch");
+        javaOpts.add("-Dalgorithm=MOSA");
         Properties.getInstance();
+
+        // TODO: Better to set these from cmdline
         Properties.CRITERION = new Properties.Criterion[]{Properties.Criterion.PATCHLINE, Properties.Criterion.PATCH};
 
         // TODO: Verify if we really need to disable both
@@ -297,6 +300,21 @@ public class CommandLineParameters {
             Properties.EVOREPAIR_PORT = 7777;
         }
 
+        if (line.hasOption("seeds")) {
+            LoggingUtils.getEvoLogger().info("[EvoRepair] Using seeds.");
+            Properties.EVOREPAIR_SEED_POPULATION = line.getOptionValue("seeds");
+        } else {
+            LoggingUtils.getEvoLogger().warn("[EvoRepair] No seeds specified, enable using -seeds option.");
+        }
+
+        if (line.hasOption("targetPatches")) {
+            Properties.EVOREPAIR_TARGET_PATCHES = line.getOptionValue("targetPatches");
+        } else {
+            LoggingUtils.getEvoLogger().error("No target patches provided, specify using -targetPatches option.");
+            throw new IllegalArgumentException("Missing target patches.");
+        }
+
+        /**
         boolean seedPopulation = line.hasOption("seedPopulation");
         boolean previousPatchPopulation = line.hasOption("previousPatchPopulation");
         boolean seedKillMatrix = line.hasOption("seedKillMatrix");
@@ -313,7 +331,7 @@ public class CommandLineParameters {
         } else if (seedPopulation || previousPatchPopulation || seedKillMatrix || updatedPatchPopulation) {
             LoggingUtils.getEvoLogger().error("Unable to use seed information. At least one of the seed options "
                     + "[seedPopulation|previousPatchPopulation|seedKillMatrix|updatedPatchPopulation] is missing.");
-        }
+        }*/
     }
 
     public static void handleTargetLines(CommandLine line) {
@@ -321,6 +339,10 @@ public class CommandLineParameters {
         if (!line.hasOption("targetLines")) {
             LoggingUtils.getEvoLogger().info("* No target lines specified: specify using -targetLines.");
             return;
+        } else {
+            if (line.getOptionValue("targetLines") != null) {
+                throw new RuntimeException("TODO: Remove this option.");
+            }
         }
 
         String targetLinesPath = line.getOptionValue("targetLines");

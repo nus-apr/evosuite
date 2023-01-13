@@ -1,37 +1,32 @@
 package org.evosuite.coverage.patch;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
-import org.evosuite.coverage.patch.communication.OrchestratorClient;
 import org.evosuite.coverage.patch.communication.json.Patch;
-import org.evosuite.coverage.patch.communication.json.PatchValidationResult;
-import org.evosuite.coverage.patch.communication.json.SinglePatchValidationResult;
 import org.evosuite.ga.archive.Archive;
-import org.evosuite.runtime.util.Inputs;
-import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
-import org.evosuite.testcase.statements.Statement;
-import org.evosuite.utils.DebuggingObjectOutputStream;
 
-import java.io.*;
 import java.util.*;
 
 public class PatchCoverageTestFitness extends TestFitnessFunction {
     // Note: If we never clear this map we can keep track of all killed patches (incl. those not part of the pool anymore)
-    private static final Map<String, Set<String>> killMatrix = new LinkedHashMap<>();
+    private static final Map<Integer, Set<String>> killMatrix = new LinkedHashMap<>();
+    private static int minKills = -1;
+    private static int maxKills = -1;
     private final Patch targetPatch;
+    private final Set<TestFitnessFunction> fixLocationGoals = new LinkedHashSet<>();
 
     public PatchCoverageTestFitness(Patch targetPatch) {
         this.targetPatch = Objects.requireNonNull(targetPatch, "targetPatch cannot be null");
+        this.fixLocationGoals.addAll(new PatchLineCoverageFactory().getCoverageGoals(targetPatch.getFixLocations()));
     }
 
     public Patch getTargetPatch() {
         return targetPatch;
     }
 
+    /*
     public static boolean updateKillMatrix(List<PatchValidationResult> results) {
         boolean updated = false;
         for (PatchValidationResult result : results) {
@@ -51,7 +46,44 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
         return updated;
     }
 
-    public static Map<String, Set<String>> getKillMatrix() {
+     */
+
+    // TODO: Optimize
+    public static void setKillMatrix(Map<Integer, Set<String>> newKillMatrix) {
+        killMatrix.clear();
+        for (Integer test: newKillMatrix.keySet()) {
+            killMatrix.put(test, newKillMatrix.get(test));
+
+            int numKills = newKillMatrix.get(test).size();
+            if (minKills == -1 || numKills < minKills) {
+                minKills = numKills;
+            }
+            if (maxKills == -1 || numKills > maxKills) {
+                maxKills = numKills;
+            }
+        }
+    }
+
+    public static double getNormalizedKillScore(int testId, double lower, double upper) {
+        if (!killMatrix.containsKey("testId")) {
+            return upper;
+        }
+        double killScore = killMatrix.get(testId).size();
+
+        // First normalize to [0,1]
+        if (maxKills != minKills) {
+            killScore = (killScore - minKills) / (maxKills-minKills);
+        } else {
+            killScore = 1.0;
+        }
+
+        // Now scale to [lower, upper]
+        double range = upper - lower;
+        killScore = (killScore * range) + lower;
+        return killScore;
+    }
+
+    public static Map<Integer, Set<String>> getKillMatrix() {
         return killMatrix;
     }
 
@@ -59,6 +91,7 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
         killMatrix.clear();
     }
 
+    /*
     public static boolean saveKillMatrix(File target) {
         File parent = target.getParentFile();
         if (!parent.exists()) {
@@ -114,13 +147,39 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
             logger.error("Failed to open/handle " + target.getAbsolutePath() + " for reading: " + e.getMessage());
         }
     }
+     */
 
 
-    // TODO: Implement fitness as covering patch locations + killing it
+    private double getNormalizedFixLocationFitness(TestChromosome tc, double lower, double upper) {
+        int numFixLocations = fixLocationGoals.size();
+
+        // Normalize overall fitness between [0, 1]
+        double fixLocationFitness = normalize(fixLocationGoals.stream()
+                .mapToDouble(goal -> goal.getFitness(tc))
+                .sum());
+
+        // Then scale to [lower, upper]
+        double range = upper - lower;
+        fixLocationFitness = (fixLocationFitness * range) + lower;
+
+        return fixLocationFitness;
+
+    }
+
+    /*
+     * Reaching fix locations = 0.5
+     * Number of killed patches in the past = 0.4
+     */
     @Override
     public double getFitness(TestChromosome individual, ExecutionResult result) {
-        boolean isCovered = isCovered(individual.getTestCase());
-        double fitness = isCovered ? 0.0 : 1.0;
+        //boolean isCovered = isCovered(individual.getTestCase());
+        //double fitness = isCovered ? 0.0 : 1.0;
+        double fitness = 1.0;
+        // Normalize kill score between 0 and 0.4, set fitness between 1 and 0.6
+        fitness = fitness - PatchCoverageTestFitness.getNormalizedKillScore(individual.getTestCase().getID(), 0, 0.4);
+
+        // Normalized fix location fitness between 0 and 0.5
+        fitness = fitness - getNormalizedFixLocationFitness(individual, 0, 0.5);
 
         updateIndividual(individual, fitness);
 

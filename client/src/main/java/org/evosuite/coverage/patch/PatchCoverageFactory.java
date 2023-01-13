@@ -11,6 +11,18 @@ import java.util.List;
 public class PatchCoverageFactory extends AbstractFitnessFactory<PatchCoverageTestFitness> {
     private static final Logger logger = LoggerFactory.getLogger(PatchCoverageFactory.class);
 
+    public PatchCoverageFactory() {
+        /*
+        if (Properties.EVOREPAIR_SEED_KILL_MATRIX != null) {
+            LoggingUtils.getEvoLogger().info("[EvoRepair] Loading seed kill matrix from file.");
+            File killMatrixFile = new File(Properties.EVOREPAIR_SEED_KILL_MATRIX);
+            PatchCoverageTestFitness.clearKillMatrix();
+            PatchCoverageTestFitness.loadKillMatrix(killMatrixFile);
+        }
+
+         */
+    }
+
     @Override
     public List<PatchCoverageTestFitness> getCoverageGoals() {
         List<PatchCoverageTestFitness> goals = new ArrayList<>();

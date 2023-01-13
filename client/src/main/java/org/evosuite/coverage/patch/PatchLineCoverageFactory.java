@@ -24,7 +24,7 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
             targetLineMap.put(classname, new LinkedHashSet<>(targetLines));
         }
         else {
-            throw new IllegalArgumentException("Duplicate key for patched classes: " + classname);
+            targetLineMap.get(classname).addAll(targetLines);
         }
     }
 
@@ -74,7 +74,8 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
             List<Integer> targetLines = fl.getTargetLines();
 
             if (!LinePool.getKnownClasses().contains(className)) {
-                throw new IllegalArgumentException("Unable to find class in LinePool: " + className);
+                //logger.warn("Unable to find class in LinePool: " + className);
+                continue;
             }
 
             if (!isCUT(className)) {

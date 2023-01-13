@@ -187,7 +187,8 @@ public class MOSAPatch extends MOSA {
 
         // Update patch kill matrix
         // Note: Changes in patch goals can only happen if patches have been killed
-        boolean updated = PatchCoverageTestFitness.updateKillMatrix(summary.getKillMatrix());
+        //boolean updated = PatchCoverageTestFitness.updateKillMatrix(summary.getKillMatrix());
+        boolean updated = false;
 
         if (updated) {
             // TODO: Better to check if the new patch pool is different from the previous one

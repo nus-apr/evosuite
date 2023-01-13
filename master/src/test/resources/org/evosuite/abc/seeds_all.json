@@ -1,0 +1,12 @@
+[
+  {
+    "serializedSuite": "src/test/resources/org/evosuite/abc/population.tmp",
+    "tests": [
+      {"name": "test1003", "kills": ["patch1"]},
+      {"name": "test2921", "kills": ["patch1", "patch2", "patch3"]},
+      {"name": "test60", "kills": ["patch1", "patch2", "patch3"]},
+      {"name": "test279", "kills": ["patch1"]},
+      {"name": "test6282", "kills": ["patch1", "patch2"]}
+    ]
+  }
+]
