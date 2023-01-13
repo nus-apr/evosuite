@@ -146,7 +146,7 @@ public class SeedHandler {
             List<TestChromosome> allSeeds = TestSuiteSerialization.loadTests(seedPopulation.getSerializedSuite());
 
             for (TestChromosome seed: allSeeds) {
-                String testId = seedPopulation.getTestPrefix() + seed.getTestCase().getID(); // TODO: Optimize
+                String testId = "test" + seed.getTestCase().getID(); // FIXME: Optimize, do we need the testPrefix?
                 if (seedsToKeep.contains(testId)) {
                     TestChromosome tc = seed.clone(); // Necessary to create fresh and unique testIds
                     result.add(tc);

@@ -285,6 +285,7 @@ public class CommandLineParameters {
 
         // TODO: Better to set these from cmdline
         Properties.CRITERION = new Properties.Criterion[]{Properties.Criterion.PATCHLINE, Properties.Criterion.PATCH};
+        Properties.TEST_NAMING_STRATEGY = Properties.TestNamingStrategy.ID;
 
         // TODO: Verify if we really need to disable both
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Disabling test minimization and mocking. TODO: Verify if this is really necessary.");
