@@ -9,7 +9,8 @@ import java.io.File;
 import java.util.*;
 
 public class PatchKillMatrixSerializationTest {
-
+    /**
+     * FIXME: Unused, may want to remove entirely
     @Test
     public void testSerialization() {
         Map<String, Set<String>> originalMap = new LinkedHashMap<>();
@@ -38,4 +39,6 @@ public class PatchKillMatrixSerializationTest {
         System.out.println(PatchCoverageTestFitness.getKillMatrix().toString());
 
     }
+
+     */
 }

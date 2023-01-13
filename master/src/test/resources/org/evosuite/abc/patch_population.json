@@ -1,0 +1,22 @@
+[
+  {
+    "index": "patchIndex1",
+    "fixLocations": [
+      {"classname": "com.examples.with.different.packagename.coverage.MethodReturnsPrimitive", "targetLines": [25, 29, 42]},
+      {"classname": "com.examples.some.unrelated.package.UnrelatedMethod", "targetLines": [4, 0, 4]}
+    ]
+  },
+  {
+    "index": "patchIndex2",
+    "fixLocations": [
+      {"classname": "com.examples.another.unrelated.package.IgnoredMethod", "targetLines": [0]},
+      {"classname": "com.examples.with.different.packagename.coverage.MethodReturnsPrimitive", "targetLines": [25]}
+    ]
+  },
+  {
+    "index": "patchIndex3",
+    "fixLocations": [
+      {"classname": "com.examples.with.different.packagename.coverage.MethodReturnsPrimitive", "targetLines": [25, 44]}
+    ]
+  }
+]
