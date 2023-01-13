@@ -277,41 +277,53 @@ public class CommandLineParameters {
     }
 
     public static void handleEvoRepairOptions(List<String> javaOpts, CommandLine line) {
+        Properties.getInstance();
+
         // Enable MOSAPatch
         if (line.hasOption("generateMOSuite")) {
+            Properties.ALGORITHM = Properties.Algorithm.MOSA;
             javaOpts.add("-Dalgorithm=MOSA");
         } else {
             LoggingUtils.getEvoLogger().warn("[EvoRepair] Multi-objective search is not enabled, enable with -generateMOSuite");
         }
-        Properties.getInstance();
 
         // TODO: Better to set these from cmdline
         Properties.CRITERION = new Properties.Criterion[]{Properties.Criterion.PATCHLINE, Properties.Criterion.PATCH};
+        javaOpts.add("-Dcriterion=PATCHLINE:PATCH");
+
         Properties.TEST_NAMING_STRATEGY = Properties.TestNamingStrategy.ID;
+        javaOpts.add("-Dtest_naming_strategy=ID");
 
         // TODO: Verify if we really need to disable both
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Disabling test minimization and mocking. TODO: Verify if this is really necessary.");
         Properties.MINIMIZE = false;
-        Properties.MOCK_IF_NO_GENERATOR = false;
+        javaOpts.add("-Dminimize=false");
 
-        if (line.hasOption("orchestratorPort")) {
-            int port = Integer.parseInt(line.getOptionValue("orchestratorPort"));
+        Properties.MOCK_IF_NO_GENERATOR = false;
+        javaOpts.add("-Dmock_if_no_generator=false");
+
+        if (line.hasOption("port")) {
+            int port = Integer.parseInt(line.getOptionValue("port"));
             LoggingUtils.getEvoLogger().info("[EvoRepair] Setting orchestrator port to: {}.", port);
             Properties.EVOREPAIR_PORT = port;
+            javaOpts.add("-Dport=" + line.getOptionValue("port"));
         } else {
             LoggingUtils.getEvoLogger().info("[EvoRepair] No orchestrator port specified, defaulting to 7777.");
             Properties.EVOREPAIR_PORT = 7777;
+            javaOpts.add("-Dport=7777");
         }
 
         if (line.hasOption("seeds")) {
             LoggingUtils.getEvoLogger().info("[EvoRepair] Using seeds.");
             Properties.EVOREPAIR_SEED_POPULATION = line.getOptionValue("seeds");
+            javaOpts.add("-Dseeds=" + line.getOptionValue("seeds"));
         } else {
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No seeds specified, enable using -seeds option.");
         }
 
         if (line.hasOption("targetPatches")) {
             Properties.EVOREPAIR_TARGET_PATCHES = line.getOptionValue("targetPatches");
+            javaOpts.add("-DtargetPatches=" + line.getOptionValue("targetPatches"));
         } else {
             LoggingUtils.getEvoLogger().error("No target patches provided, specify using -targetPatches option.");
             throw new IllegalArgumentException("Missing target patches.");

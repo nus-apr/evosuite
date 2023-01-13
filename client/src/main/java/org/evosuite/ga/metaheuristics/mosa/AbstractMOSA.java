@@ -437,7 +437,6 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
             LoggingUtils.getEvoLogger().info("[EvoRepair] Loading seed population from file.");
             List<TestChromosome> seeds = SeedHandler.getInstance().loadSeedTestPopulation();
             LoggingUtils.getEvoLogger().info("[EvoRepair] Successfully loaded seed population of size {}.", seeds.size());
-            LoggingUtils.getEvoLogger().warn("[EvoRepair] TODO: Ensure that the population consists of enough seeds, e.g., by adding random seeds.");
 
             if (seeds.size()<= Properties.POPULATION) {
                 this.population.addAll(seeds);
