@@ -111,7 +111,7 @@ public class SeedingSystemTest extends SystemTestBase {
                 PATCHLINE
         };
         String patchFile = "src/test/resources/org/evosuite/abc/patch_population.json";
-        command = new String[] {"-generateMOSuite", "-evorepair=testgen", "-targetPatches", patchFile, "-class", targetClass};
+        command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-targetPatches", patchFile, "-class", targetClass};
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();

@@ -41,7 +41,7 @@ public class PatchValidationSystemTest extends SystemTestBase {
         String targetClass = MethodReturnsPrimitive.class.getCanonicalName();
         Properties.TARGET_CLASS = targetClass;
 
-        URL resource = this.getClass().getResource("testPatchLineFitness.json");
+        URL resource = this.getClass().getResource("patch_population.json");
 
         String clazz = "org.apache.commons.math3.distribution.HypergeometricDistribution";
         String projectCP = "/home/lam/workspace/nus-apr/evoRepair/test/math_2_instr/target/classes";
@@ -51,7 +51,7 @@ public class PatchValidationSystemTest extends SystemTestBase {
         Properties.JUNIT_SUFFIX = "_gen_2_ESTest";
 
         //String[] command = new String[] {"-generateMOSuite", "-targetLines", resource.getPath(),"-port", "7777", "-class", targetClass };
-        String[] command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-targetLines", targetLinesFilePath,"-port", port, "-class", clazz,
+        String[] command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-targetPatches", resource.getPath(), "-port", port, "-class", targetClass,
         "-projectCP", projectCP, "-base_dir", base_dir};
 
         Properties.ASSERTIONS = false;
