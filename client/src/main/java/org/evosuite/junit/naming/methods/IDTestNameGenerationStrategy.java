@@ -25,7 +25,7 @@ public class IDTestNameGenerationStrategy implements TestNameGenerationStrategy 
 
     private void generateNames(List<TestCase> testCases) {
         for (TestCase test : testCases) {
-            String testName = "test" + test.getID();
+            String testName = "test" + test.getID(); // TODO: Make the prefix configurable
             testIdToName.put(test.getID(), testName);
         }
     }

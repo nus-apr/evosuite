@@ -1238,7 +1238,7 @@ public class Properties {
     public static int MAX_COVERAGE_DEPTH = -1;
 
     public enum TestNamingStrategy {
-        NUMBERED, COVERAGE
+        NUMBERED, COVERAGE, ID
     }
 
     @Parameter(key = "test_naming_strategy", group = "Output", description = "What strategy to use to derive names for tests")
