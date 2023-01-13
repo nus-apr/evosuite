@@ -8,12 +8,17 @@ import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.coverage.patch.communication.json.SeedTest;
 import org.evosuite.coverage.patch.communication.json.SeedTestPopulation;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteSerialization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,6 +54,29 @@ public class SeedHandler {
     }
 
     // -- SERIALIZATION
+    public static void saveTestPopulation(TestSuiteChromosome testSuite) {
+        String testDir = Properties.TEST_DIR;
+
+        // First serialize population
+        File populationDump = Paths.get(testDir, "dump").toFile();
+        logger.info("Test population has been serialized to: {}.", populationDump.getPath());
+        TestSuiteSerialization.saveTests(testSuite, populationDump);
+
+        // Then write test names to file
+        Path testNamePath = Paths.get(testDir, "test_names.txt");
+        String testNamePrefix = Properties.TARGET_CLASS + Properties.JUNIT_SUFFIX + "#test";
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(testNamePath.toFile()))) {
+            for (TestChromosome tc : testSuite.getTestChromosomes()) {
+                writer.write(testNamePrefix + tc.getTestCase().getID());
+                writer.newLine();
+            }
+            logger.info("Test names has been written to: {}.", testNamePath);
+        } catch (IOException e) {
+            logger.error("Error while serializing test population and test names.");
+        }
+
+    }
 
 
     // -- DESERIALIZATION
