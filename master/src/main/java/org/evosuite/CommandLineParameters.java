@@ -338,12 +338,9 @@ public class CommandLineParameters {
     public static void handleTargetLines(CommandLine line) {
 
         if (!line.hasOption("targetLines")) {
-            LoggingUtils.getEvoLogger().info("* No target lines specified: specify using -targetLines.");
             return;
         } else {
-            if (line.getOptionValue("targetLines") != null) {
-                throw new RuntimeException("TODO: Remove this option.");
-            }
+            LoggingUtils.getEvoLogger().warn("* -targetLines options should be removed.");
         }
 
         String targetLinesPath = line.getOptionValue("targetLines");
