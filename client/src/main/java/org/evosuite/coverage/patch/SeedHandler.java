@@ -48,9 +48,11 @@ public class SeedHandler {
         loadPatchPopulation();
 
         // This does not necessarily need to be provided
+        /*
         if (Properties.EVOREPAIR_SEED_POPULATION != null) {
             loadSeedTestPopulation();
         }
+         */
     }
 
     // -- SERIALIZATION
@@ -123,6 +125,10 @@ public class SeedHandler {
 
         // The final seed population chosen from multiple serialized seed populations
         List<TestChromosome> result = new ArrayList<>();
+
+        if (seedPopulations.isEmpty()) {
+            return result;
+        }
 
         // The mapping between test-ids to the killed patch-ids
         Map<Integer, Set<String>> killMatrix = new LinkedHashMap<>();
