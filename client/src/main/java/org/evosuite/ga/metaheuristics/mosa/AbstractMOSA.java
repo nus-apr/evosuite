@@ -23,6 +23,7 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.SelectionFunction;
 import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.exception.ExceptionCoverageSuiteFitness;
+import org.evosuite.coverage.patch.SeedHandler;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.ga.FitnessFunction;
@@ -45,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Abstract class for MOSA or variants of MOSA.
@@ -431,7 +433,21 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
         this.currentIteration = 0;
 
         // Create a random parent population P0
-        this.generateInitialPopulation(Properties.POPULATION);
+        if (Properties.EVOREPAIR_SEED_POPULATION != null) {
+            LoggingUtils.getEvoLogger().info("[EvoRepair] Loading seed population from file.");
+            List<TestChromosome> seeds = SeedHandler.getInstance().loadSeedTestPopulation();
+            LoggingUtils.getEvoLogger().info("[EvoRepair] Successfully loaded seed population of size {}.", seeds.size());
+
+            if (seeds.size()<= Properties.POPULATION) {
+                this.population.addAll(seeds);
+                this.generateInitialPopulation(Properties.POPULATION - population.size());
+            } else {
+                this.population.addAll(seeds.stream().limit(Properties.POPULATION).collect(Collectors.toCollection(LinkedHashSet::new)));
+            }
+
+        } else {
+            this.generateInitialPopulation(Properties.POPULATION);
+        }
 
         // Determine fitness
         this.calculateFitness();

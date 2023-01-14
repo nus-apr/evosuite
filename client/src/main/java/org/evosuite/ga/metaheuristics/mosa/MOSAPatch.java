@@ -14,6 +14,7 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.junit.naming.methods.IDTestNameGenerationStrategy;
 import org.evosuite.junit.writer.TestSuiteWriter;
+import org.evosuite.testcase.DefaultTestCase;
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -50,13 +51,13 @@ public class MOSAPatch extends MOSA {
     @Override
     public void addFitnessFunction(final FitnessFunction<TestChromosome> function) {
         if (function instanceof TestFitnessFunction) {
-            if (function instanceof PatchCoverageTestFitness) {
+        //    if (false) {
                 // Patch coverage goals will be added once we have started killing the first set of patches
                 goalsForNextIteration.add((TestFitnessFunction) function);
-            } else {
+        //    } else {
                 // Initial goals that can serve as guidance before any patches have been killed
                 fitnessFunctions.add((TestFitnessFunction) function);
-            }
+        //    }
         } else {
             throw new IllegalArgumentException("Only TestFitnessFunctions are supported");
         }
@@ -65,7 +66,7 @@ public class MOSAPatch extends MOSA {
     // TODO: When do we actually want to stop?
     @Override
     public boolean isFinished() {
-        return getAge() > 100;
+        return false;
     }
 
     @Override
@@ -83,7 +84,7 @@ public class MOSAPatch extends MOSA {
          * - Finally, we "enqueue" the next set of goals that reflect the updated patch pool, which are selected once new patches have been killed
          * If not, we continue selection/evolution based on the current fitness values.
          */
-        if(fixLocationsCovered()) {
+        if(isPopulationAdequate()) {
             List<TestChromosome> union = new ArrayList<>();
             union.addAll(this.population);
             union.addAll(offspringPopulation);
@@ -97,7 +98,7 @@ public class MOSAPatch extends MOSA {
     @Override
     protected void calculateFitness(TestChromosome tc) {
         // If all fix locations have been covered, we can start computing patch mutation score
-        if (fixLocationsCovered()) {
+        if (isPopulationAdequate()) {
             this.fitnessFunctions.forEach(fitnessFunction -> fitnessFunction.getFitness(tc));
         } else {
             // Otherwise, compute fix location fitness only
@@ -123,6 +124,11 @@ public class MOSAPatch extends MOSA {
 
     }
 
+    // Whether enough goals have been covered to send the current population to the orchestrator
+    private boolean isPopulationAdequate() {
+        return fixLocationsCovered();
+    }
+
     // Checks if any of the uncovered goals correspond to fix locations
     private boolean fixLocationsCovered() {
         Set<TestFitnessFunction> uncoveredGoals = super.getUncoveredGoals();
@@ -137,11 +143,16 @@ public class MOSAPatch extends MOSA {
 
     // TODO: Request generation can potentially be optimized using JsonGenerator
     public void sendPopulationToOrchestratorAndUpdateGoals(List<TestChromosome> population, int generation) {
-        List<TestCase> tests = population.stream()
+        // Filter population to only fix-location covering tests
+        List<TestChromosome> reachingTests = population.stream()
+                .filter(t -> (t.getTestCase()).getCoveredGoals().stream().anyMatch(LineCoverageTestFitness.class::isInstance))
+                .collect(toList());
+
+        List<TestCase> tests = reachingTests.stream()
                 .map(TestChromosome::getTestCase)
                 .collect(toList());
 
-        List<ExecutionResult> results = population.stream()
+        List<ExecutionResult> results = reachingTests.stream()
                 .map(TestChromosome::getLastExecutionResult)
                 .collect(toList());
 
@@ -158,7 +169,7 @@ public class MOSAPatch extends MOSA {
 
         // Generate JSON message for orchestrator
         Map<String, Object> msg = new LinkedHashMap<>();
-        msg.put("cmd", "updateTestPopulation");
+        msg.put("cmd", "getKillMatrixAndNewGoals");
         Map<String, Object> populationInfo = new LinkedHashMap<>();
         populationInfo.put("generation", generation);
         populationInfo.put("tests", nameGenerator.getNames());
@@ -172,11 +183,12 @@ public class MOSAPatch extends MOSA {
         OrchestratorClient client = OrchestratorClient.getInstance();
         JsonFilePath response = client.sendFileRequest(msg, new TypeReference<JsonFilePath>() {});
         PatchValidationSummary summary = client.getJSONReplyFromFile(response.getPath(),
-                "updateTestPopulation", new TypeReference<PatchValidationSummary>() {});
+                "getKillMatrixAndNewGoals", new TypeReference<PatchValidationSummary>() {});
 
         // Update patch kill matrix
         // Note: Changes in patch goals can only happen if patches have been killed
-        boolean updated = PatchCoverageTestFitness.updateKillMatrix(summary.getKillMatrix());
+        //boolean updated = PatchCoverageTestFitness.updateKillMatrix(summary.getKillMatrix());
+        boolean updated = false;
 
         if (updated) {
             // TODO: Better to check if the new patch pool is different from the previous one
@@ -196,7 +208,7 @@ public class MOSAPatch extends MOSA {
                 Archive.getArchiveInstance().addTargets(goalsForNextIteration);
                 this.fitnessFunctions.addAll(goalsForNextIteration);
 
-                // Updated fix locations will server as guidance towards the next set of patches
+                // Updated fix locations will serve as guidance towards the next set of patches
                 // TODO: Make this iterate through properties and instantiate factories from FitnessFunctions.java
                 List<TestFitnessFunction> lineGoals = new PatchLineCoverageFactory().getCoverageGoals(summary.getFixLocations());
                 Archive.getArchiveInstance().addTargets(lineGoals);

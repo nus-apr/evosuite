@@ -24,6 +24,7 @@ import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.evosuite.classpath.ClassPathHacker;
+import org.evosuite.coverage.patch.SeedHandler;
 import org.evosuite.executionmode.*;
 import org.evosuite.junit.writer.TestSuiteWriterUtils;
 import org.evosuite.runtime.sandbox.MSecurityManager;
@@ -225,6 +226,14 @@ public class EvoSuite {
              * we should check if it actually exists (ie detect typos)
              */
 
+            // EvoRepair related setup
+            if (line.hasOption("evorepair") && line.getOptionValue("evorepair").equals("testgen")) {
+                CommandLineParameters.handleEvoRepairOptions(javaOpts, line);
+                SeedHandler.getInstance().preload();
+            } else {
+                LoggingUtils.getEvoLogger().warn("[EvoRepair] EvoRepair Test Generation is not enabled. Enable using -evorepair=testgen");
+            }
+
             CommandLineParameters.handleSeed(javaOpts, line);
 
             CommandLineParameters.addJavaDOptions(javaOpts, line);
@@ -236,11 +245,6 @@ public class EvoSuite {
             CommandLineParameters.handleClassPath(line);
 
             CommandLineParameters.handleJVMOptions(javaOpts, line);
-
-            CommandLineParameters.handlePortNumber(line);
-
-            CommandLineParameters.handleTargetLines(line);
-
 
             if (!ClassPathHacker.isJunitCheckAvailable()) {
                 if (Properties.JUNIT_CHECK == Properties.JUnitCheckValues.TRUE) {

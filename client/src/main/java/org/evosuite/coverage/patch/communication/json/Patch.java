@@ -1,36 +1,46 @@
 package org.evosuite.coverage.patch.communication.json;
 
 import java.io.Serializable;
-import java.util.Objects;
+import java.util.List;
 
-// TODO: Merge with TargetLinesSpec
 public class Patch implements Serializable, Comparable<Patch> {
-    private static final long serialVersionUID = -6295242867507437030L;
+    private static final long serialVersionUID = 1583968801710072964L;
     private String index;
+    private List<FixLocation> fixLocations;
 
     public Patch() {}
 
-    public Patch(String index) {
+    public Patch(String index, List<FixLocation> fixLocations) {
         this.index = index;
+        this.fixLocations = fixLocations;
     }
 
     public String getIndex() {
         return this.index;
     }
 
+    public List<FixLocation> getFixLocations() {
+        return this.fixLocations;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
 
-        Patch patch = (Patch) o;
+        Patch that = (Patch) o;
 
-        return index.equals(patch.getIndex());
+        if (!index.equals(that.index)) return false;
+        return fixLocations.equals(that.fixLocations);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(index);
+        int result = super.hashCode();
+        result = 31 * result + index.hashCode();
+        result = 31 * result + fixLocations.hashCode();
+        return result;
     }
 
     @Override

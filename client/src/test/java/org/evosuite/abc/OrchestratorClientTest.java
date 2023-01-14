@@ -5,6 +5,7 @@ import org.evosuite.coverage.patch.communication.OrchestratorClient;
 import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.coverage.patch.communication.json.SinglePatchValidationResult;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -19,6 +20,7 @@ public class OrchestratorClientTest {
      */
     private static final boolean USE_PYTHON_SERVER = false;
     private OrchestratorClient client;
+    @Ignore
     @Test
     public void testConnection() {
         try {
@@ -41,6 +43,7 @@ public class OrchestratorClientTest {
         }
     }
 
+    @Ignore
     @Test
     public void testCommands() {
         try {

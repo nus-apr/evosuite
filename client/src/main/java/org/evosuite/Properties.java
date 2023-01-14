@@ -309,7 +309,22 @@ public class Properties {
 
     // ---------------------------------------------------------------
     // EvoRepair Config
+    @Parameter(key = "port", group = "EvoRepair", description = "Port number of the orchestrator")
     public static int EVOREPAIR_PORT = 7777;
+
+    @Parameter(key = "seeds", group = "EvoRepair", description = "Path to serialized seed population")
+    public static String EVOREPAIR_SEED_POPULATION = null;
+
+    //@Parameter(key = "seed_kill_matrix", group = "EvoRepair", description = "Path to serialized kill matrix")
+    //public static String EVOREPAIR_SEED_KILL_MATRIX = null;
+
+    //public static String EVOREPAIR_PREVIOUS_PATCH_POPULATION = null;
+
+    //public static String EVOREPAIR_UPDATED_PATCH_POPULATION = null;
+
+    @Parameter(key = "targetPatches", group = "EvoRepair", description = "Path to serialized seed population")
+    public static String EVOREPAIR_TARGET_PATCHES = null;
+
 
     // Search algorithm
     public enum Algorithm {
@@ -1224,11 +1239,11 @@ public class Properties {
     public static int MAX_COVERAGE_DEPTH = -1;
 
     public enum TestNamingStrategy {
-        NUMBERED, COVERAGE
+        NUMBERED, COVERAGE, ID
     }
 
     @Parameter(key = "test_naming_strategy", group = "Output", description = "What strategy to use to derive names for tests")
-    public static TestNamingStrategy TEST_NAMING_STRATEGY = TestNamingStrategy.NUMBERED;
+    public static TestNamingStrategy TEST_NAMING_STRATEGY = TestNamingStrategy.ID;
 
     // ---------------------------------------------------------------
     // Sandbox
