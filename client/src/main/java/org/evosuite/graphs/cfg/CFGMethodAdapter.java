@@ -22,6 +22,7 @@ package org.evosuite.graphs.cfg;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.branch.BranchPool;
+import org.evosuite.coverage.patch.PatchLineCoverageFactory;
 import org.evosuite.instrumentation.coverage.BranchInstrumentation;
 import org.evosuite.instrumentation.coverage.DefUseInstrumentation;
 import org.evosuite.instrumentation.coverage.MethodInstrumentation;
@@ -89,6 +90,13 @@ public class CFGMethodAdapter extends MethodVisitor {
     private boolean excludeMethod = false;
 
     /**
+     * EvoRepair - If the containing class has been patched, we can potentially add patch mutation goals.
+     * We will have to check if any of the visited line numbers correspond to actual fix locations.
+     */
+    private boolean isPatchedClass;
+    private boolean hasFixLocation = false;
+
+    /**
      * <p>
      * Constructor for CFGMethodAdapter.
      * </p>
@@ -103,7 +111,7 @@ public class CFGMethodAdapter extends MethodVisitor {
      */
     public CFGMethodAdapter(ClassLoader classLoader, String className, int access,
                             String name, String desc, String signature, String[] exceptions,
-                            MethodVisitor mv) {
+                            MethodVisitor mv, boolean isPatchedClass) {
 
         // super(new MethodNode(access, name, desc, signature, exceptions),
         // className,
@@ -118,6 +126,7 @@ public class CFGMethodAdapter extends MethodVisitor {
         this.methodName = name + desc;
         this.plain_name = name;
         this.classLoader = classLoader;
+        this.isPatchedClass = isPatchedClass;
 
         if (!methods.containsKey(classLoader))
             methods.put(classLoader, new HashMap<>());
@@ -129,6 +138,11 @@ public class CFGMethodAdapter extends MethodVisitor {
     @Override
     public void visitLineNumber(int line, Label start) {
         lineNumber = line;
+
+        if (isPatchedClass && PatchLineCoverageFactory.getTargetLinesForClass(this.className).contains(line)) {
+            hasFixLocation = true;
+        }
+
         super.visitLineNumber(line, start);
     }
 
@@ -160,9 +174,20 @@ public class CFGMethodAdapter extends MethodVisitor {
                     || ArrayUtil.contains(Properties.CRITERION, Criterion.WEAKMUTATION)
                     || ArrayUtil.contains(Properties.CRITERION, Criterion.ONLYMUTATION)
                     || ArrayUtil.contains(Properties.CRITERION, Criterion.STRONGMUTATION)) {
+
+                // PATCHMUTATION may interfere with other mutation goals
+                if (ArrayUtil.contains(Properties.CRITERION, Criterion.PATCHMUTATION)) {
+                    throw new Error("PATCHMUTATION goal is incompatible with other mutation goals: " + Arrays.toString(Properties.CRITERION));
+                }
+
                 instrumentations.add(new BranchInstrumentation());
                 instrumentations.add(new MutationInstrumentation());
-            } else {
+
+            } else if (ArrayUtil.contains(Properties.CRITERION, Criterion.PATCHMUTATION) && hasFixLocation) {
+                    instrumentations.add(new BranchInstrumentation());
+                    instrumentations.add(new MutationInstrumentation()); // Replace with custom MutationInstrumentation
+            }
+            else {
                 instrumentations.add(new BranchInstrumentation());
             }
         } else {

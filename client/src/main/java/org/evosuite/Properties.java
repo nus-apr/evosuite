@@ -325,6 +325,9 @@ public class Properties {
     @Parameter(key = "targetPatches", group = "EvoRepair", description = "Path to serialized seed population")
     public static String EVOREPAIR_TARGET_PATCHES = null;
 
+    @Parameter(key = "maxMutantsPerPatch", group = "EvoRepair", description = "Maximum number of mutants to generate per patch.")
+    public static int EVOREPAIR_MAX_MUTANTS_PER_PATCH = 20;
+
 
     // Search algorithm
     public enum Algorithm {
@@ -1540,7 +1543,7 @@ public class Properties {
         EXCEPTION, DEFUSE, ALLDEFS, BRANCH, CBRANCH, STRONGMUTATION, WEAKMUTATION,
         MUTATION, STATEMENT, RHO, AMBIGUITY, IBRANCH, READABILITY,
         ONLYBRANCH, ONLYMUTATION, METHODTRACE, METHOD, METHODNOEXCEPTION, LINE, ONLYLINE, OUTPUT, INPUT,
-        TRYCATCH, PATCHLINE, PATCH
+        TRYCATCH, PATCHLINE, PATCH, PATCHMUTATION
     }
 
     @Parameter(key = "criterion", group = "Runtime", description = "Coverage criterion. Can define more than one criterion by using a ':' separated list")

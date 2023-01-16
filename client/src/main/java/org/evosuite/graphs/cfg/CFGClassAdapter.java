@@ -19,8 +19,11 @@
  */
 package org.evosuite.graphs.cfg;
 
+import org.evosuite.Properties;
 import org.evosuite.classpath.ResourceList;
+import org.evosuite.coverage.patch.PatchLineCoverageFactory;
 import org.evosuite.runtime.instrumentation.RemoveFinalClassAdapter;
+import org.evosuite.utils.ArrayUtil;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -130,8 +133,14 @@ public class CFGClassAdapter extends ClassVisitor {
 
         String classNameWithDots = ResourceList.getClassNameFromResourcePath(className);
 
+        // EvoRepair - Check if this class has been patched: if yes, add mutants to fix locations
+        boolean isPatchedClass = PatchLineCoverageFactory.getTargetLineMap().containsKey(classNameWithDots);
+
+        // Only apply mutants if PATCHMUTATION criterion is enabled
+        isPatchedClass = isPatchedClass && ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.PATCHMUTATION);
+
         mv = new CFGMethodAdapter(classLoader, classNameWithDots, methodAccess, name,
-                descriptor, signature, exceptions, mv);
+                descriptor, signature, exceptions, mv, isPatchedClass);
         return mv;
     }
 

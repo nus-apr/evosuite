@@ -288,7 +288,7 @@ public class CommandLineParameters {
         }
 
         // TODO: Better to set these from cmdline
-        Properties.CRITERION = new Properties.Criterion[]{Properties.Criterion.PATCHLINE, Properties.Criterion.PATCH};
+        Properties.CRITERION = new Properties.Criterion[]{Properties.Criterion.PATCHLINE, Properties.Criterion.PATCH, Properties.Criterion.MUTATION};
         javaOpts.add("-Dcriterion=PATCHLINE:PATCH");
 
         Properties.TEST_NAMING_STRATEGY = Properties.TestNamingStrategy.ID;
