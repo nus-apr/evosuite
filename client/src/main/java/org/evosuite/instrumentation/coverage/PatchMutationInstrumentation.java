@@ -24,6 +24,7 @@ import org.evosuite.Properties;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.coverage.mutation.Mutation;
 import org.evosuite.coverage.mutation.MutationObserver;
+import org.evosuite.coverage.patch.PatchLineCoverageFactory;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
@@ -125,6 +126,11 @@ public class PatchMutationInstrumentation implements MethodInstrumentation {
         logger.info("Applying mutation operators ");
         int frameIndex = 0;
         int numMutants = 0;
+
+        Map<Integer, Integer> fixLocationsToMutantsCounts = new LinkedHashMap<>();
+        //int currentFixLocation = -1;
+        //int maxMutantsForCurrentFixLocation = 0;
+
         if (frames.length != mn.instructions.size()) {
             logger.error("Number of frames does not match number number of bytecode instructions: "
                     + frames.length + "/" + mn.instructions.size());
@@ -158,7 +164,7 @@ public class PatchMutationInstrumentation implements MethodInstrumentation {
             }
 
             boolean inInstrumentation = false;
-            for (BytecodeInstruction v : graph.vertexSet()) {
+            for (BytecodeInstruction v : graph.vertexSet()) { // TODO EvoRepair: Can we be sure that the instructions are iterated in line number order?
 
                 // If the bytecode is instrumented by EvoSuite, then don't mutate
                 if (v.isLabel()) {
@@ -172,18 +178,31 @@ public class PatchMutationInstrumentation implements MethodInstrumentation {
                 if (inInstrumentation) {
                     continue;
                 }
+
+                // Only instrument target lines
+                if (!PatchLineCoverageFactory.getTargetLinesForClass(className).contains(v.getLineNumber())) {
+                    //currentFixLocation = -1;
+                    //maxMutantsForCurrentFixLocation = 0;
+                    continue;
+                }
+                /*else {
+                    // Reset number of mutants for new fix location
+                    if (currentFixLocation != v.getLineNumber()) {
+                        currentFixLocation = v.getLineNumber();
+                        maxMutantsForCurrentFixLocation = (int) (Properties.EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION * PatchLineCoverageFactory.getTargetLineWeight(className, currentFixLocation));
+                        numMutants = 0;
+                    }
+                }*/
                 // If this is in the CFG
+                int maxMutantsForCurrentFixLocation = (int) (Properties.EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION * PatchLineCoverageFactory.getTargetLineWeight(className, v.getLineNumber()));
                 if (in.equals(v.getASMNode())) {
                     logger.info(v.toString());
                     List<Mutation> mutations = new LinkedList<>();
 
+
                     // TODO: More than one mutation operator might apply to the same instruction
                     for (MutationOperator mutationOperator : mutationOperators) {
 
-                        if (numMutants++ > Properties.MAX_MUTANTS_PER_METHOD) {
-                            logger.info("Reached maximum number of mutants per method");
-                            break;
-                        }
                         //logger.info("Checking mutation operator on instruction " + v);
                         if (mutationOperator.isApplicable(v)) {
                             logger.info("Applying mutation operator "
@@ -192,6 +211,11 @@ public class PatchMutationInstrumentation implements MethodInstrumentation {
                                     methodName, v,
                                     currentFrame));
                         }
+
+                        if (fixLocationsToMutantsCounts.merge(v.getLineNumber(), mutations.size(), Integer::sum) > maxMutantsForCurrentFixLocation) {
+                            logger.info("Reached maximum number of mutants per fix location");
+                            break;
+                        }
                     }
                     if (!mutations.isEmpty()) {
                         logger.info("Adding instrumentation for mutation");
@@ -199,10 +223,9 @@ public class PatchMutationInstrumentation implements MethodInstrumentation {
                         addInstrumentation(mn, in, mutations);
                     }
                 }
-                if (numMutants > Properties.MAX_MUTANTS_PER_METHOD) {
+                if (fixLocationsToMutantsCounts.getOrDefault(v.getLineNumber(), 0) > maxMutantsForCurrentFixLocation) {
                     break;
                 }
-
             }
         }
         j = mn.instructions.iterator();

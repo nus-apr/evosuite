@@ -35,8 +35,11 @@ public class TargetLinesSystemTest extends SystemTestBase {
         String[] command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-targetPatches", resource.getPath(), "-class", targetClass };
         Object result = evosuite.parseCommandLine(command);
 
-        Assert.assertEquals(new LinkedHashSet<>(Arrays.asList(25,29,42,44)),
-                PatchLineCoverageFactory.getTargetLinesForClass("com.examples.with.different.packagename.coverage.MethodReturnsPrimitive"));
+        Assert.assertEquals(new LinkedHashSet<>(Arrays.asList(25,29,42)), PatchLineCoverageFactory.getTargetLinesForClass(targetClass));
+
+        Assert.assertEquals(PatchLineCoverageFactory.getTargetLineWeight(targetClass, 25), 1.0, 0.01);
+        Assert.assertEquals(PatchLineCoverageFactory.getTargetLineWeight(targetClass, 29), 2.0/3, 0.01);
+        Assert.assertEquals(PatchLineCoverageFactory.getTargetLineWeight(targetClass, 42), 1.0/3, 0.01);
     }
 
     @Test
@@ -88,7 +91,7 @@ public class TargetLinesSystemTest extends SystemTestBase {
         System.out.println("EvolvedTestSuite:\n" + best);
 
         int goals = TestGenerationStrategy.getFitnessFactories().get(0).getCoverageGoals().size(); // assuming single fitness function
-        Assert.assertEquals("Wrong number of goals: ", 4, goals);
+        Assert.assertEquals("Wrong number of goals: ", 3, goals);
         Assert.assertEquals("Non-optimal fitness: ", 3.0, best.getFitness(), 0.01); // patches cannot be killed
         LoggingUtils.getEvoLogger().info("hi");
 

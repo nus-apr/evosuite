@@ -23,10 +23,7 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.patch.PatchLineCoverageFactory;
-import org.evosuite.instrumentation.coverage.BranchInstrumentation;
-import org.evosuite.instrumentation.coverage.DefUseInstrumentation;
-import org.evosuite.instrumentation.coverage.MethodInstrumentation;
-import org.evosuite.instrumentation.coverage.MutationInstrumentation;
+import org.evosuite.instrumentation.coverage.*;
 import org.evosuite.runtime.annotation.EvoSuiteExclude;
 import org.evosuite.runtime.classhandling.ClassResetter;
 import org.evosuite.runtime.instrumentation.AnnotatedMethodNode;
@@ -175,17 +172,22 @@ public class CFGMethodAdapter extends MethodVisitor {
                     || ArrayUtil.contains(Properties.CRITERION, Criterion.ONLYMUTATION)
                     || ArrayUtil.contains(Properties.CRITERION, Criterion.STRONGMUTATION)) {
 
+                // TODO EvoRepair: Refactor logic
                 // PATCHMUTATION may interfere with other mutation goals
-                if (ArrayUtil.contains(Properties.CRITERION, Criterion.PATCHMUTATION)) {
-                    throw new Error("PATCHMUTATION goal is incompatible with other mutation goals: " + Arrays.toString(Properties.CRITERION));
+                if (Properties.EVOREPAIR_USE_FIX_LOCATION_MUTANTS) {
+                    if (hasFixLocation) {
+                        instrumentations.add(new BranchInstrumentation());
+                        instrumentations.add(new PatchMutationInstrumentation());
+                    } else {
+                        instrumentations.add(new BranchInstrumentation());
+                    }
+                } else {
+                    instrumentations.add(new BranchInstrumentation());
+                    instrumentations.add(new MutationInstrumentation());
                 }
 
-                instrumentations.add(new BranchInstrumentation());
-                instrumentations.add(new MutationInstrumentation());
-
-            } else if (ArrayUtil.contains(Properties.CRITERION, Criterion.PATCHMUTATION) && hasFixLocation) {
-                    instrumentations.add(new BranchInstrumentation());
-                    instrumentations.add(new MutationInstrumentation()); // Replace with custom MutationInstrumentation
+            } else if (Properties.EVOREPAIR_USE_FIX_LOCATION_MUTANTS) {
+                throw new Error("PATCHMUTATION criterion must be enabled together with MUTATION " + Arrays.toString(Properties.CRITERION));
             }
             else {
                 instrumentations.add(new BranchInstrumentation());

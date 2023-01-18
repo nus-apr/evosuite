@@ -287,14 +287,17 @@ public class CommandLineParameters {
             LoggingUtils.getEvoLogger().warn("[EvoRepair] Multi-objective search is not enabled, enable with -generateMOSuite");
         }
 
-        // TODO: Better to set these from cmdline
-        Properties.CRITERION = new Properties.Criterion[]{Properties.Criterion.PATCHLINE, Properties.Criterion.PATCH, Properties.Criterion.MUTATION};
-        javaOpts.add("-Dcriterion=PATCHLINE:PATCH");
+        // TODO EvoRepair: Better to set these configurable from cmdline
+        Properties.CRITERION = new Properties.Criterion[]{Properties.Criterion.PATCHLINE, Properties.Criterion.PATCH, Properties.Criterion.STRONGMUTATION};
+        javaOpts.add("-Dcriterion=PATCHLINE:PATCH:STRONGMUTATION");
+
+        Properties.EVOREPAIR_USE_FIX_LOCATION_MUTANTS = true;
+        javaOpts.add("-DuseFixLocationMutants=true");
 
         Properties.TEST_NAMING_STRATEGY = Properties.TestNamingStrategy.ID;
         javaOpts.add("-Dtest_naming_strategy=ID");
 
-        // TODO: Verify if we really need to disable both
+        // TODO EvoRepair: Verify if we really need to disable both
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Disabling test minimization and mocking. TODO: Verify if this is really necessary.");
         Properties.MINIMIZE = false;
         javaOpts.add("-Dminimize=false");

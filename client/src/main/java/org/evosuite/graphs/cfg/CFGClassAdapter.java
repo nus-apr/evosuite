@@ -137,7 +137,7 @@ public class CFGClassAdapter extends ClassVisitor {
         boolean isPatchedClass = PatchLineCoverageFactory.getTargetLineMap().containsKey(classNameWithDots);
 
         // Only apply mutants if PATCHMUTATION criterion is enabled
-        isPatchedClass = isPatchedClass && ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.PATCHMUTATION);
+        isPatchedClass = isPatchedClass && Properties.EVOREPAIR_USE_FIX_LOCATION_MUTANTS;
 
         mv = new CFGMethodAdapter(classLoader, classNameWithDots, methodAccess, name,
                 descriptor, signature, exceptions, mv, isPatchedClass);

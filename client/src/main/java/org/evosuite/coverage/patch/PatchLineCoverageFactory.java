@@ -12,19 +12,37 @@ import java.util.*;
 
 public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverageTestFitness> {
     /**
-     * Map class names to arrays of target lines
+     * Map class names to arrays of target lines and counts TODO: merge both maps
      */
     private static final Map<String, Set<Integer>> targetLineMap = new LinkedHashMap<>();
+    private static final Map<String, Map<Integer, Integer>> targetLineCountMap = new LinkedHashMap<>();
+
+    private static int numPatches = 0;
 
     private static final Logger logger = LoggerFactory.getLogger(PatchLineCoverageFactory.class);
 
+    public static void setNumPatches(int numPatches) {
+        PatchLineCoverageFactory.numPatches = numPatches;
+    }
 
     public static void addTargetLine(String classname, List<Integer> targetLines) {
         if (!targetLineMap.containsKey(classname)) {
             targetLineMap.put(classname, new LinkedHashSet<>(targetLines));
+
+            // Add counts
+            assert(!targetLineCountMap.containsKey(classname));
+            Map<Integer, Integer> targetLineCounts = new LinkedHashMap<>();
+            targetLines.forEach(targetLine -> targetLineCounts.put(targetLine, 1));
+            targetLineCountMap.put(classname, targetLineCounts);
         }
         else {
             targetLineMap.get(classname).addAll(targetLines);
+
+            // Add counts
+            assert(targetLineCountMap.containsKey(classname));
+            Map<Integer, Integer> targetLineCounts = targetLineCountMap.get(classname);
+            targetLines.forEach(targetLine -> targetLineCounts.merge(targetLine, 1, Integer::sum));
+
         }
     }
 
@@ -34,6 +52,21 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
 
     public static Map<String, Set<Integer>> getTargetLineMap() {
         return targetLineMap;
+    }
+
+    /**
+     * Returns the weight of a target line based on the number of patches that target it.
+     * @param className containing class of the target line
+     * @param targetLine target line number
+     * @return the ratio of patches that have applied a change on the given target line
+     */
+    public static double getTargetLineWeight(String className, Integer targetLine) {
+        if (!targetLineCountMap.containsKey(className) || !targetLineCountMap.get(className).containsKey(targetLine)) {
+            logger.error("Target line {}:{} not present in targetLineCountMap.", className, targetLine);
+            throw new IllegalArgumentException("Invalid key for targetLintCountMap");
+        }
+
+        return ((double) targetLineCountMap.get(className).get(targetLine)) / numPatches;
     }
 
     @Override
@@ -46,6 +79,7 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
             // Check that target line is actually part of the CUT
             if (!LinePool.getKnownClasses().contains(className)) {
                  logger.debug("Unable to find class in LinePool: " + className);
+                 targetLineCountMap.remove(className); // TODO: Remove individual target lines as well?
                  continue;
             }
 

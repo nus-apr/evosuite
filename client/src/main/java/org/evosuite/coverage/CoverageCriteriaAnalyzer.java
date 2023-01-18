@@ -346,6 +346,10 @@ public class CoverageCriteriaAnalyzer {
                 return RuntimeVariable.LineCoverageBitString;
             case TRYCATCH:
                 return null;
+            case PATCHLINE:
+                return RuntimeVariable.PatchLineCoverageBitString;
+            case PATCH:
+                return RuntimeVariable.PatchCoverageBitString;
             default:
                 logger.debug("Criterion not supported: " + criterion);
                 return null;

@@ -169,6 +169,7 @@ public final class ArchiveUtils {
                     if (goal instanceof PatchCoverageTestFitness) {
                         return true;
                     }
+                    break;
                 case OUTPUT:
                     if (goal instanceof OutputCoverageTestFitness) {
                         return true;

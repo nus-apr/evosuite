@@ -325,8 +325,11 @@ public class Properties {
     @Parameter(key = "targetPatches", group = "EvoRepair", description = "Path to serialized seed population")
     public static String EVOREPAIR_TARGET_PATCHES = null;
 
-    @Parameter(key = "maxMutantsPerPatch", group = "EvoRepair", description = "Maximum number of mutants to generate per patch.")
-    public static int EVOREPAIR_MAX_MUTANTS_PER_PATCH = 20;
+    @Parameter(key = "useFixLocationMutants", group = "EvoRepair", description = "Enable fix location mutation analysis.")
+    public static boolean EVOREPAIR_USE_FIX_LOCATION_MUTANTS = true;
+
+    @Parameter(key = "maxMutantsPerFixLocation", group = "EvoRepair", description = "Maximum number of mutants to generate per fix location.")
+    public static int EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION = 100;
 
 
     // Search algorithm
@@ -1543,7 +1546,7 @@ public class Properties {
         EXCEPTION, DEFUSE, ALLDEFS, BRANCH, CBRANCH, STRONGMUTATION, WEAKMUTATION,
         MUTATION, STATEMENT, RHO, AMBIGUITY, IBRANCH, READABILITY,
         ONLYBRANCH, ONLYMUTATION, METHODTRACE, METHOD, METHODNOEXCEPTION, LINE, ONLYLINE, OUTPUT, INPUT,
-        TRYCATCH, PATCHLINE, PATCH, PATCHMUTATION
+        TRYCATCH, PATCHLINE, PATCH
     }
 
     @Parameter(key = "criterion", group = "Runtime", description = "Coverage criterion. Can define more than one criterion by using a ':' separated list")

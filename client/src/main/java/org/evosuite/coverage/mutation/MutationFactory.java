@@ -31,6 +31,7 @@ import org.evosuite.instrumentation.mutation.ReplaceVariable;
 import org.evosuite.rmi.ClientServices;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.testsuite.AbstractFitnessFactory;
+import org.evosuite.utils.ArrayUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -93,14 +94,15 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
 
         goals = new ArrayList<>();
 
-        if (Properties.ALGORITHM == Properties.Algorithm.MOSAPATCH) {
-            // Get initial goals read through cmdline
-            // FIXME: This might be called multiple times, avoid recomputation...
-            List<MutationTestFitness> fixLocationGoals = getGoalsForFixLocations(PatchLineCoverageFactory.getTargetLineMap());
-            return fixLocationGoals;
+        List<Mutation> mutants;
+        if (Properties.EVOREPAIR_USE_FIX_LOCATION_MUTANTS) {
+            // Use all mutants
+            mutants = MutationPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getMutants();
+        } else {
+            mutants = getMutantsLimitedPerClass();
         }
 
-        for (Mutation m : getMutantsLimitedPerClass()) {
+        for (Mutation m : mutants) {
             if (targetMethod != null && !m.getMethodName().endsWith(targetMethod))
                 continue;
 
@@ -112,6 +114,7 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
             else
                 goals.add(new WeakMutationTestFitness(m));
         }
+
         ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Mutants, goals.size());
 
         return goals;
@@ -134,29 +137,4 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
         return mutants;
     }
 
-    public List<MutationTestFitness> getGoalsForFixLocations(List<FixLocation> fixLocations) {
-        // FIXME: This only seems to load the mutants for one particular class (likely the SUT)
-        Map<String, Set<Integer>> fixLocationMap = new LinkedHashMap<>();
-        for (FixLocation f : fixLocations) {
-            fixLocationMap.put(f.getClassname(), new LinkedHashSet<>(f.getTargetLines()));
-        }
-        return getGoalsForFixLocations(fixLocationMap);
-    }
-
-    public List<MutationTestFitness> getGoalsForFixLocations(Map<String, Set<Integer>> fixLocationMap) {
-
-        // TODO: Do we need to check for any size bounds?
-        List<Mutation> mutants = MutationPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getMutants();
-
-        // Filter out mutants covering target lines, then map to goals
-        return mutants.stream()
-                .filter(m -> fixLocationMap.containsKey(m.getClassName())
-                        && fixLocationMap.get(m.getClassName()).contains(m.getLineNumber()))
-                .map(m -> {
-                    if (strong)
-                        return new StrongMutationTestFitness(m);
-                    else
-                        return new WeakMutationTestFitness(m);
-                }).collect(Collectors.toList());
-    }
 }
