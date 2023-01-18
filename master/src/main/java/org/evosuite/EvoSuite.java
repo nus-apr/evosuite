@@ -231,7 +231,9 @@ public class EvoSuite {
                 CommandLineParameters.handleEvoRepairOptions(javaOpts, line);
                 SeedHandler.getInstance().preload();
             } else {
-                LoggingUtils.getEvoLogger().warn("[EvoRepair] EvoRepair Test Generation is not enabled. Enable using -evorepair=testgen");
+                if (!line.hasOption("setup")) {
+                    LoggingUtils.getEvoLogger().warn("[EvoRepair] EvoRepair Test Generation is not enabled. Enable using -evorepair=testgen");
+                }
             }
 
             CommandLineParameters.handleSeed(javaOpts, line);
