@@ -295,10 +295,25 @@ public class CommandLineParameters {
         }
 
         // TODO EvoRepair: Better to set these from cmdline
-        //Properties.CRITERION = new Properties.Criterion[]{Properties.Criterion.PATCHLINE, Properties.Criterion.PATCH};
-        setPropertyAndAddToJavaOpts("criterion", "PATCHLINE:PATCH:STRONGMUTATION", javaOpts);
-        setPropertyAndAddToJavaOpts("useFixLocationMutants", "true", javaOpts);
+        if (line.hasOption("criterion")) {
+            setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
 
+            String[] values = line.getOptionValues("criterion");
+            if (ArrayUtil.contains(values, "MUTATION")
+                || ArrayUtil.contains(values, "STRONGMUTATION")
+                || ArrayUtil.contains(values, "WEAKMUTATION")) {
+                setPropertyAndAddToJavaOpts("useFixLocationMutants", "true", javaOpts);
+            }
+
+        } else {
+            // Enable all default criteria
+            String defaultCriteria = "PATCHLINE:PATCH:STRONGMUTATION";
+            LoggingUtils.getEvoLogger().warn("[EvoRepair] No criterions provided, using default: {}.", defaultCriteria);
+            setPropertyAndAddToJavaOpts("criterion", defaultCriteria, javaOpts);
+            setPropertyAndAddToJavaOpts("useFixLocationMutants", "true", javaOpts);
+        }
+
+        // Name tests in test suite based on ID of test case
         setPropertyAndAddToJavaOpts("test_naming_strategy", "ID", javaOpts);
 
         // TODO EvoRepair: Verify if we really need to disable both

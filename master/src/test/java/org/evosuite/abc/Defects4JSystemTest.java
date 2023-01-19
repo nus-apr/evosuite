@@ -48,6 +48,8 @@ public class Defects4JSystemTest extends SystemTestBase {
         URL resource = this.getClass().getResource("math2_patches.json");
 
         String targetClass = "org.apache.commons.math.optimization.fitting.GaussianFitter";
+
+        // TODO EvoRepair: Avoid using hardcoded paths
         String targetPatches = "/home/lam/workspace/nus-apr/evorepair-experiments/evorepair/C1-evorepair-defects4j-Math-58-6c757b79/output/math_58-math_58-230118_170804/gen-test/target_patches_gen1.json";
         String projectCP = "/home/lam/workspace/nus-apr/defects4j-instrumented/instrumented-archives/math_58/target/classes";
         //Properties.JUNIT_SUFFIX = "_Debug_ESTest";

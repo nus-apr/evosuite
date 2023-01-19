@@ -180,7 +180,7 @@ public class EvoSuite {
                 ClassPathHacker.initializeToolJar();
             }
 
-            if (line.hasOption("criterion")) {
+            if (line.hasOption("criterion") && ! line.hasOption("evorepair")) {
                 //TODO should check if already defined
                 javaOpts.add("-Dcriterion=" + line.getOptionValue("criterion"));
 
