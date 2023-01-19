@@ -55,6 +55,8 @@ public class Defects4JSystemTest extends SystemTestBase {
         String[] command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-targetPatches", targetPatches, "-class", targetClass,
                 "-projectCP", projectCP};
 
+        //This is necessary to cover all fix locations, don't uncomment if using additional goals (e.g., patch mutation or patch coverage)
+        //Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<TestSuiteChromosome> ga = getGAFromResult(result);
