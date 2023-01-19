@@ -298,7 +298,8 @@ public class CommandLineParameters {
 
         if (line.hasOption("criterion")) {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
-            String[] values = line.getOptionValues("criterion");
+
+            String[] values = line.getOptionValue("criterion").split(":");
             if (ArrayUtil.contains(values, "MUTATION")
                 || ArrayUtil.contains(values, "STRONGMUTATION")
                 || ArrayUtil.contains(values, "WEAKMUTATION")) {
