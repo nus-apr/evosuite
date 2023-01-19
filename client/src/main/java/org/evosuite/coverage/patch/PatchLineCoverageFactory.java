@@ -86,7 +86,15 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
             throw new IllegalArgumentException("Invalid key for targetLineCountMap");
         }
 
-        return ((double) targetLineCountMap.get(className).get(targetLine)) / numPatches;
+        // TODO EvoRepair: Fix this, this is likely prone to fail
+        for (String knownClass : targetLineMap.keySet()) {
+            if (className.startsWith(knownClass)) {
+                return ((double) targetLineCountMap.get(knownClass).get(targetLine)) / numPatches;
+            }
+        }
+
+        // Should not happen
+        throw new Error("This line should not be reached.");
     }
 
     @Override
