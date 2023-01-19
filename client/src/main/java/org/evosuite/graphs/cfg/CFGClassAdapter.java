@@ -134,7 +134,7 @@ public class CFGClassAdapter extends ClassVisitor {
         String classNameWithDots = ResourceList.getClassNameFromResourcePath(className);
 
         // EvoRepair - Check if this class has been patched: if yes, add mutants to fix locations
-        boolean isPatchedClass = PatchLineCoverageFactory.getTargetLineMap().containsKey(classNameWithDots);
+        boolean isPatchedClass = PatchLineCoverageFactory.isPatchedOrInnerClass(classNameWithDots);
 
         // Only apply mutants if PATCHMUTATION criterion is enabled
         isPatchedClass = isPatchedClass && Properties.EVOREPAIR_USE_FIX_LOCATION_MUTANTS;

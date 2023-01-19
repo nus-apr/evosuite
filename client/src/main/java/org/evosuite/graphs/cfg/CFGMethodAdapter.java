@@ -136,7 +136,7 @@ public class CFGMethodAdapter extends MethodVisitor {
     public void visitLineNumber(int line, Label start) {
         lineNumber = line;
 
-        if (isPatchedClass && PatchLineCoverageFactory.getTargetLinesForClass(this.className).contains(line)) {
+        if (isPatchedClass && PatchLineCoverageFactory.getTargetLinesForClass(this.className, true).contains(line)) {
             hasFixLocation = true;
         }
 

@@ -46,12 +46,32 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
         }
     }
 
+    // Checks if provided class contains target line (or is an inner class potentially containing the target line)
+    public static boolean isPatchedOrInnerClass(String className) {
+        for (String knownClass : targetLineMap.keySet()) {
+            if (className.startsWith(knownClass)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static Set<Integer> getTargetLinesForClass(String classname) {
         return targetLineMap.get(classname);
     }
 
-    public static Map<String, Set<Integer>> getTargetLineMap() {
-        return targetLineMap;
+    public static Set<Integer> getTargetLinesForClass(String className, boolean includeInnerClasses) {
+        if (!includeInnerClasses) {
+            return targetLineMap.get(className);
+        } else {
+            Set<Integer> allLines = new LinkedHashSet<>();
+            for (String knownClass : targetLineMap.keySet()) {
+                if (className.startsWith(knownClass)) {
+                    allLines.addAll(targetLineMap.get(knownClass));
+                }
+            }
+            return allLines;
+        }
     }
 
     /**

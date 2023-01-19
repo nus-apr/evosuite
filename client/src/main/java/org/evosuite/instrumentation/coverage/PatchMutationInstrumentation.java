@@ -180,7 +180,7 @@ public class PatchMutationInstrumentation implements MethodInstrumentation {
                 }
 
                 // Only instrument target lines
-                if (!PatchLineCoverageFactory.getTargetLinesForClass(className).contains(v.getLineNumber())) {
+                if (!PatchLineCoverageFactory.getTargetLinesForClass(className, true).contains(v.getLineNumber())) {
                     //currentFixLocation = -1;
                     //maxMutantsForCurrentFixLocation = 0;
                     continue;
