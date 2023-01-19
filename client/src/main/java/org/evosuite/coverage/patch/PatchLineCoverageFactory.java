@@ -90,19 +90,30 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
             // TODO: Should we specify the containing method by args?
 
             Set<Integer> targetLines = targetLineMap.get(className);
-            for (String methodName : LinePool.getKnownMethodsFor(className)) {
-                Set<Integer> methodLines = LinePool.getLines(className, methodName);
 
-                for (int line : targetLines) {
-                    if (methodLines.contains(line)) {
-                        logger.info("Found target line " + className + ":" + line + " in  method" + methodName);
-                        goals.add(new LineCoverageTestFitness(className, methodName, line));
+            // Also search inside anonymous and inner classes
+            // TODO EvoRepair: The orchestrator should provide the correct class name in the first place
+            for (String actualClassName : LinePool.getKnownClasses()) {
+                if (!actualClassName.startsWith(className)) {
+                    continue;
+                }
+
+                for (String methodName : LinePool.getKnownMethodsFor(actualClassName)) {
+                    Set<Integer> methodLines = LinePool.getLines(actualClassName, methodName);
+
+                    for (int line : targetLines) {
+                        if (methodLines.contains(line)) {
+                            logger.info("Found target line " + actualClassName + ":" + line + " in  method" + methodName);
+                            goals.add(new LineCoverageTestFitness(actualClassName, methodName, line));
+                        }
                     }
                 }
             }
+
         }
         goalComputationTime = System.currentTimeMillis() - start;
-        return goals;    }
+        return goals;
+    }
 
     public List<TestFitnessFunction> getCoverageGoals(List<FixLocation> fixLocations) {
         List<TestFitnessFunction> goals = new ArrayList<>();
