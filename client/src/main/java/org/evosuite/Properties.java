@@ -325,6 +325,12 @@ public class Properties {
     @Parameter(key = "targetPatches", group = "EvoRepair", description = "Path to serialized seed population")
     public static String EVOREPAIR_TARGET_PATCHES = null;
 
+    @Parameter(key = "useFixLocationMutants", group = "EvoRepair", description = "Enable fix location mutation analysis.")
+    public static boolean EVOREPAIR_USE_FIX_LOCATION_MUTANTS = false;
+
+    @Parameter(key = "maxMutantsPerFixLocation", group = "EvoRepair", description = "Maximum number of mutants to generate per fix location.")
+    public static int EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION = 100;
+
 
     // Search algorithm
     public enum Algorithm {

@@ -418,6 +418,7 @@ public class TestSuiteWriter implements Opcodes {
         builder.append("public void disableInstrumentation() {");
         builder.append("System.setProperty(\"defects4j.instrumentation.enabled\", \"false\");");
         builder.append("}");
+        builder.append(NEWLINE);
         return builder.toString();
     }
 

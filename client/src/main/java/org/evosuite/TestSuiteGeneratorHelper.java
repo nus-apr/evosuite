@@ -115,7 +115,7 @@ public class TestSuiteGeneratorHelper {
                 LoggingUtils.getEvoLogger().info("  - Patch Line Coverage");
                 break;
             case PATCH:
-                LoggingUtils.getEvoLogger().info("  - Patch Mutation Coverage");
+                LoggingUtils.getEvoLogger().info("  - Patch Coverage");
                 break;
             default:
                 throw new IllegalArgumentException("Unrecognized criterion: " + criterion);

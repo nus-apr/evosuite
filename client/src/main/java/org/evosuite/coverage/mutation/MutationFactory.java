@@ -22,6 +22,8 @@ package org.evosuite.coverage.mutation;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.coverage.patch.PatchLineCoverageFactory;
+import org.evosuite.coverage.patch.communication.json.FixLocation;
 import org.evosuite.instrumentation.mutation.InsertUnaryOperator;
 import org.evosuite.instrumentation.mutation.ReplaceArithmeticOperator;
 import org.evosuite.instrumentation.mutation.ReplaceConstant;
@@ -29,9 +31,10 @@ import org.evosuite.instrumentation.mutation.ReplaceVariable;
 import org.evosuite.rmi.ClientServices;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.testsuite.AbstractFitnessFactory;
+import org.evosuite.utils.ArrayUtil;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -91,7 +94,15 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
 
         goals = new ArrayList<>();
 
-        for (Mutation m : getMutantsLimitedPerClass()) {
+        List<Mutation> mutants;
+        if (Properties.EVOREPAIR_USE_FIX_LOCATION_MUTANTS) {
+            // Use all mutants
+            mutants = MutationPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getMutants();
+        } else {
+            mutants = getMutantsLimitedPerClass();
+        }
+
+        for (Mutation m : mutants) {
             if (targetMethod != null && !m.getMethodName().endsWith(targetMethod))
                 continue;
 
@@ -103,6 +114,7 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
             else
                 goals.add(new WeakMutationTestFitness(m));
         }
+
         ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Mutants, goals.size());
 
         return goals;
@@ -124,4 +136,5 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
         }
         return mutants;
     }
+
 }

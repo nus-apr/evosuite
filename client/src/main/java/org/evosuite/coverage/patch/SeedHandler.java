@@ -98,6 +98,7 @@ public class SeedHandler {
                     PatchLineCoverageFactory.addTargetLine(f.getClassname(), f.getTargetLines());
                 }
             }
+            PatchLineCoverageFactory.setNumPatches(patchPopulation.size());
 
         } catch (IOException e) {
             logger.error("Error while loading target patches.");

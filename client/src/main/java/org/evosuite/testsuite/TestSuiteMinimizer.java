@@ -216,7 +216,7 @@ public class TestSuiteMinimizer {
                 org.evosuite.testcase.TestCaseMinimizer minimizer = new org.evosuite.testcase.TestCaseMinimizer(
                         goal);
                 TestChromosome copy = test.clone();
-                minimizer.minimize(copy);
+                minimizer.minimize(copy); // FIXME: This statement does not retain goals
                 if (isTimeoutReached()) {
                     logger.warn("Minimization timeout. Roll back to original test suite");
                     return;

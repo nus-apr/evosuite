@@ -16,7 +16,7 @@
   {
     "index": "patchIndex3",
     "fixLocations": [
-      {"classname": "com.examples.with.different.packagename.coverage.MethodReturnsPrimitive", "targetLines": [25, 44]}
+      {"classname": "com.examples.with.different.packagename.coverage.MethodReturnsPrimitive", "targetLines": [25, 29]}
     ]
   }
 ]
