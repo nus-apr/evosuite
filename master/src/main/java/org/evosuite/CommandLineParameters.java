@@ -276,57 +276,56 @@ public class CommandLineParameters {
         }
     }
 
-    public static void handleEvoRepairOptions(List<String> javaOpts, CommandLine line) {
-        Properties.getInstance();
+    private static void setPropertyAndAddToJavaOpts(String propertyName, String propertyValue, List<String> javaOpts) {
+        try {
+            Properties.getInstance().setValue(propertyName, propertyValue);
+            javaOpts.add("-D" + propertyName + "=" + propertyValue);
+            System.setProperty(propertyName, propertyValue);
+        } catch (Exception e) {
+            throw new Error("Invalid value for property " + propertyName + ": " + propertyValue + ". Exception " + e.getMessage(), e);
+        }
+    }
 
+    public static void handleEvoRepairOptions(List<String> javaOpts, CommandLine line) {
         // Enable MOSAPatch
         if (line.hasOption("generateMOSuite")) {
-            Properties.ALGORITHM = Properties.Algorithm.MOSA;
-            javaOpts.add("-Dalgorithm=MOSA");
+            setPropertyAndAddToJavaOpts("algorithm", "MOSA", javaOpts);
         } else {
             LoggingUtils.getEvoLogger().warn("[EvoRepair] Multi-objective search is not enabled, enable with -generateMOSuite");
         }
 
-        // TODO EvoRepair: Better to set these configurable from cmdline
-        Properties.CRITERION = new Properties.Criterion[]{Properties.Criterion.PATCHLINE, Properties.Criterion.PATCH, Properties.Criterion.STRONGMUTATION};
-        javaOpts.add("-Dcriterion=PATCHLINE:PATCH:STRONGMUTATION");
+        // TODO EvoRepair: Better to set these from cmdline
+        //Properties.CRITERION = new Properties.Criterion[]{Properties.Criterion.PATCHLINE, Properties.Criterion.PATCH};
+        setPropertyAndAddToJavaOpts("criterion", "PATCHLINE:PATCH:STRONGMUTATION", javaOpts);
+        setPropertyAndAddToJavaOpts("useFixLocationMutants", "true", javaOpts);
 
-        Properties.EVOREPAIR_USE_FIX_LOCATION_MUTANTS = true;
-        javaOpts.add("-DuseFixLocationMutants=true");
-
-        Properties.TEST_NAMING_STRATEGY = Properties.TestNamingStrategy.ID;
-        javaOpts.add("-Dtest_naming_strategy=ID");
+        setPropertyAndAddToJavaOpts("test_naming_strategy", "ID", javaOpts);
 
         // TODO EvoRepair: Verify if we really need to disable both
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Disabling test minimization and mocking. TODO: Verify if this is really necessary.");
-        Properties.MINIMIZE = false;
-        javaOpts.add("-Dminimize=false");
-
-        Properties.MOCK_IF_NO_GENERATOR = false;
-        javaOpts.add("-Dmock_if_no_generator=false");
+        setPropertyAndAddToJavaOpts("minimize", "false", javaOpts);
+        setPropertyAndAddToJavaOpts("mock_if_no_generator", "false", javaOpts);
 
         if (line.hasOption("port")) {
             int port = Integer.parseInt(line.getOptionValue("port"));
             LoggingUtils.getEvoLogger().info("[EvoRepair] Setting orchestrator port to: {}.", port);
-            Properties.EVOREPAIR_PORT = port;
-            javaOpts.add("-Dport=" + line.getOptionValue("port"));
+            setPropertyAndAddToJavaOpts("port", line.getOptionValue("port"), javaOpts);
+
         } else {
             LoggingUtils.getEvoLogger().info("[EvoRepair] No orchestrator port specified, defaulting to 7777.");
-            Properties.EVOREPAIR_PORT = 7777;
-            javaOpts.add("-Dport=7777");
+            setPropertyAndAddToJavaOpts("port", "7777", javaOpts);
         }
 
         if (line.hasOption("seeds")) {
             LoggingUtils.getEvoLogger().info("[EvoRepair] Using seeds.");
-            Properties.EVOREPAIR_SEED_POPULATION = line.getOptionValue("seeds");
-            javaOpts.add("-Dseeds=" + line.getOptionValue("seeds"));
+            setPropertyAndAddToJavaOpts("seeds", line.getOptionValue("seeds"), javaOpts);
+
         } else {
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No seeds specified, enable using -seeds option.");
         }
 
         if (line.hasOption("targetPatches")) {
-            Properties.EVOREPAIR_TARGET_PATCHES = line.getOptionValue("targetPatches");
-            javaOpts.add("-DtargetPatches=" + line.getOptionValue("targetPatches"));
+            setPropertyAndAddToJavaOpts("targetPatches", line.getOptionValue("targetPatches"), javaOpts);
         } else {
             LoggingUtils.getEvoLogger().error("No target patches provided, specify using -targetPatches option.");
             throw new IllegalArgumentException("Missing target patches.");
