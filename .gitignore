@@ -27,3 +27,4 @@ standalone_runtime/dependency-reduced-pom.xml
 nbactions.xml
 master/test-populations/
 master/jsonClientFiles/
+master/src/test/resources/org/evosuite/abc/population.tmp
