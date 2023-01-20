@@ -115,7 +115,7 @@ public abstract class JUnitAnalyzer {
                 if (generated == null) {
                     iter.remove();
                     String code = test.toCode();
-                    logger.error("Failed to compile test case:\n" + code);
+                    logger.debug("Failed to compile test case:\n" + code);
                 }
             } finally {
                 //let's be sure we clean up all what we wrote on disk
@@ -362,32 +362,34 @@ public abstract class JUnitAnalyzer {
             fileManager.close();
 
             if (!compiled) {
-                logger.error("Compilation failed on compilation units: " + compilationUnits);
-                logger.error("Classpath: " + classpath);
-                //TODO remove
-                logger.error("evosuiteCP: " + evosuiteCP);
+                if (Properties.DEBUG) {
+                    logger.error("Compilation failed on compilation units: " + compilationUnits);
+                    logger.error("Classpath: " + classpath);
+                    //TODO remove
+                    logger.error("evosuiteCP: " + evosuiteCP);
 
 
-                for (Diagnostic<?> diagnostic : diagnostics.getDiagnostics()) {
-                    if (diagnostic.getMessage(null).startsWith("error while writing")) {
-                        logger.error("Error is due to file permissions, ignoring...");
-                        return generated;
+                    for (Diagnostic<?> diagnostic : diagnostics.getDiagnostics()) {
+                        if (diagnostic.getMessage(null).startsWith("error while writing")) {
+                            logger.error("Error is due to file permissions, ignoring...");
+                            return generated;
+                        }
+                        logger.error("Diagnostic: " + diagnostic.getMessage(null) + ": "
+                                + diagnostic.getLineNumber());
                     }
-                    logger.error("Diagnostic: " + diagnostic.getMessage(null) + ": "
-                            + diagnostic.getLineNumber());
-                }
 
-                StringBuffer buffer = new StringBuffer();
-                for (JavaFileObject sourceFile : compilationUnits) {
-                    List<String> lines = FileUtils.readLines(new File(sourceFile.toUri().getPath()));
+                    StringBuffer buffer = new StringBuffer();
+                    for (JavaFileObject sourceFile : compilationUnits) {
+                        List<String> lines = FileUtils.readLines(new File(sourceFile.toUri().getPath()));
 
-                    buffer.append(compilationUnits.iterator().next().toString() + "\n");
+                        buffer.append(compilationUnits.iterator().next().toString() + "\n");
 
-                    for (int i = 0; i < lines.size(); i++) {
-                        buffer.append((i + 1) + ": " + lines.get(i) + "\n");
+                        for (int i = 0; i < lines.size(); i++) {
+                            buffer.append((i + 1) + ": " + lines.get(i) + "\n");
+                        }
                     }
+                    logger.error(buffer.toString());
                 }
-                logger.error(buffer.toString());
                 return null;
             }
 
