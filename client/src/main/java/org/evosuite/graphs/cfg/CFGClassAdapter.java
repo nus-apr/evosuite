@@ -22,6 +22,7 @@ package org.evosuite.graphs.cfg;
 import org.evosuite.Properties;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.coverage.patch.PatchLineCoverageFactory;
+import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.runtime.instrumentation.RemoveFinalClassAdapter;
 import org.evosuite.utils.ArrayUtil;
 import org.objectweb.asm.ClassVisitor;
@@ -133,6 +134,8 @@ public class CFGClassAdapter extends ClassVisitor {
 
         String classNameWithDots = ResourceList.getClassNameFromResourcePath(className);
 
+        // TODO EvoRepair: Refactor PatchPool
+        PatchPool.getInstance();
         // EvoRepair - Check if this class has been patched: if yes, add mutants to fix locations
         boolean isPatchedClass = PatchLineCoverageFactory.isPatchedOrInnerClass(classNameWithDots);
 
