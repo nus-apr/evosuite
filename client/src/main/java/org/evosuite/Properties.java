@@ -331,6 +331,9 @@ public class Properties {
     @Parameter(key = "maxMutantsPerFixLocation", group = "EvoRepair", description = "Maximum number of mutants to generate per fix location.")
     public static int EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION = 500;
 
+    @Parameter(key = "numTests", group = "EvoRepair", description = "Maximum number of tests to include in the test suite.")
+    public static int EVOREPAIR_NUM_TESTS = 50;
+
 
     // Search algorithm
     public enum Algorithm {

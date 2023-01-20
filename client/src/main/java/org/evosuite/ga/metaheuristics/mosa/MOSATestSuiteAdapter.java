@@ -19,16 +19,16 @@
  */
 package org.evosuite.ga.metaheuristics.mosa;
 
+import org.evosuite.Properties;
+import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.metaheuristics.TestSuiteAdapter;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * An adapter that allows all variants of the MOSA algorithm to be used in such contexts where
@@ -100,6 +100,32 @@ public class MOSATestSuiteAdapter extends TestSuiteAdapter<AbstractMOSA> {
         // compute overall fitness and coverage
         this.computeCoverageAndFitness(best);
 
+        return best;
+    }
+
+    @Override
+    public TestSuiteChromosome getBestIndividual(int size) {
+        TestSuiteChromosome best = getBestIndividual();
+        Set<TestChromosome> bestTests = new LinkedHashSet<>(best.getTestChromosomes());
+
+        // Add next (non-deminated) best tests
+        getAlgorithm().getBestIndividuals().stream()
+                    .filter(t -> !bestTests.contains(t))
+                    .forEach(best::addTestChromosome);
+
+        // Fill up with remaining good tests (that at least cover some fix locations and dont have timeouts)
+        //getAlgorithm().getPopulation()
+        int remaining = Math.max(0, Properties.EVOREPAIR_NUM_TESTS - best.size());
+
+        if (remaining > 0) {
+            calculateFitnessAndSortPopulation();
+            getAlgorithm().getPopulation().stream()
+                    .filter(t -> !bestTests.contains(t)) // Don't add duplicate tests
+                    .filter(t -> !t.getLastExecutionResult().hasTimeout()) // Don't add tests with timeouts
+                    .filter(t -> t.getTestCase().getCoveredGoals().stream().anyMatch(LineCoverageTestFitness.class::isInstance)) // Only add tests that cover at least one fix location
+                    .limit(remaining) // Only add remaining number of tests
+                    .forEach(best::addTestChromosome);
+        }
         return best;
     }
 

@@ -122,6 +122,11 @@ public abstract class TestSuiteAdapter<A extends GeneticAlgorithm<TestChromosome
     public abstract List<TestSuiteChromosome> getBestIndividuals();
 
     @Override
+    public TestSuiteChromosome getBestIndividual(int minSize) {
+        return getBestIndividual();
+    }
+
+    @Override
     final protected void evolve() {
         algorithm.evolve();
     }

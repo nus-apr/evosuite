@@ -659,7 +659,7 @@ public abstract class GeneticAlgorithm<T extends Chromosome<T>> implements Searc
 
 
     /**
-     * Return the individual with the highest fitChromosomeess
+     * Return the individual with the highest fitness
      *
      * @return a {@link org.evosuite.ga.Chromosome} object.
      */
@@ -671,6 +671,15 @@ public abstract class GeneticAlgorithm<T extends Chromosome<T>> implements Searc
 
         // Assume population is sorted
         return population.get(0);
+    }
+
+    /**
+     * Return the individual with the highest fitness and specified size
+     * @param size size of the chromosome (e.g., number of test cases in test suite)
+     * @return
+     */
+    public T getBestIndividual(int size) {
+        return getBestIndividual();
     }
 
     /**

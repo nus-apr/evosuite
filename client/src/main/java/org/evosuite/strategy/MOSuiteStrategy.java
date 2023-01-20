@@ -121,7 +121,7 @@ public class MOSuiteStrategy extends TestGenerationStrategy {
 
             algorithm.generateSolution();
 
-            testSuite = algorithm.getBestIndividual();
+            testSuite = algorithm.getBestIndividual(Properties.EVOREPAIR_NUM_TESTS);
             if (testSuite.getTestChromosomes().isEmpty()) {
                 LoggingUtils.getEvoLogger().warn(ClientProcess.getPrettyPrintIdentifier() + "Could not generate any test case");
             }
