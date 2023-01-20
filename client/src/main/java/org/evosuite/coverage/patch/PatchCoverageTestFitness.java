@@ -26,28 +26,6 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
         return targetPatch;
     }
 
-    /*
-    public static boolean updateKillMatrix(List<PatchValidationResult> results) {
-        boolean updated = false;
-        for (PatchValidationResult result : results) {
-            String testName = result.getTestName();
-            if (!result.getKilledPatches().isEmpty()) {
-                updated = true;
-            } else {
-                continue;
-            }
-
-            if (!killMatrix.containsKey(testName)) {
-                killMatrix.put(testName, new LinkedHashSet<>(result.getKilledPatches()));
-            } else {
-                killMatrix.get(testName).addAll(result.getKilledPatches());
-            }
-        }
-        return updated;
-    }
-
-     */
-
     // TODO: Optimize
     public static void setKillMatrix(Map<Integer, Set<String>> newKillMatrix) {
         killMatrix.clear();
@@ -91,65 +69,6 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
         killMatrix.clear();
     }
 
-    /*
-    public static boolean saveKillMatrix(File target) {
-        File parent = target.getParentFile();
-        if (!parent.exists()) {
-            parent.mkdirs();
-        }
-
-        try (ObjectOutputStream out = new DebuggingObjectOutputStream(new FileOutputStream(target))) {
-            out.writeObject(killMatrix);
-
-            out.flush();
-            out.close();
-        } catch (IOException e) {
-            logger.error("Failed to open/handle " + target.getAbsolutePath() + " for writing: " + e.getMessage());
-            return false;
-        }
-        return true;
-    }
-
-    public static void loadKillMatrix(String target) throws IllegalArgumentException {
-        loadKillMatrix(new File(target));
-    }
-
-    public static void loadKillMatrix(File target) throws IllegalArgumentException {
-        Inputs.checkNull(target);
-
-        if (!killMatrix.keySet().isEmpty()) {
-            throw new RuntimeException("Trying to reload an already populated kill matrix.");
-        }
-
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(target))) {
-
-            try {
-                Object obj = in.readObject();
-                if (obj != null) {
-                    if (obj instanceof LinkedHashMap) {
-                        //this check might fail if old version is used, and EvoSuite got updated
-                        Map<String, Set<String>> loadedKillMap = (Map) obj;
-                        for (String s : loadedKillMap.keySet()) {
-                            killMatrix.put(s, loadedKillMap.get(s));
-                        }
-                    }
-                } else {
-                    throw new RuntimeException("Unable to load kill matrix.");
-                }
-            } catch (EOFException e) {
-                //fine
-            } catch (Exception e) {
-                logger.warn("Problems when reading a serialized kill matrix from " + target.getAbsolutePath() + " : " + e.getMessage());
-            }
-        } catch (FileNotFoundException e) {
-            logger.warn("Cannot load tests because file does not exist: " + target.getAbsolutePath());
-        } catch (IOException e) {
-            logger.error("Failed to open/handle " + target.getAbsolutePath() + " for reading: " + e.getMessage());
-        }
-    }
-     */
-
-
     private double getNormalizedFixLocationFitness(TestChromosome tc, double lower, double upper) {
         int numFixLocations = fixLocationGoals.size();
 
@@ -180,6 +99,11 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
 
         // Normalized fix location fitness between 0 and 0.5
         fitness = fitness - getNormalizedFixLocationFitness(individual, 0, 0.5);
+
+        // Penalize tests with timeouts or exceptions
+        if (result.hasTimeout() || result.hasTestException()) {
+            fitness = 1.0;
+        }
 
         updateIndividual(individual, fitness);
 
