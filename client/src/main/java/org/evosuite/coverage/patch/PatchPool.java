@@ -48,15 +48,19 @@ public class PatchPool {
 
         if (Properties.EVOREPAIR_TARGET_PATCHES != null) {
             result = SeedHandler.getInstance().loadPatchPopulation();
+            patches.addAll(result);
         } else {
             // Request patch pool from orchestrator through comm server
             logger.warn("No target patches provided through commandline, attempting to retrieve from orchestrator.");
-            result = OrchestratorClient.getInstance().sendRequest("getPatchPool", new TypeReference<List<Patch>>() {});
-            // Add received patches to the patch pool
-            logger.info("Received patch pool from orchestrator of size: " + result.size());
+            try {
+                result = OrchestratorClient.getInstance().sendRequest("getPatchPool", new TypeReference<List<Patch>>() {});
+                // Add received patches to the patch pool
+                patches.addAll(result);
+                logger.info("Received patch pool from orchestrator of size: " + result.size());
+            } catch (Exception e) {
+               logger.warn("Error thrown, silently swallowing: {}", e);
+            }
         }
-
-        patches.addAll(result);
     }
 
     public Set<Patch> getPatchPool() {
