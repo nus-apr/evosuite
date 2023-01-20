@@ -329,7 +329,7 @@ public class Properties {
     public static boolean EVOREPAIR_USE_FIX_LOCATION_MUTANTS = false;
 
     @Parameter(key = "maxMutantsPerFixLocation", group = "EvoRepair", description = "Maximum number of mutants to generate per fix location.")
-    public static int EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION = 100;
+    public static int EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION = 500;
 
 
     // Search algorithm
