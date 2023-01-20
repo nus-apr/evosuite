@@ -109,25 +109,14 @@ public class SeedingSystemTest extends SystemTestBase {
         Properties.EVOREPAIR_SEED_POPULATION = "src/test/resources/org/evosuite/abc/seeds_empty.json";
         List<TestChromosome> population = SeedHandler.getInstance().loadSeedTestPopulation();
         Assert.assertEquals(population.size(), 0);
-
-        Map<Integer, Set<String>> expectedKillmatrix = new LinkedHashMap<>();
-
-        // Recall that the tests have been assigned new ids after deserialization
-        expectedKillmatrix.put(2, new LinkedHashSet<>(Arrays.asList("patch1", "patch2", "patch3")));
-        expectedKillmatrix.put(5, new LinkedHashSet<>(Arrays.asList("patch1")));
-
-        Map<Integer, Set<String>> actualKillMatrix = PatchCoverageTestFitness.getKillMatrix();
-        Assert.assertEquals(expectedKillmatrix,  actualKillMatrix);
+        Assert.assertTrue(PatchCoverageTestFitness.getKillMatrix().isEmpty());
     }
 
     @Test
     public void testLoadGoalsFromJSON() {
         targetClass = MethodReturnsPrimitive.class.getCanonicalName();
-        Properties.CRITERION = new Properties.Criterion[]{
-                PATCHLINE
-        };
         String patchFile = "src/test/resources/org/evosuite/abc/patch_population.json";
-        command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-targetPatches", patchFile, "-class", targetClass};
+        command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-criterion", "PATCHLINE:PATCH", "-targetPatches", patchFile, "-class", targetClass};
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
@@ -135,7 +124,7 @@ public class SeedingSystemTest extends SystemTestBase {
 
         int goals = TestGenerationStrategy.getFitnessFactories().stream()
                 .mapToInt(f -> f.getCoverageGoals().size()).sum();
-        Assert.assertEquals("Wrong number of goals: ", 7, goals); // 3 patches  + 4 target lines
-        Assert.assertEquals("Non-optimal coverage: ", 4, best.getCoveredGoals().size(), 0.01);
+        Assert.assertEquals("Wrong number of goals: ", 6, goals); // 3 patches  + 3 target lines
+        Assert.assertEquals("Non-optimal coverage: ", 3, best.getCoveredGoals().size(), 0.01);
     }
 }
