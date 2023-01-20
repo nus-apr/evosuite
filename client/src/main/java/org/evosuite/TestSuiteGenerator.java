@@ -555,9 +555,13 @@ public class TestSuiteGenerator {
 
         List<TestCase> testCases = chromosome.getTests(); // make copy of
         // current tests
-
+        int before = testCases.size();
         // first, let's just get rid of all the tests that do not compile
         JUnitAnalyzer.removeTestsThatDoNotCompile(testCases);
+        int after = testCases.size();
+        if (after < before) {
+            LoggingUtils.getEvoLogger().warn("{} tests have been removed because they don't compile.", before - after);
+        }
 
         // compile and run each test one at a time. and keep track of total time
         long start = java.lang.System.currentTimeMillis();
@@ -669,6 +673,11 @@ public class TestSuiteGenerator {
             TestSuiteWriter suiteWriter = new TestSuiteWriter();
             suiteWriter.insertTests(tests);
 
+            int removed = tests.size() - suiteWriter.getTestCases().size();
+            if (removed > 0) {
+                LoggingUtils.getEvoLogger().warn("{} tests have been removed because they are prefixes of other tests.", removed);
+            }
+
             String name = Properties.TARGET_CLASS.substring(Properties.TARGET_CLASS.lastIndexOf(".") + 1);
             String testDir = Properties.TEST_DIR;
 
@@ -677,7 +686,10 @@ public class TestSuiteGenerator {
             suiteWriter.writeTestSuite(name + suffix, testDir, testSuite.getLastExecutionResults());
 
             // EvoRepair: Serialize test suite and test names
-            SeedHandler.saveTestPopulation(testSuite);
+            // Note: The suitewriter only writes out tests that compile and are not prefixes of other tests
+            TestSuiteChromosome actualSuite = new TestSuiteChromosome();
+            suiteWriter.getTestCases().forEach(actualSuite::addTest);
+            SeedHandler.saveTestPopulation(actualSuite);
         }
 
         return TestGenerationResultBuilder.buildSuccessResult();
