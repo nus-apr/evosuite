@@ -322,11 +322,11 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
 
             }
 
-            if (!testExecutor.isExceptional()) {
+            if (!testExecutor.isIOExceptional() && !testExecutor.isTimeout()) {
                 weightedFailureRate = problem.getWeight() * testExecutor.getRatioOfFailuresInPositive()
                                       + testExecutor.getRatioOfFailuresInNegative();
 
-                Set<String> failures = testExecutor.getFailedTests();
+                Set<String> failures = testExecutor.getFailedTests().keySet();
                 if (failures.isEmpty()) {
                     save();
                 } else if (failures.stream().noneMatch(problem::isUserTest)) {

@@ -1,0 +1,83 @@
+package org.evosuite.patch;
+
+import org.evosuite.Properties;
+import org.evosuite.ga.stoppingconditions.MaxTimeStoppingCondition;
+import org.evosuite.patch.NonDomNSGAIIWithInit;
+import org.evosuite.ga.operators.selection.BinaryTournamentSelectionCrowdedComparison;
+import org.evosuite.ga.stoppingconditions.MaxGenerationStoppingCondition;
+
+import us.msu.cse.repair.Interpreter;
+import us.msu.cse.repair.ec.problems.ArjaEProblem;
+
+import java.util.HashMap;
+import java.util.List;
+
+public class ERepairMain {
+    public static void main(String[] args) throws Exception {
+        HashMap<String, String> parameterStrs = Interpreter.getParameterStrings(args);
+        HashMap<String, Object> parameters = Interpreter.getBasicParameterSetting(parameterStrs);
+
+        parameters.put("ingredientScreenerName", "Direct2");
+        parameters.put("testExecutorName", "ExternalTestExecutor2");
+        parameters.put("manipulationNames", new String[] { "Replace", "InsertBefore", "Delete" });
+
+        parameters.putIfAbsent("maxNumberOfModificationPoints", 60);
+
+        String repSimS = parameterStrs.get("repSim");
+        if (repSimS != null) {
+            double repSim = Double.parseDouble(repSimS);
+            parameters.put("repSim", repSim);
+        }
+
+        String insRelS = parameterStrs.get("insRel");
+        if (insRelS != null) {
+            double insRel = Double.parseDouble(insRelS);
+            parameters.put("insRel", insRel);
+        }
+
+        double initRatioOfPerfect = 0;
+        double initRatioOfFame = 0;
+
+        String initRatioOfPerfectS = parameterStrs.get("initRatioOfPerfect");
+        if (initRatioOfPerfectS != null)
+            initRatioOfPerfect = Double.parseDouble(initRatioOfPerfectS);
+
+        String initRatioOfFameS = parameterStrs.get("initRatioOfFame");
+        if (initRatioOfFameS != null)
+            initRatioOfFame = Double.parseDouble(initRatioOfFameS);
+
+        double mutationProbability = 1;
+        NonDomNSGAIIWithInit repairAlg = new NonDomNSGAIIWithInit(
+                new EPatchChromosomeFactory(
+                        new ArjaEProblem(parameters), initRatioOfPerfect, initRatioOfFame, mutationProbability));
+
+        Properties.CROSSOVER_RATE = 1;
+        Properties.MUTATION_RATE = 1;
+        repairAlg.setCrossOverFunction(new EPatchCrossOver());
+        repairAlg.setSelectionFunction(new BinaryTournamentSelectionCrowdedComparison<>(false));
+
+        EWeightedFailureRatePatchFitness weightedFailureRatePatchFitness = new EWeightedFailureRatePatchFitness();
+
+        repairAlg.addFitnessFunction(weightedFailureRatePatchFitness);
+        repairAlg.addFitnessFunction(new ESizePatchFitness());
+
+
+        String populationSizeS = parameterStrs.get("populationSize");
+        Properties.POPULATION = populationSizeS != null ? Integer.parseInt(populationSizeS) : 40;
+
+        String maxGenerationsS = parameterStrs.get("maxGenerations");
+        final int maxGenerations = maxGenerationsS != null ? Integer.parseInt(maxGenerationsS) : 50;
+        MaxGenerationStoppingCondition<EPatchChromosome> maxGenCondition = new MaxGenerationStoppingCondition<>();
+        maxGenCondition.setMaxIterations(maxGenerations);
+
+        String maxTimeS = parameterStrs.get("maxTime");
+        int maxTime = maxTimeS != null ? Integer.parseInt(maxTimeS) * 60 : 60 * 60;
+        MaxTimeStoppingCondition<EPatchChromosome> maxTimeCondition = new MaxTimeStoppingCondition<>();
+        maxTimeCondition.setLimit(maxTime);
+
+        repairAlg.addStoppingCondition(maxGenCondition);
+        repairAlg.addStoppingCondition(maxTimeCondition);
+
+        repairAlg.generateSolution();
+    }
+}
