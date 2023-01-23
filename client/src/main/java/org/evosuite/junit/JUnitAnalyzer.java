@@ -362,34 +362,33 @@ public abstract class JUnitAnalyzer {
             fileManager.close();
 
             if (!compiled) {
-                if (Properties.DEBUG) {
-                    logger.error("Compilation failed on compilation units: " + compilationUnits);
-                    logger.error("Classpath: " + classpath);
-                    //TODO remove
-                    logger.error("evosuiteCP: " + evosuiteCP);
+                logger.debug("Compilation failed on compilation units: " + compilationUnits);
+                logger.debug("Classpath: " + classpath);
+                //TODO remove
+                logger.debug("evosuiteCP: " + evosuiteCP);
 
 
-                    for (Diagnostic<?> diagnostic : diagnostics.getDiagnostics()) {
-                        if (diagnostic.getMessage(null).startsWith("error while writing")) {
-                            logger.error("Error is due to file permissions, ignoring...");
-                            return generated;
-                        }
-                        logger.error("Diagnostic: " + diagnostic.getMessage(null) + ": "
-                                + diagnostic.getLineNumber());
+                for (Diagnostic<?> diagnostic : diagnostics.getDiagnostics()) {
+                    if (diagnostic.getMessage(null).startsWith("error while writing")) {
+                        logger.debug("Error is due to file permissions, ignoring...");
+                        return generated;
                     }
-
-                    StringBuffer buffer = new StringBuffer();
-                    for (JavaFileObject sourceFile : compilationUnits) {
-                        List<String> lines = FileUtils.readLines(new File(sourceFile.toUri().getPath()));
-
-                        buffer.append(compilationUnits.iterator().next().toString() + "\n");
-
-                        for (int i = 0; i < lines.size(); i++) {
-                            buffer.append((i + 1) + ": " + lines.get(i) + "\n");
-                        }
-                    }
-                    logger.error(buffer.toString());
+                    logger.debug("Diagnostic: " + diagnostic.getMessage(null) + ": "
+                            + diagnostic.getLineNumber());
                 }
+
+                StringBuffer buffer = new StringBuffer();
+                for (JavaFileObject sourceFile : compilationUnits) {
+                    List<String> lines = FileUtils.readLines(new File(sourceFile.toUri().getPath()));
+
+                    buffer.append(compilationUnits.iterator().next().toString() + "\n");
+
+                    for (int i = 0; i < lines.size(); i++) {
+                        buffer.append((i + 1) + ": " + lines.get(i) + "\n");
+                    }
+                }
+                logger.debug(buffer.toString());
+
                 return null;
             }
 
