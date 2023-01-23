@@ -25,6 +25,7 @@ import org.evosuite.classpath.ResourceList;
 import org.evosuite.coverage.mutation.Mutation;
 import org.evosuite.coverage.mutation.MutationObserver;
 import org.evosuite.coverage.patch.PatchLineCoverageFactory;
+import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.RawControlFlowGraph;
@@ -180,7 +181,7 @@ public class PatchMutationInstrumentation implements MethodInstrumentation {
                 }
 
                 // Only instrument target lines
-                if (!PatchLineCoverageFactory.getTargetLinesForClass(className, true).contains(v.getLineNumber())) {
+                if (!PatchPool.getInstance().getFixLocationsForClass(className, true).contains(v.getLineNumber())) {
                     //currentFixLocation = -1;
                     //maxMutantsForCurrentFixLocation = 0;
                     continue;
@@ -194,7 +195,7 @@ public class PatchMutationInstrumentation implements MethodInstrumentation {
                     }
                 }*/
                 // If this is in the CFG
-                int maxMutantsForCurrentFixLocation = (int) (Properties.EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION * PatchLineCoverageFactory.getTargetLineWeight(className, v.getLineNumber()));
+                int maxMutantsForCurrentFixLocation = (int) (Properties.EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION * PatchPool.getInstance().getFixLocationWeight(className, v.getLineNumber()));
                 if (in.equals(v.getASMNode())) {
                     logger.info(v.toString());
                     List<Mutation> mutations = new LinkedList<>();

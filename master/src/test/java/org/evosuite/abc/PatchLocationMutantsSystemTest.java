@@ -8,7 +8,7 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.mutation.Mutation;
 import org.evosuite.coverage.mutation.MutationPool;
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
+import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.strategy.TestGenerationStrategy;
 import org.evosuite.testsuite.TestSuiteChromosome;
@@ -73,6 +73,6 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
     // Ensures that mutants have only been applied to patch fix locations
     private boolean checkMutationLocations(List<Mutation> mutations) {
         return mutations.stream()
-                .allMatch(m -> PatchLineCoverageFactory.getTargetLinesForClass(m.getClassName(), true).contains(m.getLineNumber()));
+                .allMatch(m -> PatchPool.getInstance().getFixLocationsForClass(m.getClassName(), true).contains(m.getLineNumber()));
     }
 }

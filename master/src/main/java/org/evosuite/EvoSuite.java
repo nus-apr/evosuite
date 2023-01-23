@@ -24,6 +24,7 @@ import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.evosuite.classpath.ClassPathHacker;
+import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.coverage.patch.SeedHandler;
 import org.evosuite.executionmode.*;
 import org.evosuite.junit.writer.TestSuiteWriterUtils;
@@ -229,7 +230,9 @@ public class EvoSuite {
             // EvoRepair related setup
             if (line.hasOption("evorepair") && line.getOptionValue("evorepair").equals("testgen")) {
                 CommandLineParameters.handleEvoRepairOptions(javaOpts, line);
-                SeedHandler.getInstance().preload();
+
+                // Load patch pool and initialize fix location map
+                PatchPool.getInstance();
             } else {
                 if (!line.hasOption("setup")) {
                     LoggingUtils.getEvoLogger().warn("[EvoRepair] EvoRepair Test Generation is not enabled. Enable using -evorepair=testgen");
