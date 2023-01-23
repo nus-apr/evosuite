@@ -23,6 +23,7 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.patch.PatchLineCoverageFactory;
+import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.instrumentation.coverage.*;
 import org.evosuite.runtime.annotation.EvoSuiteExclude;
 import org.evosuite.runtime.classhandling.ClassResetter;
@@ -136,7 +137,7 @@ public class CFGMethodAdapter extends MethodVisitor {
     public void visitLineNumber(int line, Label start) {
         lineNumber = line;
 
-        if (isPatchedClass && PatchLineCoverageFactory.getTargetLinesForClass(this.className, true).contains(line)) {
+        if (isPatchedClass && PatchPool.getInstance().getFixLocationsForClass(this.className, true).contains(line)) {
             hasFixLocation = true;
         }
 

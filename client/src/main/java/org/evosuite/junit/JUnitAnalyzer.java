@@ -115,7 +115,7 @@ public abstract class JUnitAnalyzer {
                 if (generated == null) {
                     iter.remove();
                     String code = test.toCode();
-                    logger.error("Failed to compile test case:\n" + code);
+                    if (Properties.DEBUG) logger.error("Failed to compile test case:\n" + code);
                 }
             } finally {
                 //let's be sure we clean up all what we wrote on disk

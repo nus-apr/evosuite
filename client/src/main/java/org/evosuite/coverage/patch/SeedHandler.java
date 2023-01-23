@@ -28,8 +28,6 @@ public class SeedHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static SeedHandler instance = null;
 
-    private List<Patch> patchPopulation = null;
-
     private List<TestChromosome> seedTestPopulation = null;
 
 
@@ -41,18 +39,6 @@ public class SeedHandler {
             instance = new SeedHandler();
         }
         return instance;
-    }
-
-    public void preload() {
-        // This always needs to be provided
-        loadPatchPopulation();
-
-        // This does not necessarily need to be provided
-        /*
-        if (Properties.EVOREPAIR_SEED_POPULATION != null) {
-            loadSeedTestPopulation();
-        }
-         */
     }
 
     // -- SERIALIZATION
@@ -83,33 +69,19 @@ public class SeedHandler {
 
     // -- DESERIALIZATION
     public List<Patch> loadPatchPopulation() {
-        if (patchPopulation != null) {
-            return patchPopulation;
-        }
-
         try {
-            patchPopulation = objectMapper.readValue(new File(Properties.EVOREPAIR_TARGET_PATCHES),
+            List<Patch> patchPopulation = objectMapper.readValue(new File(Properties.EVOREPAIR_TARGET_PATCHES),
                     new TypeReference<List<Patch>>() {
                     });
-
-            // Add target lines
-            for (Patch p: patchPopulation) {
-                for (FixLocation f  : p.getFixLocations()) {
-                    PatchLineCoverageFactory.addTargetLine(f.getClassname(), f.getTargetLines());
-                }
-            }
-            PatchLineCoverageFactory.setNumPatches(patchPopulation.size());
+            logger.info("Read patch pool consisting of {} patches.", patchPopulation.size());
+            return patchPopulation;
 
         } catch (IOException e) {
             logger.error("Error while loading target patches.");
             throw new RuntimeException(e);
         }
-        logger.info("Read patch pool consisting of {} patches.", patchPopulation.size());
-
-        return patchPopulation;
     }
 
-    // TODO: We should ensure that the seed population has a specific size (since it won't grow).
     public List<TestChromosome> loadSeedTestPopulation() {
         if (seedTestPopulation != null) {
             return seedTestPopulation;

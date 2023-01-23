@@ -10,6 +10,7 @@ import org.evosuite.testcase.execution.ExecutionResult;
 import java.util.*;
 
 public class PatchCoverageTestFitness extends TestFitnessFunction {
+    // TODO EvoRepair: We probably only need the number of killed patches
     // Note: If we never clear this map we can keep track of all killed patches (incl. those not part of the pool anymore)
     private static final Map<Integer, Set<String>> killMatrix = new LinkedHashMap<>();
     private static int minKills = -1;

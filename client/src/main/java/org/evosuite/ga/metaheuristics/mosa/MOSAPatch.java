@@ -210,8 +210,8 @@ public class MOSAPatch extends MOSA {
 
                 // Updated fix locations will serve as guidance towards the next set of patches
                 // TODO: Make this iterate through properties and instantiate factories from FitnessFunctions.java
-                List<TestFitnessFunction> lineGoals = new PatchLineCoverageFactory().getCoverageGoals(summary.getFixLocations());
-                Archive.getArchiveInstance().addTargets(lineGoals);
+                List<LineCoverageTestFitness> lineGoals = new PatchLineCoverageFactory().getCoverageGoals(summary.getFixLocations());
+                //Archive.getArchiveInstance().addTargets(lineGoals); FIXME EvoRepair: LineCoverageTestFitness vs. TestFitnessFunction
                 this.fitnessFunctions.addAll(lineGoals);
 
                 population.stream().forEach(testChromosome -> {
