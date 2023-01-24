@@ -88,7 +88,6 @@ public class TargetLinesSystemTest extends SystemTestBase {
     public void testInnerClassTargetLines() {
         EvoSuite evosuite = new EvoSuite();
         String targetClass = ClassWithInnerClass.class.getCanonicalName();
-        Properties.TARGET_CLASS = targetClass;
         URL resource = this.getClass().getResource("patch_population_with_inner_classes.json");
 
         String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass };
