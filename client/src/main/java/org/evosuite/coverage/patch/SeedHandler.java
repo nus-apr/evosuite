@@ -3,7 +3,6 @@ package org.evosuite.coverage.patch;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.evosuite.Properties;
-import org.evosuite.coverage.patch.communication.json.FixLocation;
 import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.coverage.patch.communication.json.SeedTest;
 import org.evosuite.coverage.patch.communication.json.SeedTestPopulation;
