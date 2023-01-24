@@ -290,8 +290,10 @@ public class CommandLineParameters {
         // Enable MOSAPatch
         if (line.hasOption("generateMOSuite")) {
             setPropertyAndAddToJavaOpts("algorithm", "MOSA", javaOpts);
+        } else if (line.hasOption("generateSuite")){
+            setPropertyAndAddToJavaOpts("algorithm", "MONOTONIC_GA", javaOpts);
         } else {
-            LoggingUtils.getEvoLogger().warn("[EvoRepair] Multi-objective search is not enabled, enable with -generateMOSuite");
+            LoggingUtils.getEvoLogger().error("[EvoRepair] No search strategy is provided, enable with either -generateMOSuite or -generateSuite");
         }
 
         // TODO EvoRepair: Better to set these from cmdline
