@@ -2,6 +2,7 @@ package org.evosuite.ga.metaheuristics.mosa;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.evosuite.Properties;
+import org.evosuite.coverage.exception.ExceptionCoverageSuiteFitness;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.coverage.patch.PatchCoverageFactory;
 import org.evosuite.coverage.patch.PatchCoverageTestFitness;
@@ -109,14 +110,12 @@ public class MOSAPatch extends MOSA {
 
         // if one of the coverage criterion is Criterion.EXCEPTION, then we have to analyse the results
         // of the execution to look for generated exceptions
-        /*
+
         if (ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.EXCEPTION)) {
             ExceptionCoverageSuiteFitness.calculateExceptionInfo(
-                    Collections.singletonList(c.getLastExecutionResult()),
+                    Collections.singletonList(tc.getLastExecutionResult()),
                     new HashMap<>(), new HashMap<>(), new HashMap<>(), new ExceptionCoverageSuiteFitness());
         }
-
-         */
 
         this.notifyEvaluation(tc);
         // update the time needed to reach the max coverage
