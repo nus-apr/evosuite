@@ -85,8 +85,8 @@ public class EPatchChromosomeFactory implements ChromosomeFactory<EPatchChromoso
         int[] array = new int[2 * size];
         for (int i = 0; i < size; i++) {
             array[i] = Randomness.nextInt(0, this.numberOfAvailableManipulations[i]);
-            array[size + i] = Randomness.nextInt(0, this.numberOfReplaceIngredients[i]);
-            array[size * 2 + i] = Randomness.nextInt(0, this.numberOfInsertIngredients[i]);
+            array[size + i] = Randomness.nextInt(0, Math.max(this.numberOfReplaceIngredients[i], 1));
+            array[size * 2 + i] = Randomness.nextInt(0, Math.max(this.numberOfInsertIngredients[i], 1));
         }
 
         return new EPatchChromosome(bits, array, this.problem, this.numberOfAvailableManipulations,

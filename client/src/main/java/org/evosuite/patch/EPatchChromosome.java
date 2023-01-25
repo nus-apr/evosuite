@@ -188,8 +188,8 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
             bits.flip(k);
 
             array[k] = Randomness.nextInt(0, numberOfAvailableManipulations[k]);
-            array[k + size] = Randomness.nextInt(0, numberOfReplaceIngredients[k]);
-            array[k + size * 2] = Randomness.nextInt(0, numberOfInsertIngredients[k]);
+            array[k + size] = Randomness.nextInt(0, Math.max(numberOfReplaceIngredients[k], 1));
+            array[k + size * 2] = Randomness.nextInt(0, Math.max(numberOfInsertIngredients[k], 1));
         } else {
             int u = Randomness.nextInt(0, 3);
             switch (u) {
@@ -197,13 +197,13 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
                     bits.flip(k);
                     break;
                 case 1:
-                    array[k] = Randomness.nextInt(0, numberOfAvailableManipulations[k]);
+                    array[k] = Randomness.nextInt(0, Math.max(numberOfAvailableManipulations[k], 1));
                     break;
                 case 2:
                     if (array[k] == 1) {
-                        array[k + size * 2] = Randomness.nextInt(0, numberOfInsertIngredients[k]);
+                        array[k + size * 2] = Randomness.nextInt(0, Math.max(numberOfInsertIngredients[k], 1));
                     } else {
-                        array[k + size] = Randomness.nextInt(0, numberOfReplaceIngredients[k]);
+                        array[k + size] = Randomness.nextInt(0, Math.max(numberOfReplaceIngredients[k], 1));
                     }
                     break;
                 default:
