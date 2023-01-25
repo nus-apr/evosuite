@@ -427,24 +427,24 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
 
         try {
             if (problem.addTestAdequatePatch(opList, locList, ingredList)) {
-                if (problem.getDiffFormat()) {
-                    try {
-                        String patchOutputRoot = problem.getPatchOutputRoot();
-                        int globalId = AbstractRepairProblem.getGlobalID();
-
-                        IO.savePatch(modifiedJavaSources, problem.getSrcJavaDir(),
-                                patchOutputRoot, globalId);
-
-                        PrintStream ps = new PrintStream(
-                                Files.newOutputStream(Paths.get(patchOutputRoot, "Patch_" + globalId, "summary")));
-                        ps.println(new Gson().toJson(summary));
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-                problem.saveTestAdequatePatch(opList, locList, ingredList);
-                AbstractRepairProblem.increaseGlobalID();
+//                if (problem.getDiffFormat()) {
+//                    try {
+//                        String patchOutputRoot = problem.getPatchOutputRoot();
+//                        int globalId = AbstractRepairProblem.getGlobalID();
+//
+//                        IO.savePatch(modifiedJavaSources, problem.getSrcJavaDir(),
+//                                patchOutputRoot, globalId);
+//
+//                        PrintStream ps = new PrintStream(
+//                                Files.newOutputStream(Paths.get(patchOutputRoot, "Patch_" + globalId, "summary")));
+//                        ps.println(new Gson().toJson(summary));
+//                    } catch (InterruptedException e) {
+//                        // TODO Auto-generated catch block
+//                        e.printStackTrace();
+//                    }
+//                }
+                problem.saveTestAdequatePatch(opList, locList, ingredList, modifiedJavaSources, new Gson().toJson(summary));
+//                AbstractRepairProblem.increaseGlobalID();
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block
