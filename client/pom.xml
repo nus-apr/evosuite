@@ -151,7 +151,7 @@
         <dependency>
             <groupId>Arja</groupId>
             <artifactId>Arja</artifactId>
-            <version>5df9f62</version>
+            <version>f7ccf3e</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
