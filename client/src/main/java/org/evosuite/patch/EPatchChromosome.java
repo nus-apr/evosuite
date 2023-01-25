@@ -54,7 +54,7 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
     private Map<String, String> modifiedJavaSources = null;
 
     public EPatchChromosome(BitSet bits, int[] array, ArjaEProblem problem,
-                            int[] numberOfAvailableManipulations, int[] numberOfReplaceIngredientsIngredients,
+                            int[] numberOfAvailableManipulations, int[] numberOfReplaceIngredients,
                             int[] numberOfInsertIngredients, double mutationProbability) {
         List<ModificationPoint> modificationPoints = problem.getModificationPoints();
 
@@ -77,7 +77,7 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
         this.array = array;
         this.problem = problem;
         this.numberOfAvailableManipulations = numberOfAvailableManipulations;
-        this.numberOfReplaceIngredients = numberOfReplaceIngredientsIngredients;
+        this.numberOfReplaceIngredients = numberOfReplaceIngredients;
         this.numberOfInsertIngredients = numberOfInsertIngredients;
 
         ratios = new double[size];
