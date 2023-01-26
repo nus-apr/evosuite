@@ -19,25 +19,16 @@
  */
 package org.evosuite;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.evosuite.classpath.ClassPathHandler;
-import org.evosuite.coverage.patch.PatchCoverageTestFitness;
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
-import org.evosuite.coverage.patch.communication.json.FixLocation;
 import org.evosuite.executionmode.*;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.LoggingUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -296,17 +287,11 @@ public class CommandLineParameters {
             LoggingUtils.getEvoLogger().error("[EvoRepair] No search strategy is provided, enable with either -generateMOSuite or -generateSuite");
         }
 
-        // TODO EvoRepair: Better to set these from cmdline
+        // Enable fix-location based objectives
+        setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
+
         if (line.hasOption("criterion")) {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
-
-            String[] values = line.getOptionValue("criterion").split(":");
-            if (ArrayUtil.contains(values, "MUTATION")
-                || ArrayUtil.contains(values, "STRONGMUTATION")
-                || ArrayUtil.contains(values, "WEAKMUTATION")) {
-                setPropertyAndAddToJavaOpts("useFixLocationMutants", "true", javaOpts);
-            }
-
         } else {
             // Enable all default criteria
             String defaultCriteria = "PATCHLINE:PATCH:STRONGMUTATION";

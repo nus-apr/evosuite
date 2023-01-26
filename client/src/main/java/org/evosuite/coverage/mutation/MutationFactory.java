@@ -95,7 +95,7 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
         goals = new ArrayList<>();
 
         List<Mutation> mutants;
-        if (Properties.EVOREPAIR_USE_FIX_LOCATION_MUTANTS) {
+        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
             // Use all mutants
             mutants = MutationPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getMutants();
         } else {

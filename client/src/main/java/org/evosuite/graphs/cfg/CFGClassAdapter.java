@@ -135,9 +135,17 @@ public class CFGClassAdapter extends ClassVisitor {
         String classNameWithDots = ResourceList.getClassNameFromResourcePath(className);
 
         // EvoRepair - Check if this class has been patched: if yes, add mutants to fix locations
-        // If EVOREPAIR_USE_FIX_LOCATIONS is not set, this should be false by default
-        boolean isPatchedClass = Properties.EVOREPAIR_USE_FIX_LOCATION_MUTANTS
-                && PatchPool.getInstance().isPatchedOrInnerClass(classNameWithDots);
+        // Only enable if mutation analysis is part of the criteria
+        boolean isPatchedClass = false;
+
+        if (ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.MUTATION)
+                || ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.WEAKMUTATION)
+                || ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.ONLYMUTATION)
+                || ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.STRONGMUTATION)) {
+            if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS && PatchPool.getInstance().isPatchedOrInnerClass(classNameWithDots)) {
+                isPatchedClass = true;
+            }
+        }
 
         mv = new CFGMethodAdapter(classLoader, classNameWithDots, methodAccess, name,
                 descriptor, signature, exceptions, mv, isPatchedClass);

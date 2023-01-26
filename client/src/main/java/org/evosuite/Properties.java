@@ -309,24 +309,17 @@ public class Properties {
 
     // ---------------------------------------------------------------
     // EvoRepair Config
-    @Parameter(key = "port", group = "EvoRepair", description = "Port number of the orchestrator")
+    @Parameter(key = "orchestratorPort", group = "EvoRepair", description = "Port number of the orchestrator")
     public static int EVOREPAIR_PORT = 7777;
 
     @Parameter(key = "seeds", group = "EvoRepair", description = "Path to serialized seed population")
     public static String EVOREPAIR_SEED_POPULATION = null;
 
-    //@Parameter(key = "seed_kill_matrix", group = "EvoRepair", description = "Path to serialized kill matrix")
-    //public static String EVOREPAIR_SEED_KILL_MATRIX = null;
-
-    //public static String EVOREPAIR_PREVIOUS_PATCH_POPULATION = null;
-
-    //public static String EVOREPAIR_UPDATED_PATCH_POPULATION = null;
-
     @Parameter(key = "targetPatches", group = "EvoRepair", description = "Path to serialized seed population")
     public static String EVOREPAIR_TARGET_PATCHES = null;
 
-    @Parameter(key = "useFixLocationMutants", group = "EvoRepair", description = "Enable fix location mutation analysis.")
-    public static boolean EVOREPAIR_USE_FIX_LOCATION_MUTANTS = false;
+    @Parameter(key = "useFixLocationGoals", group = "EvoRepair", description = "Enable fix-location-based objectives.")
+    public static boolean EVOREPAIR_USE_FIX_LOCATION_GOALS = false;
 
     @Parameter(key = "maxMutantsPerFixLocation", group = "EvoRepair", description = "Maximum number of mutants to generate per fix location.")
     public static int EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION = 500;
