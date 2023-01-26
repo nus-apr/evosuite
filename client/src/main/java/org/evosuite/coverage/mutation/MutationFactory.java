@@ -22,8 +22,6 @@ package org.evosuite.coverage.mutation;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
-import org.evosuite.coverage.patch.communication.json.FixLocation;
 import org.evosuite.instrumentation.mutation.InsertUnaryOperator;
 import org.evosuite.instrumentation.mutation.ReplaceArithmeticOperator;
 import org.evosuite.instrumentation.mutation.ReplaceConstant;
@@ -31,10 +29,8 @@ import org.evosuite.instrumentation.mutation.ReplaceVariable;
 import org.evosuite.rmi.ClientServices;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.testsuite.AbstractFitnessFactory;
-import org.evosuite.utils.ArrayUtil;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * <p>

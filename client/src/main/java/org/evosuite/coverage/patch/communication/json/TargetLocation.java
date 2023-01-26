@@ -3,13 +3,13 @@ package org.evosuite.coverage.patch.communication.json;
 import java.io.Serializable;
 import java.util.List;
 
-public class FixLocation implements Serializable {
+public class TargetLocation implements Serializable {
     private static final long serialVersionUID = -1926875323300165541L;
     private String classname;
     private List<Integer> targetLines;
 
-    public FixLocation(){}
-    public FixLocation(String classname, List<Integer> targetLines) {
+    public TargetLocation(){}
+    public TargetLocation(String classname, List<Integer> targetLines) {
         this.classname = classname;
         this.targetLines = targetLines;
     }

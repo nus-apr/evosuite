@@ -1,7 +1,7 @@
 package org.evosuite.coverage.patch;
 
 import org.evosuite.coverage.line.LineCoverageTestFitness;
-import org.evosuite.coverage.patch.communication.json.FixLocation;
+import org.evosuite.coverage.patch.communication.json.TargetLocation;
 import org.evosuite.instrumentation.LinePool;
 import org.evosuite.testsuite.AbstractFitnessFactory;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
         return goals;
     }
 
-    public List<LineCoverageTestFitness> getCoverageGoals(List<FixLocation> fixLocations) {
+    public List<LineCoverageTestFitness> getCoverageGoals(List<TargetLocation> fixLocations) {
         return fixLocations.stream()
                 .map(fl -> getCoverageGoals(fl.getClassname(), fl.getTargetLines()))
                 .flatMap(List::stream)

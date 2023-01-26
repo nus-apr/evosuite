@@ -6,6 +6,7 @@ import org.evosuite.Properties;
 import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.coverage.patch.communication.json.SeedTest;
 import org.evosuite.coverage.patch.communication.json.SeedTestPopulation;
+import org.evosuite.coverage.patch.communication.json.TargetLocation;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteSerialization;
@@ -28,9 +29,6 @@ public class SeedHandler {
     private static SeedHandler instance = null;
 
     private List<TestChromosome> seedTestPopulation = null;
-
-
-
 
 
     public static SeedHandler getInstance() {
@@ -77,6 +75,22 @@ public class SeedHandler {
 
         } catch (IOException e) {
             logger.error("Error while loading target patches.");
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<TargetLocation> loadOracleLocations() {
+        try {
+            List<TargetLocation> oracleLocations = objectMapper.readValue(new File(Properties.EVOREPAIR_ORACLE_LOCATIONS),
+                    new TypeReference<List<TargetLocation>>() {
+                    });
+
+            int numLocations = oracleLocations.stream().mapToInt(l -> l.getTargetLines().size()).sum();
+            logger.info("Specified {} oracle locations in {} classes.", numLocations, oracleLocations.size());
+            return oracleLocations;
+
+        } catch (IOException e) {
+            logger.error("Error while loading oracle locations.");
             throw new RuntimeException(e);
         }
     }

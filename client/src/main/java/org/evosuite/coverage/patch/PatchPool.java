@@ -1,7 +1,7 @@
 package org.evosuite.coverage.patch;
 
 import org.evosuite.Properties;
-import org.evosuite.coverage.patch.communication.json.FixLocation;
+import org.evosuite.coverage.patch.communication.json.TargetLocation;
 import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.ga.FitnessFunction;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class PatchPool {
         for (Patch p : SeedHandler.getInstance().loadPatchPopulation()) {
             patches.add(p);
 
-            for (FixLocation fl : p.getFixLocations()) {
+            for (TargetLocation fl : p.getFixLocations()) {
 
                 String classname = fl.getClassname();
                 if(!fixLocationMap.containsKey(classname)) {
