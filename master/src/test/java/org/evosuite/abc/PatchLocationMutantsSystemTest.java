@@ -28,7 +28,6 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
         URL resource = this.getClass().getResource("patch_population.json");
 
         String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-criterion", "STRONGMUTATION", "-targetPatches", resource.getPath(), "-class", targetClass};
-        Properties.ALGORITHM = Properties.Algorithm.MONOTONIC_GA;
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
@@ -43,7 +42,7 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
         Assert.assertEquals("Wrong number of goals: ", 47, goals);
 
         // No full coverage because there seems to be a stubborn mutant that can't be killed
-        Assert.assertEquals("Non-optimal coverage: ", 0.97, best.getCoverage(), 0.01);
+        Assert.assertEquals("Non-optimal coverage: ", 0.99, best.getCoverage(), 0.01);
 
     }
 
