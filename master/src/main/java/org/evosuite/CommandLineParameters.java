@@ -292,7 +292,7 @@ public class CommandLineParameters {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
         } else {
             // Enable all default criteria
-            String defaultCriteria = "PATCHLINE:PATCH:STRONGMUTATION";
+            String defaultCriteria = "PATCHLINE:PATCH:STRONGMUTATION:IBRANCH";
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No criterions provided, using default: {}.", defaultCriteria);
             setPropertyAndAddToJavaOpts("criterion", defaultCriteria, javaOpts);
             setPropertyAndAddToJavaOpts("useFixLocationMutants", "true", javaOpts);
