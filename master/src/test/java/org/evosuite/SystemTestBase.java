@@ -40,6 +40,8 @@ import org.evosuite.statistics.OutputVariable;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.statistics.backend.DebugStatisticsBackend;
 import org.evosuite.symbolic.dse.algorithm.ExplorationAlgorithmBase;
+import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.TestCaseExecutor;
 import org.evosuite.testcase.execution.reset.ClassReInitializer;
 import org.evosuite.testsuite.TestSuiteChromosome;
@@ -344,6 +346,21 @@ public class SystemTestBase {
             Assert.fail(e.getMessage());
         }
         hasBeenAlreadyRun = false;
+    }
+
+    protected int computeCoveredGoalsFromMOSAResult(Object result) {
+        GeneticAlgorithm<?> ga = getGAFromResult(result);
+        TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
+
+        int covered = 0;
+        List<TestChromosome> tests = best.getTestChromosomes();
+        for (TestFitnessFunction ff : (List<TestFitnessFunction>) ga.getFitnessFunctions()) {
+            if (tests.stream().map(t -> t.getFitness(ff)).anyMatch(fitness -> fitness == 0.0)) {
+                covered++;
+            }
+        }
+
+        return covered;
     }
 
 

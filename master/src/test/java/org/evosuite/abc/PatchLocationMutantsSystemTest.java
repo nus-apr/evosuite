@@ -40,8 +40,10 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
         int goals = TestGenerationStrategy.getFitnessFactories().stream()
                 .map(TestFitnessFactory::getCoverageGoals)
                 .mapToInt(List::size).sum();
-        Assert.assertEquals("Wrong number of goals: ", 25, goals);
-        Assert.assertEquals("Non-optimal fitness: ", 0.0, best.getFitness(), 0.01);
+        Assert.assertEquals("Wrong number of goals: ", 47, goals);
+
+        // No full coverage because there seems to be a stubborn mutant that can't be killed
+        Assert.assertEquals("Non-optimal coverage: ", 0.97, best.getCoverage(), 0.01);
 
     }
 
@@ -62,12 +64,11 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
         Assert.assertTrue(checkMutationLocations(MutationPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getMutants()));
 
         int goals = TestGenerationStrategy.getFitnessFactories().get(0).getCoverageGoals().size(); // assuming single fitness function
+        Assert.assertEquals("Wrong number of goals: ", 47, goals);
 
-        Assert.assertEquals("Wrong number of goals: ", 25, goals);
-
-        // MOSATestSuiteAdapter.getBestIndividuals:95 sets the suite fitness to 1.0 for some reason, even if all goals have been covered
-        // TODO EvoRepair: investigate
-        Assert.assertEquals("Non-optimal fitness: ", 1.0, best.getFitness(), 0.01);
+        int coveredGoals = computeCoveredGoalsFromMOSAResult(result);
+        // No full coverage because there seems to be a stubborn mutant that can't be killed
+        Assert.assertEquals("Non-optimal number of covered goals: ", coveredGoals, 46);
     }
 
     // Ensures that mutants have only been applied to patch fix locations

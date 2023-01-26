@@ -124,7 +124,7 @@ public class SeedingSystemTest extends SystemTestBase {
 
         int goals = TestGenerationStrategy.getFitnessFactories().stream()
                 .mapToInt(f -> f.getCoverageGoals().size()).sum();
-        Assert.assertEquals("Wrong number of goals: ", 6, goals); // 3 patches  + 3 target lines
-        Assert.assertEquals("Non-optimal coverage: ", 3, best.getCoveredGoals().size(), 0.01);
+        Assert.assertEquals("Wrong number of goals: ", 8, goals); // 3 patches  + 5 target lines
+        Assert.assertEquals("Non-optimal coverage: ", 5, best.getCoveredGoals().size(), 0.01);
     }
 }
