@@ -1,0 +1,6 @@
+[
+  {
+    "classname": "com.examples.with.different.packagename.coverage.MethodWithOracleAnnotation",
+    "targetLines": [25]
+  }
+]
