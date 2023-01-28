@@ -1,9 +1,7 @@
 package org.evosuite.abc;
 
-import com.examples.with.different.packagename.coverage.BranchInsideCatchBlock;
 import com.examples.with.different.packagename.coverage.MethodWithOracleAnnotation;
 import org.evosuite.EvoSuite;
-import org.evosuite.Properties;
 import org.evosuite.SystemTestBase;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.strategy.TestGenerationStrategy;
@@ -13,7 +11,7 @@ import org.junit.Test;
 
 import java.net.URL;
 
-public class OracleIBranchSystemTest extends SystemTestBase {
+public class OracleLocationGoalsSystemTest extends SystemTestBase {
 
     @Test
     public void testOracleIBranchWithNSGAII() {

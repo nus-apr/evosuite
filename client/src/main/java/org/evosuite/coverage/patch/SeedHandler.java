@@ -3,10 +3,7 @@ package org.evosuite.coverage.patch;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.evosuite.Properties;
-import org.evosuite.coverage.patch.communication.json.Patch;
-import org.evosuite.coverage.patch.communication.json.SeedTest;
-import org.evosuite.coverage.patch.communication.json.SeedTestPopulation;
-import org.evosuite.coverage.patch.communication.json.TargetLocation;
+import org.evosuite.coverage.patch.communication.json.*;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteSerialization;
@@ -29,7 +26,6 @@ public class SeedHandler {
     private static SeedHandler instance = null;
 
     private List<TestChromosome> seedTestPopulation = null;
-
 
     public static SeedHandler getInstance() {
         if (instance == null) {
@@ -79,15 +75,34 @@ public class SeedHandler {
         }
     }
 
-    public List<TargetLocation> loadOracleLocations() {
-        try {
-            List<TargetLocation> oracleLocations = objectMapper.readValue(new File(Properties.EVOREPAIR_ORACLE_LOCATIONS),
-                    new TypeReference<List<TargetLocation>>() {
-                    });
+    public Map<String, Map<String, Set<OracleLocation>>> getOracleLocationsFromFile() {
 
-            int numLocations = oracleLocations.stream().mapToInt(l -> l.getTargetLines().size()).sum();
-            logger.info("Specified {} oracle locations in {} classes.", numLocations, oracleLocations.size());
-            return oracleLocations;
+        if (Properties.EVOREPAIR_ORACLE_LOCATIONS == null) {
+            return Collections.emptyMap();
+        }
+
+        try {
+             Map<String, Map<String, Set<OracleLocation>>> oracleLocationMap = new LinkedHashMap<>();
+            List<OracleLocation> oracleLocations = objectMapper.readValue(new File(Properties.EVOREPAIR_ORACLE_LOCATIONS),
+                    new TypeReference<List<OracleLocation>>() {
+                    });
+            logger.info("Specified {} oracle locations.", oracleLocations.size());
+
+            for (OracleLocation loc : oracleLocations) {
+                String className = loc.getClassName();
+                String methodName = loc.getMethodName();
+                if (!oracleLocationMap.containsKey(className)) {
+                    oracleLocationMap.put(className, new LinkedHashMap<>());
+                }
+
+                if  (!oracleLocationMap.get(className).containsKey(methodName)) {
+                    oracleLocationMap.get(className).put(methodName, new LinkedHashSet<>());
+                }
+
+                oracleLocationMap.get(className).get(methodName).add(loc);
+            }
+
+            return oracleLocationMap;
 
         } catch (IOException e) {
             logger.error("Error while loading oracle locations.");

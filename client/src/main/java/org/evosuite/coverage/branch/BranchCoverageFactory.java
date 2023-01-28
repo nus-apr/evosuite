@@ -22,6 +22,8 @@ package org.evosuite.coverage.branch;
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.MethodNameMatcher;
+import org.evosuite.coverage.patch.communication.OracleLocationPool;
+import org.evosuite.coverage.patch.communication.json.OracleLocation;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.ControlDependency;
 import org.evosuite.setup.DependencyAnalysis;
@@ -31,6 +33,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -55,6 +60,16 @@ public class BranchCoverageFactory extends
     private List<BranchCoverageTestFitness> computeCoverageGoals(boolean limitToCUT) {
         long start = System.currentTimeMillis();
         List<BranchCoverageTestFitness> goals = new ArrayList<>();
+
+        // Root branches for oracle methods
+        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS && Properties.EVOREPAIR_ORACLE_LOCATIONS != null) {
+            Map<String, Map<String, Set<OracleLocation>>> oracleLocationMap = OracleLocationPool.getInstance().getOracleLocations();
+            for(String className : oracleLocationMap.keySet()) {
+                for (String methodName : oracleLocationMap.get(className).keySet()) {
+                    goals.add(new BranchCoverageTestFitness(new BranchCoverageGoal(className, methodName)));
+                }
+            }
+        }
 
         // logger.info("Getting branches");
         for (String className : BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).knownClasses()) {
@@ -103,7 +118,27 @@ public class BranchCoverageFactory extends
      */
     @Override
     public List<BranchCoverageTestFitness> getCoverageGoals() {
-        return computeCoverageGoals(true);
+        List<BranchCoverageTestFitness> allGoals = computeCoverageGoals(true);
+        return allGoals.stream().filter(this::shouldInclude).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private boolean shouldInclude(BranchCoverageTestFitness branchGoal) {
+        // If EvoRepair branch goal is not enabled, include all goals
+        if (!Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS || Properties.EVOREPAIR_ORACLE_LOCATIONS == null) {
+            return true;
+        }
+
+        // Check if branch goal is within method instrumented with oracle
+        String className = branchGoal.getClassName();
+        String methodName = branchGoal.getMethod();
+
+        OracleLocationPool oracleLocationPool = OracleLocationPool.getInstance();
+        if (oracleLocationPool.getInstrumentedMethodsForClass(className).isEmpty()) {
+            return false;
+        }
+
+        // Include if method has been instrumented with oracle
+        return oracleLocationPool.getInstrumentedMethodsForClass(className).contains(methodName);
     }
 
     public List<BranchCoverageTestFitness> getCoverageGoalsForAllKnownClasses() {

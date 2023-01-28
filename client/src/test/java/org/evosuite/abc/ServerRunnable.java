@@ -93,7 +93,7 @@ class ServerRunnable implements Runnable {
 
         List<Patch> patchPool = new ArrayList<>();
         for(int i = 0; i < 10; i++) {
-            patchPool.add(new Patch(String.valueOf(i), Arrays.asList(new TargetLocation())));
+            patchPool.add(new Patch(String.valueOf(i), Arrays.asList(new TargetLocation("", new ArrayList<>()))));
         }
 
         replyMap.put("data", patchPool);

@@ -19,12 +19,17 @@ public class MethodWithOracleAnnotation {
     }
 
     public void instrumentedMethod(String input) {
-        try {
-            buggyMethod(input);
-        } catch (StringIndexOutOfBoundsException e) {
-            if (input.isEmpty()) {
-                throw new RuntimeException("[Defects4J_BugReport_Violation]");
+        if (Boolean.parseBoolean(System.getProperty("defects4j.instrumentation.enabled"))) {
+            try {
+                buggyMethod(input);
+            } catch (StringIndexOutOfBoundsException e) {
+                if (input.isEmpty()) {
+                    throw new RuntimeException("[Defects4J_BugReport_Violation]");
+                }
             }
+        } else {
+            buggyMethod(input);
+
         }
     }
 

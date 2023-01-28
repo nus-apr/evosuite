@@ -1,6 +1,8 @@
 package org.evosuite.coverage.patch;
 
 import org.evosuite.coverage.line.LineCoverageTestFitness;
+import org.evosuite.coverage.patch.communication.OracleLocationPool;
+import org.evosuite.coverage.patch.communication.json.OracleLocation;
 import org.evosuite.coverage.patch.communication.json.TargetLocation;
 import org.evosuite.instrumentation.LinePool;
 import org.evosuite.testsuite.AbstractFitnessFactory;
@@ -23,6 +25,16 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
         for (String c : patchPool.getPatchedClasses()) {
             // Note: searchOuterClass is set to false because the set returned by the PatchPool contains no inner/anonymous classes
             goals.addAll(getCoverageGoals(c, new ArrayList<>(patchPool.getFixLocationsForClass(c, false))));
+        }
+
+        // Add goals for custom exceptions thrown by instrumented methods
+        Map<String, Map<String, Set<OracleLocation>>> oracleLocations = OracleLocationPool.getInstance().getOracleLocations();
+        for (String className : oracleLocations.keySet()) {
+            for (String methodName : oracleLocations.get(className).keySet()) {
+                for (OracleLocation loc : oracleLocations.get(className).get(methodName)) {
+                    goals.addAll(getCoverageGoals(className, loc.getCustomExceptionLines()));
+                }
+            }
         }
 
         goalComputationTime = System.currentTimeMillis() - start;

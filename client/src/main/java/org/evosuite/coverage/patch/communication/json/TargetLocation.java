@@ -17,15 +17,15 @@ public class TargetLocation implements Serializable {
     public String getClassname() {
         return this.classname;
     }
-    public void setClassname(String classname) {
-        this.classname = classname;
-    }
+    //public void setClassname(String classname) {
+    //    this.classname = classname;
+    //}
 
     public List<Integer> getTargetLines() {
         return this.targetLines;
     }
 
-    public void setTargetLines(List<Integer> targetLines) {
-        this.targetLines = targetLines;
-    }
+    //public void setTargetLines(List<Integer> targetLines) {
+    //    this.targetLines = targetLines;
+    //}
 }
