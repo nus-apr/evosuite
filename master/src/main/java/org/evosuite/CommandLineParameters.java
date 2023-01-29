@@ -295,7 +295,7 @@ public class CommandLineParameters {
             String defaultCriteria = "PATCHLINE:PATCH:STRONGMUTATION:IBRANCH";
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No criterions provided, using default: {}.", defaultCriteria);
             setPropertyAndAddToJavaOpts("criterion", defaultCriteria, javaOpts);
-            setPropertyAndAddToJavaOpts("useFixLocationMutants", "true", javaOpts);
+            setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
         }
 
         // Name tests in test suite based on ID of test case
