@@ -67,7 +67,7 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
 
         List<LineCoverageTestFitness> goals = new ArrayList<>();
 
-        // Also search within inner and anonymouse classes
+        // Also search within inner and anonymous classes
         for (String actualClassName : LinePool.getKnownClasses()) {
             if (!actualClassName.startsWith(className)) {
                 continue;
