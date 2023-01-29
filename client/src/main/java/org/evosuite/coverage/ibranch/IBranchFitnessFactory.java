@@ -66,6 +66,8 @@ public class IBranchFitnessFactory extends AbstractFitnessFactory<IBranchTestFit
 
         // retrieve set of branches
         BranchCoverageFactory branchFactory = new BranchCoverageFactory();
+
+        // TODO EvoRepair: Limit branches to CUT only for know
         List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoalsForAllKnownClasses();
 
         CallGraph callGraph = DependencyAnalysis.getCallGraph();
