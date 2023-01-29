@@ -73,11 +73,11 @@ public class IBranchFitnessFactory extends AbstractFitnessFactory<IBranchTestFit
 
         // try to find all occurrences of this branch in the call tree
         for (BranchCoverageTestFitness branchGoal : branchGoals) {
-            if (shouldExclude(branchGoal)) continue;
+            if (!shouldInclude(branchGoal)) continue;
 
             logger.info("Adding context branches for " + branchGoal.toString());
             for (CallContext context : callGraph.getAllContextsFromTargetClass(branchGoal.getClassName(),
-                    branchGoal.getMethod())) {
+                    branchGoal.getMethod(), true)) {
                 //if is not possible to reach this branch from the target class, continue.
                 if (context.isEmpty()) continue;
                 goals.add(new IBranchTestFitness(branchGoal.getBranchGoal(), context));
@@ -89,27 +89,27 @@ public class IBranchFitnessFactory extends AbstractFitnessFactory<IBranchTestFit
         return new ArrayList<>(goals);
     }
 
-    private boolean shouldExclude(BranchCoverageTestFitness branchGoal) {
+    private boolean shouldInclude(BranchCoverageTestFitness branchGoal) {
         // If we are not running evorepair, allow all ibranch goals
         if (!Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
-            return false;
+            return true;
         }
 
         // We add goals for root branches of methods instrumented with the oracle
         // Branch must be null to be a root branch
-        if (branchGoal.getBranchGoal().getBranch() != null) {
-            return true;
-        }
+        //if (branchGoal.getBranchGoal().getBranch() != null) {
+        //    return true;
+       //}
 
         // Any instrumented methods in this class?
         String className = branchGoal.getClassName();
         if (!oracleLocations.containsKey(className)) {
-            return true;
+            return false;
         }
 
         // Any instrumented methods with this name + descriptor?
         String methodName = branchGoal.getMethod();
-        return !oracleLocations.get(className).containsKey(methodName); // exclude if not contained
+        return oracleLocations.get(className).containsKey(methodName); // exclude if not contained
     }
 }
 

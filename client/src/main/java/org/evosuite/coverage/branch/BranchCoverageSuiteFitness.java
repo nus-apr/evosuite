@@ -21,6 +21,8 @@ package org.evosuite.coverage.branch;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.coverage.patch.communication.OracleLocationPool;
+import org.evosuite.coverage.patch.communication.json.OracleLocation;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.graphs.cfg.CFGMethodAdapter;
 import org.evosuite.testcase.TestChromosome;
@@ -102,6 +104,17 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
         totalMethods = CFGMethodAdapter.getNumMethodsPrefix(classLoader, prefix);
         totalBranches = BranchPool.getInstance(classLoader).getBranchCountForPrefix(prefix);
         branchlessMethods.addAll(BranchPool.getInstance(classLoader).getBranchlessMethodsPrefix(prefix));
+
+        // EvoRepair: Add root branches for oracle methods (pseudo "branchless methods")
+        // This is necessary to have the goals in sync with what BranchCoverageFactory would produce
+        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS && Properties.EVOREPAIR_ORACLE_LOCATIONS != null) {
+            Map<String, Map<String, Set<OracleLocation>>> oracleLocationMap = OracleLocationPool.getInstance().getOracleLocations();
+            for(String className : oracleLocationMap.keySet()) {
+                for (String methodName : oracleLocationMap.get(className).keySet()) {
+                    branchlessMethods.add(className + "." + methodName);
+                }
+            }
+        }
         methods.addAll(CFGMethodAdapter.getMethodsPrefix(classLoader, prefix));
 
         determineCoverageGoals(true);

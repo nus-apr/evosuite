@@ -80,7 +80,7 @@ public class TargetLinesSystemTest extends SystemTestBase {
         int goals = TestGenerationStrategy.getFitnessFactories().get(0).getCoverageGoals().size(); // assuming single fitness function
         Assert.assertEquals("Wrong number of goals: ", 5, goals);
 
-        int coveredGoals = computeCoveredGoalsFromMOSAResult(result);
+        int coveredGoals = computeCoveredGoalsFromResult(result);
         Assert.assertEquals("Non-optimal coverage: ", 5, coveredGoals);
     }
 

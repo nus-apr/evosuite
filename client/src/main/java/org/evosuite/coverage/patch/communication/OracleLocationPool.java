@@ -13,7 +13,7 @@ public class OracleLocationPool {
     private static final Logger logger = LoggerFactory.getLogger(OracleLocationPool.class);
 
     // Mapping from classNames to methodNames to list of oracle locations
-    // Note: Within a class, there can be multiple annotated methods with the same name (but with different signatures)
+    // TODO EvoRepair: Set should not be necessary, as method name + descriptor should be unique
     private final Map<String, Map<String, Set<OracleLocation>>> oracleLocationMap;
 
     private static OracleLocationPool instance = null;
@@ -29,7 +29,6 @@ public class OracleLocationPool {
         oracleLocationMap = new LinkedHashMap<>();
         // Locations from file are based on class + method + line number, find actual locations using the LinePool
         for (String className : tempMap.keySet()) {
-
             // Find matching class
             for (String knownClass : LinePool.getKnownClasses()) {
                 if (!knownClass.startsWith(className)) {
@@ -48,20 +47,25 @@ public class OracleLocationPool {
 
                         // We have found a matching methodname, check if it contains the correct line number
                         for (OracleLocation loc : tempMap.get(className).get(methodName)) {
-                            // TODO EvoRepair: The method signature does not have its own instruction/line number
-                            // FIXME: assumes that the first line of code is not written on the same line, which cannot be guaranteed
-                            //        we can probably use the customExceptionLineNumber instead
-                            int lineNumber = loc.getLineNumber() + 1;
-                            int customExceptionLineNumber = loc.getCustomExceptionLines().get(0);
+                            /**
+                             *  TODO EvoRepair:
+                             *  The method signature does not have its own instruction/line number, so here we assume
+                             *  that the first line of code is not written on the same line, which cannot be guaranteed.
+                             *  Maybe use the customExceptionLineNumber instead?
+                             */
+                            int lineNumber = loc.getLineNumber() + 1; // Lineno. of first bytecode instruction
+                            int customExceptionLineNumber = loc.getCustomExceptionLines().get(0); // Method should contain this line
                             if (LinePool.getLines(knownClass, knownMethod).contains(lineNumber)
                             || LinePool.getLines(knownClass, knownMethod).contains(customExceptionLineNumber)) {
-                                logger.info("Matched instrumented method {}.{}:{} to method {}.{}.", className, methodName, lineNumber, knownClass, knownMethod);
+                                logger.info("Matched instrumented method {}.{}:{} with method {}.{}.", className, methodName, lineNumber, knownClass, knownMethod);
                                 if (!oracleLocationMap.containsKey(knownClass)) {
                                     oracleLocationMap.put(knownClass, new LinkedHashMap<>());
                                 }
 
                                 if  (!oracleLocationMap.get(knownClass).containsKey(knownMethod)) {
                                     oracleLocationMap.get(knownClass).put(knownMethod, new LinkedHashSet<>());
+                                } else {
+                                    logger.warn("Found duplicated entry for method {}.", knownMethod);
                                 }
 
                                 oracleLocationMap.get(knownClass).get(knownMethod).add(loc);
@@ -86,27 +90,26 @@ public class OracleLocationPool {
         return oracleLocationMap;
     }
 
-    // Returns a key with a matching prefix from the map or null, if no such key exists
-    /*
-    public String getClassPrefixKeyOrNull(String className) {
-        for (String prefixKey : oracleLocationMap.keySet()) {
-            if (className.startsWith(prefixKey)) {
-                if (prefixKey.equals(className) || className.charAt(className.indexOf(prefixKey) + prefixKey.length()) == '$') {
-                    return prefixKey;
-                } else {
-                    logger.warn("Found class {} in oracleLocationMap with matching prefix, but it is not a containing class of {}.", prefixKey, className);
-                }
-            }
-        }
-        return null;
-    }
-     */
-
     public Set<String> getInstrumentedMethodsForClass(String className) {
         if (oracleLocationMap.containsKey(className)) {
             return oracleLocationMap.get(className).keySet();
         } else {
             return Collections.emptySet();
         }
+    }
+
+    // Returns the lines that check if the instrumentation has been enabled
+    // TODO EvoRepair: Using line numbers for everything assumes that we have 1 statement per line, is this reasonable?
+    public Set<Integer> getInstrumentationFlagLinesForMethod(String className, String methodName) {
+        if (!oracleLocationMap.containsKey(className) || !oracleLocationMap.get(className).containsKey(methodName)) {
+            return Collections.emptySet();
+        }
+
+        Set<Integer> lines = new LinkedHashSet<>();
+        for (OracleLocation loc : oracleLocationMap.get(className).get(methodName)) {
+            lines.addAll(loc.getInstrumentationFlagLines());
+        }
+
+        return lines;
     }
 }

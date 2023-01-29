@@ -14,6 +14,7 @@ public class OracleLocation {
                           List<Integer> customExceptionLines, List<Integer> instrumentationFlagLines) {
         this.className = className;
         this.methodName = methodName;
+        this.lineNumber = lineNumber;
         this.customExceptionLines = customExceptionLines;
         this.instrumentationFlagLines = instrumentationFlagLines;
     }
@@ -35,6 +36,6 @@ public class OracleLocation {
     }
 
     public List<Integer> getInstrumentationFlagLines() {
-        return getInstrumentationFlagLines();
+        return instrumentationFlagLines;
     }
 }

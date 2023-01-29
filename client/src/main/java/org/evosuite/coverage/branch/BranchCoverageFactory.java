@@ -61,10 +61,12 @@ public class BranchCoverageFactory extends
         long start = System.currentTimeMillis();
         List<BranchCoverageTestFitness> goals = new ArrayList<>();
 
-        // Root branches for oracle methods
+        // EvoRepair: Add root branches for oracle methods
+        // This is necessary because each instrumented method contains at least one branch (check if oracle is enabled)
+        // and we exclude the branch goals for them - we add the root branch as a goal instead
         if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS && Properties.EVOREPAIR_ORACLE_LOCATIONS != null) {
             Map<String, Map<String, Set<OracleLocation>>> oracleLocationMap = OracleLocationPool.getInstance().getOracleLocations();
-            for(String className : oracleLocationMap.keySet()) {
+            for (String className : oracleLocationMap.keySet()) {
                 for (String methodName : oracleLocationMap.get(className).keySet()) {
                     goals.add(new BranchCoverageTestFitness(new BranchCoverageGoal(className, methodName)));
                 }
@@ -138,11 +140,21 @@ public class BranchCoverageFactory extends
         }
 
         // Include if method has been instrumented with oracle
-        return oracleLocationPool.getInstrumentedMethodsForClass(className).contains(methodName);
+        if (!oracleLocationPool.getInstrumentedMethodsForClass(className).contains(methodName)) {
+            return false;
+        }
+
+        int lineNumber = branchGoal.getBranchGoal().getLineNumber();
+        // Exclude branches that simply check if the oracle has been enabled
+        if (oracleLocationPool.getInstrumentationFlagLinesForMethod(className, methodName).contains(lineNumber)) {
+            return false;
+        }
+        return true;
     }
 
     public List<BranchCoverageTestFitness> getCoverageGoalsForAllKnownClasses() {
-        return computeCoverageGoals(false);
+        List<BranchCoverageTestFitness> allGoals = computeCoverageGoals(false);
+        return allGoals.stream().filter(this::shouldInclude).collect(Collectors.toCollection(ArrayList::new));
     }
 
 
