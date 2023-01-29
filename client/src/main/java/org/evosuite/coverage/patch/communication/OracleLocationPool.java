@@ -41,7 +41,7 @@ public class OracleLocationPool {
                 // Find matching method
                 for (String methodName : tempMap.get(className).keySet()) {
                     for (String knownMethod : LinePool.getKnownMethodsFor(knownClass)) {
-                        if (!knownMethod.startsWith(methodName)) { // knownMethod is methodName + descriptor
+                        if (!knownMethod.startsWith(methodName + '(')) { // '(' denotes start of method descriptor
                             continue;
                         }
 
