@@ -34,7 +34,7 @@ public class OracleLocationGoalsSystemTest extends SystemTestBase {
         URL targetPatches = this.getClass().getResource("empty_patch_population.json");
 
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-class", targetClass, "-criterion", "BRANCH:IBRANCH:PATCHLINE",
+        String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-class", targetClass, "-criterion", "BRANCH:CBRANCH:PATCHLINE",
                 "-oracleLocations", oracleLocations.getPath(), "-targetPatches",  targetPatches.getPath()};
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
@@ -42,7 +42,6 @@ public class OracleLocationGoalsSystemTest extends SystemTestBase {
         //System.out.println("EvolvedTestSuite:\n" + best);
 
         int goals = TestGenerationStrategy.getFitnessFactories().stream().map(TestFitnessFactory::getCoverageGoals).mapToInt(List::size).sum(); // assuming single fitness function
-        int coveredGoals = computeCoveredGoalsFromResult(result);
         Assert.assertEquals("Wrong number of goals: ", 13, goals);
         // FIXME: Coverage is too low for some reason
         //Assert.assertEquals("Non-optimal number of covered goals: ", 9, coveredGoals);
@@ -56,7 +55,7 @@ public class OracleLocationGoalsSystemTest extends SystemTestBase {
         URL targetPatches = this.getClass().getResource("empty_patch_population.json");
 
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-class", targetClass, "-criterion", "BRANCH:IBRANCH:PATCHLINE",
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-class", targetClass, "-criterion", "BRANCH:CBRANCH:PATCHLINE",
                 "-oracleLocations", oracleLocations.getPath(), "-targetPatches",  targetPatches.getPath()};
 
         Object result = evosuite.parseCommandLine(command);
