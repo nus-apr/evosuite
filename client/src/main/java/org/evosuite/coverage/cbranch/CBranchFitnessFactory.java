@@ -84,7 +84,7 @@ public class CBranchFitnessFactory extends AbstractFitnessFactory<CBranchTestFit
             Set<CallContext> callContexts;
             if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
                 callContexts = callGraph.getAllContextsFromTargetClass(branchGoal.getClassName(),
-                        branchGoal.getMethod(), true);
+                        branchGoal.getMethod(), Properties.EVOREPAIR_SUB_CBRANCHES);
             } else {
                 callContexts = callGraph.getMethodEntryPoint(branchGoal.getClassName(),
                         branchGoal.getMethod());

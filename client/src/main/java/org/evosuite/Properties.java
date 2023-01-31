@@ -330,6 +330,9 @@ public class Properties {
     @Parameter(key = "numTests", group = "EvoRepair", description = "Maximum number of tests to include in the test suite.")
     public static int EVOREPAIR_NUM_TESTS = 50;
 
+    @Parameter(key = "subContextBranches", group = "EvoRepair", description = "Also consider sub-paths starting from each public method for each context branch goal.")
+    public static boolean EVOREPAIR_SUB_CBRANCHES = true;
+
 
     // Search algorithm
     public enum Algorithm {
