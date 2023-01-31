@@ -1,7 +1,6 @@
 package org.evosuite.abc;
 
-import com.examples.with.different.packagename.coverage.ClassWithCustomException;
-import com.examples.with.different.packagename.coverage.ClassWithInnerClass;
+import com.examples.with.different.packagename.coverage.patch.ClassWithCustomException;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.SystemTestBase;

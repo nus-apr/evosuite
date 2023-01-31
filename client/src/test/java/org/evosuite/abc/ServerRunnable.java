@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import org.evosuite.coverage.patch.communication.json.FixLocation;
+import org.evosuite.coverage.patch.communication.json.TargetLocation;
 import org.evosuite.coverage.patch.communication.json.Patch;
 
 import java.io.IOException;
@@ -93,7 +93,7 @@ class ServerRunnable implements Runnable {
 
         List<Patch> patchPool = new ArrayList<>();
         for(int i = 0; i < 10; i++) {
-            patchPool.add(new Patch(String.valueOf(i), Arrays.asList(new FixLocation())));
+            patchPool.add(new Patch(String.valueOf(i), Arrays.asList(new TargetLocation("", new ArrayList<>()))));
         }
 
         replyMap.put("data", patchPool);

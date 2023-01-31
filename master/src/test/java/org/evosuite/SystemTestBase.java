@@ -348,19 +348,26 @@ public class SystemTestBase {
         hasBeenAlreadyRun = false;
     }
 
-    protected int computeCoveredGoalsFromMOSAResult(Object result) {
+    protected int computeCoveredGoalsFromResult(Object result) {
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
 
-        int covered = 0;
+        List<TestFitnessFunction> coveredGoals = new ArrayList<>();
+        List<TestFitnessFunction> uncoveredGoals = new ArrayList<>();
         List<TestChromosome> tests = best.getTestChromosomes();
+
         for (TestFitnessFunction ff : (List<TestFitnessFunction>) ga.getFitnessFunctions()) {
             if (tests.stream().map(t -> t.getFitness(ff)).anyMatch(fitness -> fitness == 0.0)) {
-                covered++;
+                coveredGoals.add(ff);
+            } else {
+                uncoveredGoals.add(ff);
             }
         }
 
-        return covered;
+        System.out.println("Uncovered goals:");
+        uncoveredGoals.forEach(System.out::println);
+
+        return coveredGoals.size();
     }
 
 

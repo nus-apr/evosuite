@@ -20,8 +20,11 @@
 
 package org.evosuite.coverage.ibranch;
 
+import org.evosuite.Properties;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.coverage.patch.communication.OracleLocationPool;
+import org.evosuite.coverage.patch.communication.json.OracleLocation;
 import org.evosuite.setup.CallContext;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.setup.callgraph.CallGraph;
@@ -29,10 +32,7 @@ import org.evosuite.testsuite.AbstractFitnessFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Create the IBranchTestFitness goals for the class under test.
@@ -42,6 +42,19 @@ import java.util.Set;
 public class IBranchFitnessFactory extends AbstractFitnessFactory<IBranchTestFitness> {
 
     private static final Logger logger = LoggerFactory.getLogger(IBranchFitnessFactory.class);
+
+    private final Map<String, Map<String, Set<OracleLocation>>> oracleLocations;
+
+    public IBranchFitnessFactory() {
+        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+            oracleLocations = OracleLocationPool.getInstance().getOracleLocations();
+        } else {
+            oracleLocations = Collections.emptyMap();
+        }
+        if (oracleLocations.isEmpty()) {
+            logger.warn("No oracle locations available for IBRANCH criterion. No goals will be produced.");
+        }
+    }
 
     /* (non-Javadoc)
      * @see org.evosuite.coverage.TestFitnessFactory#getCoverageGoals()
@@ -53,6 +66,8 @@ public class IBranchFitnessFactory extends AbstractFitnessFactory<IBranchTestFit
 
         // retrieve set of branches
         BranchCoverageFactory branchFactory = new BranchCoverageFactory();
+
+        // TODO EvoRepair: Limit branches to CUT only for know
         List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoalsForAllKnownClasses();
 
         CallGraph callGraph = DependencyAnalysis.getCallGraph();
@@ -60,21 +75,45 @@ public class IBranchFitnessFactory extends AbstractFitnessFactory<IBranchTestFit
 
         // try to find all occurrences of this branch in the call tree
         for (BranchCoverageTestFitness branchGoal : branchGoals) {
+            if (!shouldInclude(branchGoal)) continue;
+
             logger.info("Adding context branches for " + branchGoal.toString());
             for (CallContext context : callGraph.getAllContextsFromTargetClass(branchGoal.getClassName(),
-                    branchGoal.getMethod())) {
+                    branchGoal.getMethod(), true)) {
                 //if is not possible to reach this branch from the target class, continue.
                 if (context.isEmpty()) continue;
                 goals.add(new IBranchTestFitness(branchGoal.getBranchGoal(), context));
             }
         }
-        assert (goals.size() >= branchFactory.getCoverageGoals().size());
+        assert Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS || (goals.size() >= branchFactory.getCoverageGoals().size());
         logger.info("Created " + goals.size() + " goals");
 
         return new ArrayList<>(goals);
     }
-}
 
+    private boolean shouldInclude(BranchCoverageTestFitness branchGoal) {
+        // If we are not running evorepair, allow all ibranch goals
+        if (!Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+            return true;
+        }
+
+        // We add goals for root branches of methods instrumented with the oracle
+        // Branch must be null to be a root branch
+        //if (branchGoal.getBranchGoal().getBranch() != null) {
+        //    return true;
+       //}
+
+        // Any instrumented methods in this class?
+        String className = branchGoal.getClassName();
+        if (!oracleLocations.containsKey(className)) {
+            return false;
+        }
+
+        // Any instrumented methods with this name + descriptor?
+        String methodName = branchGoal.getMethod();
+        return oracleLocations.get(className).containsKey(methodName); // exclude if not contained
+    }
+}
 
 //	private boolean isGradient(BranchCoverageTestFitness branchGoal){
 //		if (branchGoal.getBranchGoal().getBranch() == null)

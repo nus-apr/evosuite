@@ -1,7 +1,9 @@
 package org.evosuite.coverage.patch;
 
 import org.evosuite.coverage.line.LineCoverageTestFitness;
-import org.evosuite.coverage.patch.communication.json.FixLocation;
+import org.evosuite.coverage.patch.communication.OracleLocationPool;
+import org.evosuite.coverage.patch.communication.json.OracleLocation;
+import org.evosuite.coverage.patch.communication.json.TargetLocation;
 import org.evosuite.instrumentation.LinePool;
 import org.evosuite.testsuite.AbstractFitnessFactory;
 import org.slf4j.Logger;
@@ -25,11 +27,21 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
             goals.addAll(getCoverageGoals(c, new ArrayList<>(patchPool.getFixLocationsForClass(c, false))));
         }
 
+        // Add goals for custom exceptions thrown by instrumented methods
+        Map<String, Map<String, Set<OracleLocation>>> oracleLocations = OracleLocationPool.getInstance().getOracleLocations();
+        for (String className : oracleLocations.keySet()) {
+            for (String methodName : oracleLocations.get(className).keySet()) {
+                for (OracleLocation loc : oracleLocations.get(className).get(methodName)) {
+                    goals.addAll(getCoverageGoals(className, loc.getCustomExceptionLines()));
+                }
+            }
+        }
+
         goalComputationTime = System.currentTimeMillis() - start;
         return goals;
     }
 
-    public List<LineCoverageTestFitness> getCoverageGoals(List<FixLocation> fixLocations) {
+    public List<LineCoverageTestFitness> getCoverageGoals(List<TargetLocation> fixLocations) {
         return fixLocations.stream()
                 .map(fl -> getCoverageGoals(fl.getClassname(), fl.getTargetLines()))
                 .flatMap(List::stream)
@@ -55,7 +67,7 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
 
         List<LineCoverageTestFitness> goals = new ArrayList<>();
 
-        // Also search within inner and anonymouse classes
+        // Also search within inner and anonymous classes
         for (String actualClassName : LinePool.getKnownClasses()) {
             if (!actualClassName.startsWith(className)) {
                 continue;

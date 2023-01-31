@@ -65,7 +65,7 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
         int goals = TestGenerationStrategy.getFitnessFactories().get(0).getCoverageGoals().size(); // assuming single fitness function
         Assert.assertEquals("Wrong number of goals: ", 47, goals);
 
-        int coveredGoals = computeCoveredGoalsFromMOSAResult(result);
+        int coveredGoals = computeCoveredGoalsFromResult(result);
         // No full coverage because there seems to be a stubborn mutant that can't be killed
         Assert.assertEquals("Non-optimal number of covered goals: ", coveredGoals, 46);
     }

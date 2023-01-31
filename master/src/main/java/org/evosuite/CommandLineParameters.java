@@ -25,7 +25,6 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.executionmode.*;
-import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.LoggingUtils;
 
 import java.io.File;
@@ -133,10 +132,8 @@ public class CommandLineParameters {
         Option evorepair = new Option("evorepair", true, "EvoRepair execution mode =[testgen|patchgen].");
         Option orchestratorPort = new Option("port", true, "Port number of the orchestrator");
         Option seedPopulation = new Option("seeds", true, "Path to JSON file specifying seed population");
-        //Option seedKillMatrix = new Option("seedKillMatrix", true, "Path to JSON file of kill matrix w.r.t. previous patch population");
-        //Option previousPatchPopulation = new Option("previousPatchPopulation", true, "Path to JSON file of previous patch population");
-        //Option updatedPatchPopulation = new Option("nextPatchPopulation", true, "Path to JSON file of updated patch population");
         Option targetPatches = new Option("targetPatches", true, "Path to JSON file specifying target patches");
+        Option oracleLocations = new Option("oracleLocations", true, "Path to JSON file specifying oracle check locations");
 
         @SuppressWarnings("static-access")
         Option property = OptionBuilder.withArgName("property=value").hasArgs(2).withValueSeparator().withDescription("use value for given property").create("D");
@@ -176,6 +173,7 @@ public class CommandLineParameters {
         //options.addOption(previousPatchPopulation);
         //options.addOption(updatedPatchPopulation);
         options.addOption(targetPatches);
+        options.addOption(oracleLocations);
 
         return options;
     }
@@ -294,10 +292,10 @@ public class CommandLineParameters {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
         } else {
             // Enable all default criteria
-            String defaultCriteria = "PATCHLINE:PATCH:STRONGMUTATION";
+            String defaultCriteria = line.hasOption("oracleLocations") ? "PATCHLINE:PATCH:STRONGMUTATION:BRANCH:CBRANCH" : "PATCHLINE:PATCH:STRONGMUTATION";
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No criterions provided, using default: {}.", defaultCriteria);
             setPropertyAndAddToJavaOpts("criterion", defaultCriteria, javaOpts);
-            setPropertyAndAddToJavaOpts("useFixLocationMutants", "true", javaOpts);
+            setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
         }
 
         // Name tests in test suite based on ID of test case
@@ -331,6 +329,13 @@ public class CommandLineParameters {
         } else {
             LoggingUtils.getEvoLogger().error("No target patches provided, specify using -targetPatches option.");
             throw new IllegalArgumentException("Missing target patches.");
+        }
+
+        if (line.hasOption("oracleLocations")) {
+            setPropertyAndAddToJavaOpts("oracleLocations", line.getOptionValue("oracleLocations"), javaOpts);
+        } else {
+            LoggingUtils.getEvoLogger().warn("No oracle locations provided, specify using -oracleLocations option.");
+            //throw new IllegalArgumentException("Missing target patches.");
         }
 
         /**

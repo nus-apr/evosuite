@@ -6,11 +6,11 @@ import java.util.List;
 public class Patch implements Serializable, Comparable<Patch> {
     private static final long serialVersionUID = 1583968801710072964L;
     private String index;
-    private List<FixLocation> fixLocations;
+    private List<TargetLocation> fixLocations;
 
     public Patch() {}
 
-    public Patch(String index, List<FixLocation> fixLocations) {
+    public Patch(String index, List<TargetLocation> fixLocations) {
         this.index = index;
         this.fixLocations = fixLocations;
     }
@@ -19,7 +19,7 @@ public class Patch implements Serializable, Comparable<Patch> {
         return this.index;
     }
 
-    public List<FixLocation> getFixLocations() {
+    public List<TargetLocation> getFixLocations() {
         return this.fixLocations;
     }
 
