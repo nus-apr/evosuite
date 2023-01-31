@@ -204,15 +204,17 @@ public class CallGraph implements Iterable<CallGraphEntry> {
 
         // Add sub-paths starting from public methods
         if (includeSubPaths) {
+            List<CallContext> subContexts = new ArrayList<>();
             for (CallContext context : contexts) {
                 List<Call> methodCalls = context.getContext();
                 for (int i = 1; i < methodCalls.size()-1; i++) { // Start from 2nd call, context must be at least of length 3
                     String m = methodCalls.get(i).getMethodName();
                     if (publicMethods.stream().map(CallContext::getRootMethodName).anyMatch(r -> r.equals(m))) {
-                        contexts.add(new CallContext(methodCalls.subList(i, methodCalls.size())));
+                        subContexts.add(new CallContext(methodCalls.subList(i, methodCalls.size())));
                     }
                 }
             }
+            contexts.addAll(subContexts);
         }
         return contexts;
     }

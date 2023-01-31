@@ -1,7 +1,8 @@
 package org.evosuite.abc;
 
-import com.examples.with.different.packagename.coverage.MethodWithOracleAnnotation;
+import com.examples.with.different.packagename.coverage.patch.MethodWithOracle;
 import org.evosuite.EvoSuite;
+import org.evosuite.Properties;
 import org.evosuite.SystemTestBase;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
@@ -29,42 +30,46 @@ public class OracleLocationGoalsSystemTest extends SystemTestBase {
     @Test
     public void testOracleIBranchWithNSGAII() {
         EvoSuite evosuite = new EvoSuite();
-        String targetClass = MethodWithOracleAnnotation.class.getCanonicalName();
-        URL oracleLocations = this.getClass().getResource("MethodWithOracleAnnotation_oracleLocations.json");
-        URL targetPatches = this.getClass().getResource("empty_patch_population.json");
-
+        String targetClass = MethodWithOracle.class.getCanonicalName();
+        URL oracleLocations = this.getClass().getResource("methodWithOracle_oracleLocations.json");
+        URL targetPatches = this.getClass().getResource("methodWithOracle_targetPatches.json");
 
         String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-class", targetClass, "-criterion", "BRANCH:CBRANCH:PATCHLINE",
                 "-oracleLocations", oracleLocations.getPath(), "-targetPatches",  targetPatches.getPath()};
+
+        Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
+        Properties.SEARCH_BUDGET = 30;
+
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
         //System.out.println("EvolvedTestSuite:\n" + best);
 
         int goals = TestGenerationStrategy.getFitnessFactories().stream().map(TestFitnessFactory::getCoverageGoals).mapToInt(List::size).sum(); // assuming single fitness function
-        Assert.assertEquals("Wrong number of goals: ", 13, goals);
-        // FIXME: Coverage is too low for some reason
-        //Assert.assertEquals("Non-optimal number of covered goals: ", 9, coveredGoals);
+        Assert.assertEquals("Wrong number of goals: ", 24, goals);
+        // TODO EvoRepair: Investigate why coverage is so low
+        Assert.assertEquals("Non-optimal coverage: ", 0.7, best.getCoverage(), 0.1);
     }
 
     @Test
     public void testOracleIBranchWithMOSA() {
         EvoSuite evosuite = new EvoSuite();
-        String targetClass = MethodWithOracleAnnotation.class.getCanonicalName();
-        URL oracleLocations = this.getClass().getResource("MethodWithOracleAnnotation_oracleLocations.json");
-        URL targetPatches = this.getClass().getResource("empty_patch_population.json");
+        String targetClass = MethodWithOracle.class.getCanonicalName();
+        URL oracleLocations = this.getClass().getResource("methodWithOracle_oracleLocations.json");
+        URL targetPatches = this.getClass().getResource("methodWithOracle_targetPatches.json");
 
 
         String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-class", targetClass, "-criterion", "BRANCH:CBRANCH:PATCHLINE",
                 "-oracleLocations", oracleLocations.getPath(), "-targetPatches",  targetPatches.getPath()};
-
+        Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
+        Properties.SEARCH_BUDGET = 20;
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
         //System.out.println("EvolvedTestSuite:\n" + best);
         int goals = TestGenerationStrategy.getFitnessFactories().stream().map(TestFitnessFactory::getCoverageGoals).mapToInt(List::size).sum(); // assuming single fitness function
         int coveredGoals = computeCoveredGoalsFromResult(result);
-        Assert.assertEquals("Wrong number of goals: ", 13, goals);
-        Assert.assertEquals("Non-optimal number of covered goals: ", 9, coveredGoals);
+        Assert.assertEquals("Wrong number of goals: ", 24, goals);
+        Assert.assertEquals("Non-optimal number of covered goals: ", 19, coveredGoals); // condition in L32 of oracle is always true (or false in bytecode)
     }
 }

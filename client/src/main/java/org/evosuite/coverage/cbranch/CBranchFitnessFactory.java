@@ -23,6 +23,8 @@ package org.evosuite.coverage.cbranch;
 import org.evosuite.Properties;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
+import org.evosuite.coverage.line.LineCoverageTestFitness;
+import org.evosuite.coverage.patch.PatchLineCoverageFactory;
 import org.evosuite.coverage.patch.communication.OracleLocationPool;
 import org.evosuite.coverage.patch.communication.json.OracleLocation;
 import org.evosuite.setup.CallContext;
@@ -62,11 +64,21 @@ public class CBranchFitnessFactory extends AbstractFitnessFactory<CBranchTestFit
         // retrieve set of branches
         BranchCoverageFactory branchFactory = new BranchCoverageFactory();
         List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
+
+        // First, filter out any uninteresting branch goals
+        branchGoals.removeIf(b -> !shouldInclude(b, oracleLocations));
+
+        // Then, add control dependencies of target lines (fix locations and custom exceptions) as branch goals
+        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+            for (LineCoverageTestFitness lineGoal : new PatchLineCoverageFactory().getCoverageGoals()) {
+                branchGoals.addAll(lineGoal.getControlDependencyGoals());
+            }
+        }
+
         CallGraph callGraph = DependencyAnalysis.getCallGraph();
 
         // try to find all occurrences of this branch in the call tree
         for (BranchCoverageTestFitness branchGoal : branchGoals) {
-            if (!shouldInclude(branchGoal, oracleLocations)) continue;
             logger.info("Adding context branches for " + branchGoal.toString());
 
             Set<CallContext> callContexts;
@@ -92,12 +104,6 @@ public class CBranchFitnessFactory extends AbstractFitnessFactory<CBranchTestFit
         if (!Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
             return true;
         }
-
-        // We add goals for root branches of methods instrumented with the oracle
-        // Branch must be null to be a root branch
-        //if (branchGoal.getBranchGoal().getBranch() != null) {
-        //    return true;
-        //}
 
         // Any instrumented methods in this class?
         String className = branchGoal.getClassName();

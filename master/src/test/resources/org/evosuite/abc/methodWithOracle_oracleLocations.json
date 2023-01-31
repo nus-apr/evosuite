@@ -1,0 +1,10 @@
+[
+  {
+    "className": "com.examples.with.different.packagename.coverage.patch.MethodWithOracle",
+    "methodName": "instrumentedMethod",
+    "lineNumber": 27,
+    "instrumentationLines": [28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38],
+    "customExceptionLines": [33],
+    "instrumentationFlagLines": [28]
+  }
+]

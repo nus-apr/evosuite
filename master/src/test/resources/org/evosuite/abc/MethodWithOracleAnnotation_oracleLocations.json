@@ -1,9 +1,0 @@
-[
-  {
-    "className": "com.examples.with.different.packagename.coverage.MethodWithOracleAnnotation",
-    "methodName": "instrumentedMethod",
-    "lineNumber": 21,
-    "customExceptionLines": [27],
-    "instrumentationFlagLines": [22]
-  }
-]

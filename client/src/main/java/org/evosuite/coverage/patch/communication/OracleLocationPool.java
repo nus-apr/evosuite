@@ -45,19 +45,13 @@ public class OracleLocationPool {
                             continue;
                         }
 
-                        // We have found a matching methodname, check if it contains the correct line number
+                        // We have found a matching method name, check if it contains the correct line number
+                        // Note: We cannot check against instrumentationLines because it also contains lines w/o bytecode instructions (e.g., brackets)
+                        Set<Integer> methodLines = LinePool.getLines(knownClass, knownMethod);
                         for (OracleLocation loc : tempMap.get(className).get(methodName)) {
-                            /**
-                             *  TODO EvoRepair:
-                             *  The method signature does not have its own instruction/line number, so here we assume
-                             *  that the first line of code is not written on the same line, which cannot be guaranteed.
-                             *  Maybe use the customExceptionLineNumber instead?
-                             */
-                            int lineNumber = loc.getLineNumber() + 1; // Lineno. of first bytecode instruction
-                            int customExceptionLineNumber = loc.getCustomExceptionLines().get(0); // Method should contain this line
-                            if (LinePool.getLines(knownClass, knownMethod).contains(lineNumber)
-                            || LinePool.getLines(knownClass, knownMethod).contains(customExceptionLineNumber)) {
-                                logger.info("Matched instrumented method {}.{}:{} with method {}.{}.", className, methodName, lineNumber, knownClass, knownMethod);
+                            if (methodLines.containsAll(loc.getInstrumentationFlagLines())
+                                    && methodLines.containsAll(loc.getCustomExceptionLines())) {
+                                logger.info("Matched instrumented method {}.{}:{} with method {}.{}.", className, methodName, loc.getLineNumber(), knownClass, knownMethod);
                                 if (!oracleLocationMap.containsKey(knownClass)) {
                                     oracleLocationMap.put(knownClass, new LinkedHashMap<>());
                                 }
