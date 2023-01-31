@@ -46,10 +46,7 @@ public class Defects4JSystemTest extends SystemTestBase {
         GeneticAlgorithm<TestSuiteChromosome> ga = getGAFromResult(result);
     }
 
-    /**
-     * FIX: Target line goals for private methods
-     * CLI cmd: java -jar master/target/evosuite-master-1.2.0.jar -class org.apache.commons.math.optimization.fitting.GaussianFitter -generateMOSuite -evorepair testgen -targetPatches ../evorepair-experiments/evorepair/C1-evorepair-defects4j-Math-58-6c757b79/output/math_58-math_58-230118_170804/gen-test/target_patches_gen1.json -projectCP ../defects4j-instrumented/instrumented-archives/math_58/target/classes -Dminimize=false -Dassertions=false
-     */
+
     @Test
     public void testMath58() {
 
