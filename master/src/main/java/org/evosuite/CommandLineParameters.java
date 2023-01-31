@@ -280,7 +280,7 @@ public class CommandLineParameters {
         if (line.hasOption("generateMOSuite")) {
             setPropertyAndAddToJavaOpts("algorithm", "MOSA", javaOpts);
         } else if (line.hasOption("generateSuite")){
-            setPropertyAndAddToJavaOpts("algorithm", "MONOTONIC_GA", javaOpts);
+            setPropertyAndAddToJavaOpts("algorithm", "NSGAII", javaOpts);
         } else {
             LoggingUtils.getEvoLogger().error("[EvoRepair] No search strategy is provided, enable with either -generateMOSuite or -generateSuite");
         }
