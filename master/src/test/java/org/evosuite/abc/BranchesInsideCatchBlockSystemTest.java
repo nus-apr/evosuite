@@ -1,6 +1,6 @@
 package org.evosuite.abc;
 
-import com.examples.with.different.packagename.coverage.BranchInsideCatchBlock;
+import com.examples.with.different.packagename.coverage.patch.BranchInsideCatchBlock;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.SystemTestBase;

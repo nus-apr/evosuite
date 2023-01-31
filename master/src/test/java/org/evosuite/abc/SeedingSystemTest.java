@@ -1,6 +1,6 @@
 package org.evosuite.abc;
 
-import com.examples.with.different.packagename.coverage.ComplexConstraints;
+import com.examples.with.different.packagename.coverage.patch.ComplexConstraints;
 import com.examples.with.different.packagename.coverage.MethodReturnsPrimitive;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;

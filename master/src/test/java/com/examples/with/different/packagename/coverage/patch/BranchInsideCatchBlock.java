@@ -1,4 +1,4 @@
-package com.examples.with.different.packagename.coverage;
+package com.examples.with.different.packagename.coverage.patch;
 
 public class BranchInsideCatchBlock {
 
