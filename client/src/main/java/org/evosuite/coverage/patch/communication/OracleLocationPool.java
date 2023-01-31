@@ -33,7 +33,7 @@ public class OracleLocationPool {
             for (String knownClass : LinePool.getKnownClasses()) {
                 if (!knownClass.startsWith(className)) {
                     continue;
-                } else if (!knownClass.equals(className) && knownClass.charAt(knownClass.indexOf(className) + className.length()) != '$') {
+                } else if (!knownClass.equals(className) && !knownClass.startsWith(className + '$')) {
                     logger.warn("{} has a matching prefix of {} but is not an inner/anonymous class.", knownClass, className);
                     continue;
                 }

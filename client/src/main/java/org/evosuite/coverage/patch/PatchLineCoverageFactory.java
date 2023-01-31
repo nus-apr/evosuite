@@ -71,7 +71,7 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
         for (String actualClassName : LinePool.getKnownClasses()) {
             if (!actualClassName.startsWith(className)) {
                 continue;
-            } else if (!actualClassName.equals(className) && actualClassName.charAt(actualClassName.indexOf(className) + className.length()) != '$') {
+            } else if (!actualClassName.equals(className) && !actualClassName.startsWith(className + '$')) {
                 logger.warn("{} has a matching prefix of {} but is not an inner/anonymous class.", actualClassName, className);
                 continue;
             }

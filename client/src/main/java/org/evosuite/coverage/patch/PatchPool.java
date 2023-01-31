@@ -87,7 +87,7 @@ public class PatchPool {
     public boolean isPatchedOrInnerClass(String className) {
         for (String patchedClass : fixLocationMap.keySet()) {
             if (className.startsWith(patchedClass)) {
-                if (patchedClass.equals(className) || className.charAt(className.indexOf(patchedClass) + patchedClass.length()) == '$') {
+                if (patchedClass.equals(className) || className.startsWith(patchedClass + '$')) {
                     return true;
                 } else {
                     logger.warn("Found class {} in fixLocationMap with matching prefix, but it is not a containing class of {}.", patchedClass, className);
@@ -115,7 +115,7 @@ public class PatchPool {
             Set<Integer> allFixLocations = new LinkedHashSet<>();
             for (String patchedClass : fixLocationMap.keySet()) {
                 if (className.startsWith(patchedClass)) {
-                    if (patchedClass.equals(className) || className.charAt(className.indexOf(patchedClass) + patchedClass.length()) == '$') {
+                    if (patchedClass.equals(className) || className.startsWith(patchedClass + '$')) {
                         allFixLocations.addAll(fixLocationMap.get(patchedClass).keySet());
                     } else {
                         logger.warn("Found class {} in fixLocationMap with matching prefix, but it is not a containing class of {}.", patchedClass, className);
@@ -153,7 +153,7 @@ public class PatchPool {
         // Find the fix location in the map by searching within possible containing classes
         for (String patchedClass : fixLocationMap.keySet()) {
             if (className.startsWith(patchedClass) && fixLocationMap.get(patchedClass).containsKey(fixLocation)) {
-                if (patchedClass.equals(className) || className.charAt(className.indexOf(patchedClass) + patchedClass.length()) == '$') {
+                if (patchedClass.equals(className) || className.startsWith(patchedClass + '$')) {
                     int patchCount = fixLocationMap.get(patchedClass).get(fixLocation); // Number of patches fixing this location
                     return FitnessFunction.normalize(patchCount);
                 } else {
