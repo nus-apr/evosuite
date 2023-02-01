@@ -52,6 +52,7 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
     private Double numberOfEdits = null;
     private List<Integer> locations = null;
     private Map<String, String> modifiedJavaSources = null;
+    private Set<String> failedTests = null;
 
     public EPatchChromosome(BitSet bits, int[] array, ArjaEProblem problem,
                             int[] numberOfAvailableManipulations, int[] numberOfReplaceIngredients,
@@ -357,6 +358,7 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
                     ArjaSolutionSummary summary = new ArjaSolutionSummary(bits, array, problem);
                     problem.appendToHallOfFameOut(summary, ArjaEProblem.getGlobalID());
                     if (problem.getFameOutputRoot() != null) {
+                        failedTests = failures;
                         saveAsFame();
                     }
                 }
@@ -491,6 +493,11 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
                                 fameOutputRoot, globalId);
 
                         PrintStream ps = new PrintStream(
+                                Files.newOutputStream(
+                                        Paths.get(fameOutputRoot, "Patch_" + globalId, "failed_tests")));
+                        ps.print(String.join("\n", failedTests));
+
+                        ps = new PrintStream(
                                 Files.newOutputStream(Paths.get(fameOutputRoot, "Patch_" + globalId, "summary")));
                         ps.println(new Gson().toJson(summary));
                     } catch (InterruptedException e) {
