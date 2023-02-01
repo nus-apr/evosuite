@@ -53,6 +53,10 @@ import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 
@@ -408,6 +412,92 @@ public class SearchStatistics implements Listener<ClientStateInformation> {
         } else {
             backend.writeData(individual, map);
             return true;
+        }
+    }
+
+    public boolean writeStatistics(Map<Class<?>, Map<String, Double>> fitnessValues) {
+        logger.info("Writing statistics");
+        if (backend == null) {
+            logger.warn("Error while writing statistics: backend is null.");
+            return false;
+        }
+
+        try {
+            File outputDir = new File(Properties.REPORT_DIR);
+
+            if (!outputDir.exists()) { // should already be created
+                logger.warn("Error while writing statistics: dir {} does not exist.", outputDir);
+                return false;
+            }
+
+            File f_covered = new File(outputDir.getAbsolutePath() + File.separator + "covered_objectives.csv");
+            File f_uncovered = new File(outputDir.getAbsolutePath() + File.separator + "uncovered_objectives.csv");
+            File f_stats = new File(outputDir.getAbsolutePath() + File.separator + "coverage_stats.csv");
+
+
+            BufferedWriter out_covered = new BufferedWriter(new FileWriter(f_covered, true));
+            BufferedWriter out_uncovered = new BufferedWriter(new FileWriter(f_uncovered, true));
+            BufferedWriter out_stats = new BufferedWriter(new FileWriter(f_stats, true));
+
+
+            if (f_covered.length() == 0L) {
+                out_covered.write("OBJECTIVE, MIN_FITNESS_VALUE" + "\n");
+            }
+
+            if (f_uncovered.length() == 0L) {
+                out_uncovered.write("OBJECTIVE, MIN_FITNESS_VALUE" + "\n");
+            }
+
+            if (f_stats.length() == 0L) {
+                out_stats.write("CRITERION, GOALS, COVERED, UNCOVERED" + "\n");
+            }
+
+            StringBuilder sb_covered = new StringBuilder();
+            StringBuilder sb_uncovered = new StringBuilder();
+            StringBuilder sb_stats = new StringBuilder();
+
+
+            for (Class<?> fitnessClass : fitnessValues.keySet()) {
+                int covered = 0;
+                int uncovered = 0;
+                for (String fitnessFunction : fitnessValues.get(fitnessClass).keySet()) {
+                    double fitness = fitnessValues.get(fitnessClass).get(fitnessFunction);
+                    if (fitness == 0.0) {
+                        covered++;
+                        sb_covered.append(fitnessFunction);
+                        sb_covered.append(",");
+                        sb_covered.append(fitness);
+                        sb_covered.append("\n");
+                    } else {
+                        uncovered++;
+                        sb_uncovered.append(fitnessFunction);
+                        sb_uncovered.append(",");
+                        sb_uncovered.append(fitness);
+                        sb_uncovered.append("\n");
+                    }
+                }
+                sb_stats.append(fitnessClass);
+                sb_stats.append(",");
+                sb_stats.append(covered + uncovered);
+                sb_stats.append(",");
+                sb_stats.append(covered);
+                sb_stats.append(",");
+                sb_stats.append(uncovered);
+                sb_stats.append("\n");
+            }
+
+            out_covered.write(sb_covered.toString());
+            out_covered.close();
+
+            out_uncovered.write(sb_uncovered.toString());
+            out_uncovered.close();
+
+            out_stats.write(sb_stats.toString());
+            out_stats.close();
+            return true;
+        } catch (IOException e) {
+            logger.warn("Error while writing statistics: " + e.getMessage());
+            return false;
         }
     }
 
