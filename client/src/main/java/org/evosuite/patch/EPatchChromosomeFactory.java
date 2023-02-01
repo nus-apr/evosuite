@@ -5,6 +5,7 @@ import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import us.msu.cse.repair.core.parser.ExtendedModificationPoint;
 import us.msu.cse.repair.core.parser.ModificationPoint;
 import us.msu.cse.repair.ec.problems.ArjaEProblem;
 import us.msu.cse.repair.ec.representation.ArjaDecisionVariable;
@@ -43,13 +44,12 @@ public class EPatchChromosomeFactory implements ChromosomeFactory<EPatchChromoso
 
         this.mutationProbability_ = mutationProbability;
 
-        int size = problem.getNumberOfModificationPoints();
+        List<ExtendedModificationPoint> modificationPoints = problem.getExtendedModificationPoints();
+        int size = modificationPoints.size();
         this.probabilities = new double[size];
 
         String strategy = problem.getInitializationStrategy();
         if (strategy.equals("Prior")) {
-            List<ModificationPoint> modificationPoints = problem.getModificationPoints();
-
             double mu = problem.getMu();
 
             for (int i = 0; i < size; i++) {
@@ -73,7 +73,7 @@ public class EPatchChromosomeFactory implements ChromosomeFactory<EPatchChromoso
      */
     @Override
     public EPatchChromosome getChromosome() {
-        int size = this.problem.getNumberOfModificationPoints();
+        int size = this.problem.getExtendedModificationPoints().size();
 
         BitSet bits = new BitSet(size);
         for (int i = 0; i < size; i++) {

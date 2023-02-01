@@ -57,7 +57,7 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
     public EPatchChromosome(BitSet bits, int[] array, ArjaEProblem problem,
                             int[] numberOfAvailableManipulations, int[] numberOfReplaceIngredients,
                             int[] numberOfInsertIngredients, double mutationProbability) {
-        List<ModificationPoint> modificationPoints = problem.getModificationPoints();
+        List<ExtendedModificationPoint> modificationPoints = problem.getExtendedModificationPoints();
 
         int size = modificationPoints.size();
 
@@ -96,8 +96,8 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
         mutationProbability_ = mutationProbability;
     }
 
-    public static int[] getNumberOfAvailableManipulations(AbstractRepairProblem problem) {
-        int size = problem.getModificationPoints().size();
+    public static int[] getNumberOfAvailableManipulations(ArjaEProblem problem) {
+        int size = problem.getExtendedModificationPoints().size();
 
         int[] numberOfAvailableManipulations = new int[size];
 
@@ -183,7 +183,7 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
     public void mutate() {
         int k = getMutatingLocation();
 
-        int size = problem.getNumberOfModificationPoints();
+        int size = problem.getExtendedModificationPoints().size();
 
         if (Randomness.nextDouble() < mutationProbability_) {
             bits.flip(k);
@@ -288,12 +288,12 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
     private void precomputeFitnesses() throws Exception {
         isUndesirable = false;
 
-        int size = problem.getNumberOfModificationPoints();
+        List<ExtendedModificationPoint> modificationPoints = problem.getExtendedModificationPoints();
+        int size = modificationPoints.size();
         Map<String, ASTRewrite> astRewriters = new LinkedHashMap<>();
 
         Map<Integer, Double> selectedMP = new LinkedHashMap<>();
 
-        List<ModificationPoint> modificationPoints = problem.getModificationPoints();
         List<List<String>> availableManipulations = problem.getAvailableManipulations();
 
         for (int i = 0; i < size; i++) {
