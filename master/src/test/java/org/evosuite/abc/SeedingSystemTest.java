@@ -1,6 +1,6 @@
 package org.evosuite.abc;
 
-import com.examples.with.different.packagename.coverage.ComplexConstraints;
+import com.examples.with.different.packagename.coverage.patch.ComplexConstraints;
 import com.examples.with.different.packagename.coverage.MethodReturnsPrimitive;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
@@ -41,15 +41,19 @@ public class SeedingSystemTest extends SystemTestBase {
         Properties.CRITERION = new Properties.Criterion[]{
                 BRANCH, LINE
         };
+        Properties.SEARCH_BUDGET = 15;
+        Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
     }
 
+    // TODO: The number of generations depends on the performance of the current implementation
+    //       Also, this test should write out the seeds-file json for the other tests.
     @Test
     public void testWriteSeeds() throws IOException {
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
 
         // EvoSuite is deterministic, should stop at exactly 18 generations
-        Assert.assertEquals(18, ga.getAge());
+        Assert.assertEquals(70, ga.getAge());
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
 
         int goals = TestGenerationStrategy.getFitnessFactories().stream()
@@ -124,7 +128,7 @@ public class SeedingSystemTest extends SystemTestBase {
 
         int goals = TestGenerationStrategy.getFitnessFactories().stream()
                 .mapToInt(f -> f.getCoverageGoals().size()).sum();
-        Assert.assertEquals("Wrong number of goals: ", 6, goals); // 3 patches  + 3 target lines
-        Assert.assertEquals("Non-optimal coverage: ", 3, best.getCoveredGoals().size(), 0.01);
+        Assert.assertEquals("Wrong number of goals: ", 8, goals); // 3 patches  + 5 target lines
+        Assert.assertEquals("Non-optimal coverage: ", 5, best.getCoveredGoals().size(), 0.01);
     }
 }

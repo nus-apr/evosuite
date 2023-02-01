@@ -192,11 +192,30 @@ public class CallGraph implements Iterable<CallGraphEntry> {
      * @return
      */
     public Set<CallContext> getAllContextsFromTargetClass(String className, String methodName) {
+        return getAllContextsFromTargetClass(className, methodName, false);
+    }
+
+    public Set<CallContext> getAllContextsFromTargetClass(String className, String methodName, boolean includeSubPaths) {
         CallGraphEntry root = new CallGraphEntry(className, methodName);
         Set<List<CallGraphEntry>> paths = PathFinder.getPahts(graph, root);
         Set<CallContext> contexts = convertIntoCallContext(paths);
         if (!Properties.EXCLUDE_IBRANCHES_CUT)
             addPublicClassMethod(className, methodName, contexts);
+
+        // Add sub-paths starting from public methods
+        if (includeSubPaths) {
+            List<CallContext> subContexts = new ArrayList<>();
+            for (CallContext context : contexts) {
+                List<Call> methodCalls = context.getContext();
+                for (int i = 1; i < methodCalls.size()-1; i++) { // Start from 2nd call, context must be at least of length 3
+                    String m = methodCalls.get(i).getMethodName();
+                    if (publicMethods.stream().map(CallContext::getRootMethodName).anyMatch(r -> r.equals(m))) {
+                        subContexts.add(new CallContext(methodCalls.subList(i, methodCalls.size())));
+                    }
+                }
+            }
+            contexts.addAll(subContexts);
+        }
         return contexts;
     }
 

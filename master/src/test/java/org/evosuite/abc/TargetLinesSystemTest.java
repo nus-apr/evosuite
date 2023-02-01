@@ -1,11 +1,12 @@
 package org.evosuite.abc;
 
+import com.examples.with.different.packagename.coverage.patch.ClassWithInnerClass;
 import com.examples.with.different.packagename.coverage.MethodReturnsPrimitive;
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.SystemTestBase;
 import org.evosuite.coverage.TestFitnessFactory;
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
+import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.strategy.TestGenerationStrategy;
 import org.evosuite.testsuite.TestSuiteChromosome;
@@ -29,11 +30,15 @@ public class TargetLinesSystemTest extends SystemTestBase {
         String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass };
         Object result = evosuite.parseCommandLine(command);
 
-        Assert.assertEquals(new LinkedHashSet<>(Arrays.asList(25,29,42)), PatchLineCoverageFactory.getTargetLinesForClass(targetClass));
+        PatchPool patchPool = PatchPool.getInstance();
 
-        Assert.assertEquals(PatchLineCoverageFactory.getTargetLineWeight(targetClass, 25), 1.0, 0.01);
-        Assert.assertEquals(PatchLineCoverageFactory.getTargetLineWeight(targetClass, 29), 2.0/3, 0.01);
-        Assert.assertEquals(PatchLineCoverageFactory.getTargetLineWeight(targetClass, 42), 1.0/3, 0.01);
+        Assert.assertEquals(new LinkedHashSet<>(Arrays.asList(25, 29, 41, 42, 43)), patchPool.getFixLocationsForClass(targetClass, false));
+
+        Assert.assertEquals(patchPool.getFixLocationWeight(targetClass, 25), 3.0/4, 0.01);
+        Assert.assertEquals(patchPool.getFixLocationWeight(targetClass, 29), 2.0/3, 0.01);
+        Assert.assertEquals(patchPool.getFixLocationWeight(targetClass, 41), 1.0/2, 0.01);
+        Assert.assertEquals(patchPool.getFixLocationWeight(targetClass, 42), 1.0/2, 0.01);
+        Assert.assertEquals(patchPool.getFixLocationWeight(targetClass, 43), 1.0/2, 0.01);
     }
 
     @Test
@@ -44,7 +49,6 @@ public class TargetLinesSystemTest extends SystemTestBase {
         URL resource = this.getClass().getResource("patch_population.json");
 
         String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass};
-        Properties.ALGORITHM = Properties.Algorithm.MONOTONIC_GA;
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
@@ -54,7 +58,7 @@ public class TargetLinesSystemTest extends SystemTestBase {
         int goals = TestGenerationStrategy.getFitnessFactories().stream()
                 .map(TestFitnessFactory::getCoverageGoals)
                 .mapToInt(List::size).sum();
-        Assert.assertEquals("Wrong number of goals: ", 3, goals);
+        Assert.assertEquals("Wrong number of goals: ", 5, goals);
         Assert.assertEquals("Non-optimal fitness: ", 0.0, best.getFitness(), 0.01);
 
     }
@@ -72,6 +76,26 @@ public class TargetLinesSystemTest extends SystemTestBase {
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
         System.out.println("EvolvedTestSuite:\n" + best);
+
+        int goals = TestGenerationStrategy.getFitnessFactories().get(0).getCoverageGoals().size(); // assuming single fitness function
+        Assert.assertEquals("Wrong number of goals: ", 5, goals);
+
+        int coveredGoals = computeCoveredGoalsFromResult(result);
+        Assert.assertEquals("Non-optimal coverage: ", 5, coveredGoals);
+    }
+
+    @Test
+    public void testInnerClassTargetLines() {
+        EvoSuite evosuite = new EvoSuite();
+        String targetClass = ClassWithInnerClass.class.getCanonicalName();
+        URL resource = this.getClass().getResource("patch_population_with_inner_classes.json");
+
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass };
+
+        Object result = evosuite.parseCommandLine(command);
+        GeneticAlgorithm<?> ga = getGAFromResult(result);
+        TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
+        //System.out.println("EvolvedTestSuite:\n" + best);
 
         int goals = TestGenerationStrategy.getFitnessFactories().get(0).getCoverageGoals().size(); // assuming single fitness function
         Assert.assertEquals("Wrong number of goals: ", 3, goals);

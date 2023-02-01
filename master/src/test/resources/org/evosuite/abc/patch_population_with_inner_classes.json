@@ -1,0 +1,14 @@
+[
+  {
+    "index": "patchIndex1",
+    "fixLocations": [
+      {"classname": "com.examples.with.different.packagename.coverage.patch.ClassWithInnerClass", "targetLines": [11]}
+    ]
+  },
+  {
+    "index": "patchIndex2",
+    "fixLocations": [
+      {"classname": "com.examples.with.different.packagename.coverage.patch.ClassWithInnerClass", "targetLines": [21, 32]}
+    ]
+  }
+]

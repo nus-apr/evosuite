@@ -115,7 +115,7 @@ public abstract class JUnitAnalyzer {
                 if (generated == null) {
                     iter.remove();
                     String code = test.toCode();
-                    logger.error("Failed to compile test case:\n" + code);
+                    logger.debug("Failed to compile test case:\n" + code);
                 }
             } finally {
                 //let's be sure we clean up all what we wrote on disk
@@ -362,18 +362,18 @@ public abstract class JUnitAnalyzer {
             fileManager.close();
 
             if (!compiled) {
-                logger.error("Compilation failed on compilation units: " + compilationUnits);
-                logger.error("Classpath: " + classpath);
+                logger.debug("Compilation failed on compilation units: " + compilationUnits);
+                logger.debug("Classpath: " + classpath);
                 //TODO remove
-                logger.error("evosuiteCP: " + evosuiteCP);
+                logger.debug("evosuiteCP: " + evosuiteCP);
 
 
                 for (Diagnostic<?> diagnostic : diagnostics.getDiagnostics()) {
                     if (diagnostic.getMessage(null).startsWith("error while writing")) {
-                        logger.error("Error is due to file permissions, ignoring...");
+                        logger.debug("Error is due to file permissions, ignoring...");
                         return generated;
                     }
-                    logger.error("Diagnostic: " + diagnostic.getMessage(null) + ": "
+                    logger.debug("Diagnostic: " + diagnostic.getMessage(null) + ": "
                             + diagnostic.getLineNumber());
                 }
 
@@ -387,7 +387,8 @@ public abstract class JUnitAnalyzer {
                         buffer.append((i + 1) + ": " + lines.get(i) + "\n");
                     }
                 }
-                logger.error(buffer.toString());
+                logger.debug(buffer.toString());
+
                 return null;
             }
 

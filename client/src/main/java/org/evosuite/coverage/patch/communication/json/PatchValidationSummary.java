@@ -5,9 +5,9 @@ import java.util.List;
 public class PatchValidationSummary {
     private List<PatchValidationResult> killMatrix;
     private List<Patch> patches;
-    private List<FixLocation> fixLocations;
+    private List<TargetLocation> fixLocations;
     public PatchValidationSummary() {}
-    public PatchValidationSummary(List<PatchValidationResult> killMatrix, List<Patch> patches, List<FixLocation> fixLocations) {
+    public PatchValidationSummary(List<PatchValidationResult> killMatrix, List<Patch> patches, List<TargetLocation> fixLocations) {
         this.killMatrix = killMatrix;
         this.patches = patches;
         this.fixLocations = fixLocations;
@@ -27,10 +27,10 @@ public class PatchValidationSummary {
         this.patches = patches;
     }
 
-    public List<FixLocation> getFixLocations() {
+    public List<TargetLocation> getFixLocations() {
         return this.fixLocations;
     }
-    public void setFixLocations(List<FixLocation> fixLocations) {
+    public void setFixLocations(List<TargetLocation> fixLocations) {
         this.fixLocations = fixLocations;
     }
 

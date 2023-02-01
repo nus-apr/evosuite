@@ -19,8 +19,7 @@
  */
 package org.evosuite.ga.metaheuristics.mosa;
 
-import org.evosuite.Properties;
-import org.evosuite.coverage.line.LineCoverageTestFitness;
+
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.metaheuristics.TestSuiteAdapter;
 import org.evosuite.testcase.TestChromosome;
@@ -28,7 +27,6 @@ import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteFitnessFunction;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * An adapter that allows all variants of the MOSA algorithm to be used in such contexts where
@@ -115,6 +113,7 @@ public class MOSATestSuiteAdapter extends TestSuiteAdapter<AbstractMOSA> {
 
         // Fill up with remaining good tests (that at least cover some fix locations and dont have timeouts)
         //getAlgorithm().getPopulation()
+        /* TODO EvoRepair: Handle size size of output test suite
         int remaining = Math.max(0, Properties.EVOREPAIR_NUM_TESTS - best.size());
 
         if (remaining > 0) {
@@ -126,6 +125,8 @@ public class MOSATestSuiteAdapter extends TestSuiteAdapter<AbstractMOSA> {
                     .limit(remaining) // Only add remaining number of tests
                     .forEach(best::addTestChromosome);
         }
+
+         */
         return best;
     }
 

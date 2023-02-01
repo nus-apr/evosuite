@@ -29,7 +29,7 @@ public class PatchCoverageFactory extends AbstractFitnessFactory<PatchCoverageTe
 
         long start = System.currentTimeMillis();
 
-        for (Patch p : PatchPool.getInstance().getPatchPool()) {
+        for (Patch p : PatchPool.getInstance().getPatches()) {
             goals.add(new PatchCoverageTestFitness(p));
         }
 

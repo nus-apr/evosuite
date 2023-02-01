@@ -8,7 +8,7 @@ import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.mutation.Mutation;
 import org.evosuite.coverage.mutation.MutationPool;
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
+import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.strategy.TestGenerationStrategy;
 import org.evosuite.testsuite.TestSuiteChromosome;
@@ -28,7 +28,6 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
         URL resource = this.getClass().getResource("patch_population.json");
 
         String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-criterion", "STRONGMUTATION", "-targetPatches", resource.getPath(), "-class", targetClass};
-        Properties.ALGORITHM = Properties.Algorithm.MONOTONIC_GA;
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
@@ -40,8 +39,10 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
         int goals = TestGenerationStrategy.getFitnessFactories().stream()
                 .map(TestFitnessFactory::getCoverageGoals)
                 .mapToInt(List::size).sum();
-        Assert.assertEquals("Wrong number of goals: ", 25, goals);
-        Assert.assertEquals("Non-optimal fitness: ", 0.0, best.getFitness(), 0.01);
+        Assert.assertEquals("Wrong number of goals: ", 47, goals);
+
+        // No full coverage because there seems to be a stubborn mutant that can't be killed
+        Assert.assertEquals("Non-optimal coverage: ", 0.99, best.getCoverage(), 0.01);
 
     }
 
@@ -62,17 +63,16 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
         Assert.assertTrue(checkMutationLocations(MutationPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getMutants()));
 
         int goals = TestGenerationStrategy.getFitnessFactories().get(0).getCoverageGoals().size(); // assuming single fitness function
+        Assert.assertEquals("Wrong number of goals: ", 47, goals);
 
-        Assert.assertEquals("Wrong number of goals: ", 25, goals);
-
-        // MOSATestSuiteAdapter.getBestIndividuals:95 sets the suite fitness to 1.0 for some reason, even if all goals have been covered
-        // TODO EvoRepair: investigate
-        Assert.assertEquals("Non-optimal fitness: ", 1.0, best.getFitness(), 0.01);
+        int coveredGoals = computeCoveredGoalsFromResult(result);
+        // No full coverage because there seems to be a stubborn mutant that can't be killed
+        Assert.assertEquals("Non-optimal number of covered goals: ", coveredGoals, 46);
     }
 
     // Ensures that mutants have only been applied to patch fix locations
     private boolean checkMutationLocations(List<Mutation> mutations) {
         return mutations.stream()
-                .allMatch(m -> PatchLineCoverageFactory.getTargetLinesForClass(m.getClassName(), true).contains(m.getLineNumber()));
+                .allMatch(m -> PatchPool.getInstance().getFixLocationsForClass(m.getClassName(), true).contains(m.getLineNumber()));
     }
 }

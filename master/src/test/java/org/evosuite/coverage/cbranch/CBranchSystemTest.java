@@ -70,6 +70,7 @@ public class CBranchSystemTest extends SystemTestBase {
         Properties.TARGET_CLASS = targetClass;
 
         String[] command = new String[]{"-generateSuite", "-class", targetClass};
+        Properties.ALGORITHM = Properties.Algorithm.MONOTONIC_GA;
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<TestSuiteChromosome> ga = getGAFromResult(result);
         TestSuiteChromosome best = ga.getBestIndividual();

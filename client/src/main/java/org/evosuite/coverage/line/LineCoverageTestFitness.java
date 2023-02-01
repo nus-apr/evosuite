@@ -135,6 +135,10 @@ public class LineCoverageTestFitness extends TestFitnessFunction {
         branchFitnesses.sort(Comparator.naturalOrder());
     }
 
+    public List<BranchCoverageTestFitness> getControlDependencyGoals() {
+        return branchFitnesses;
+    }
+
     @Override
     public boolean isCovered(ExecutionResult result) {
         Stream<Integer> coveredLines = result.getTrace().getCoveredLines().stream();

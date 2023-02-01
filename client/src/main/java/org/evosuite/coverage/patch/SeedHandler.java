@@ -3,10 +3,7 @@ package org.evosuite.coverage.patch;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.evosuite.Properties;
-import org.evosuite.coverage.patch.communication.json.FixLocation;
-import org.evosuite.coverage.patch.communication.json.Patch;
-import org.evosuite.coverage.patch.communication.json.SeedTest;
-import org.evosuite.coverage.patch.communication.json.SeedTestPopulation;
+import org.evosuite.coverage.patch.communication.json.*;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteSerialization;
@@ -28,31 +25,13 @@ public class SeedHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static SeedHandler instance = null;
 
-    private List<Patch> patchPopulation = null;
-
     private List<TestChromosome> seedTestPopulation = null;
-
-
-
-
 
     public static SeedHandler getInstance() {
         if (instance == null) {
             instance = new SeedHandler();
         }
         return instance;
-    }
-
-    public void preload() {
-        // This always needs to be provided
-        loadPatchPopulation();
-
-        // This does not necessarily need to be provided
-        /*
-        if (Properties.EVOREPAIR_SEED_POPULATION != null) {
-            loadSeedTestPopulation();
-        }
-         */
     }
 
     // -- SERIALIZATION
@@ -83,33 +62,54 @@ public class SeedHandler {
 
     // -- DESERIALIZATION
     public List<Patch> loadPatchPopulation() {
-        if (patchPopulation != null) {
-            return patchPopulation;
-        }
-
         try {
-            patchPopulation = objectMapper.readValue(new File(Properties.EVOREPAIR_TARGET_PATCHES),
+            List<Patch> patchPopulation = objectMapper.readValue(new File(Properties.EVOREPAIR_TARGET_PATCHES),
                     new TypeReference<List<Patch>>() {
                     });
-
-            // Add target lines
-            for (Patch p: patchPopulation) {
-                for (FixLocation f  : p.getFixLocations()) {
-                    PatchLineCoverageFactory.addTargetLine(f.getClassname(), f.getTargetLines());
-                }
-            }
-            PatchLineCoverageFactory.setNumPatches(patchPopulation.size());
+            logger.info("Read patch pool consisting of {} patches.", patchPopulation.size());
+            return patchPopulation;
 
         } catch (IOException e) {
             logger.error("Error while loading target patches.");
             throw new RuntimeException(e);
         }
-        logger.info("Read patch pool consisting of {} patches.", patchPopulation.size());
-
-        return patchPopulation;
     }
 
-    // TODO: We should ensure that the seed population has a specific size (since it won't grow).
+    public Map<String, Map<String, Set<OracleLocation>>> getOracleLocationsFromFile() {
+
+        if (Properties.EVOREPAIR_ORACLE_LOCATIONS == null) {
+            return Collections.emptyMap();
+        }
+
+        try {
+             Map<String, Map<String, Set<OracleLocation>>> oracleLocationMap = new LinkedHashMap<>();
+            List<OracleLocation> oracleLocations = objectMapper.readValue(new File(Properties.EVOREPAIR_ORACLE_LOCATIONS),
+                    new TypeReference<List<OracleLocation>>() {
+                    });
+            logger.info("Specified {} oracle locations.", oracleLocations.size());
+
+            for (OracleLocation loc : oracleLocations) {
+                String className = loc.getClassName();
+                String methodName = loc.getMethodName();
+                if (!oracleLocationMap.containsKey(className)) {
+                    oracleLocationMap.put(className, new LinkedHashMap<>());
+                }
+
+                if  (!oracleLocationMap.get(className).containsKey(methodName)) {
+                    oracleLocationMap.get(className).put(methodName, new LinkedHashSet<>());
+                }
+
+                oracleLocationMap.get(className).get(methodName).add(loc);
+            }
+
+            return oracleLocationMap;
+
+        } catch (IOException e) {
+            logger.error("Error while loading oracle locations.");
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<TestChromosome> loadSeedTestPopulation() {
         if (seedTestPopulation != null) {
             return seedTestPopulation;

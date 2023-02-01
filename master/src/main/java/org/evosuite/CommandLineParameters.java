@@ -19,25 +19,15 @@
  */
 package org.evosuite;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.evosuite.classpath.ClassPathHandler;
-import org.evosuite.coverage.patch.PatchCoverageTestFitness;
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
-import org.evosuite.coverage.patch.communication.json.FixLocation;
 import org.evosuite.executionmode.*;
-import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.LoggingUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -142,10 +132,8 @@ public class CommandLineParameters {
         Option evorepair = new Option("evorepair", true, "EvoRepair execution mode =[testgen|patchgen].");
         Option orchestratorPort = new Option("port", true, "Port number of the orchestrator");
         Option seedPopulation = new Option("seeds", true, "Path to JSON file specifying seed population");
-        //Option seedKillMatrix = new Option("seedKillMatrix", true, "Path to JSON file of kill matrix w.r.t. previous patch population");
-        //Option previousPatchPopulation = new Option("previousPatchPopulation", true, "Path to JSON file of previous patch population");
-        //Option updatedPatchPopulation = new Option("nextPatchPopulation", true, "Path to JSON file of updated patch population");
         Option targetPatches = new Option("targetPatches", true, "Path to JSON file specifying target patches");
+        Option oracleLocations = new Option("oracleLocations", true, "Path to JSON file specifying oracle check locations");
 
         @SuppressWarnings("static-access")
         Option property = OptionBuilder.withArgName("property=value").hasArgs(2).withValueSeparator().withDescription("use value for given property").create("D");
@@ -185,6 +173,7 @@ public class CommandLineParameters {
         //options.addOption(previousPatchPopulation);
         //options.addOption(updatedPatchPopulation);
         options.addOption(targetPatches);
+        options.addOption(oracleLocations);
 
         return options;
     }
@@ -292,26 +281,23 @@ public class CommandLineParameters {
         // Enable MOSAPatch
         if (line.hasOption("generateMOSuite")) {
             setPropertyAndAddToJavaOpts("algorithm", "MOSA", javaOpts);
+        } else if (line.hasOption("generateSuite")){
+            setPropertyAndAddToJavaOpts("algorithm", "NSGAII", javaOpts);
         } else {
-            LoggingUtils.getEvoLogger().warn("[EvoRepair] Multi-objective search is not enabled, enable with -generateMOSuite");
+            LoggingUtils.getEvoLogger().error("[EvoRepair] No search strategy is provided, enable with either -generateMOSuite or -generateSuite");
         }
+
+        // Enable fix-location based objectives
+        setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
 
         if (line.hasOption("criterion")) {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
-
-            String[] values = line.getOptionValue("criterion").split(":");
-            if (ArrayUtil.contains(values, "MUTATION")
-                || ArrayUtil.contains(values, "STRONGMUTATION")
-                || ArrayUtil.contains(values, "WEAKMUTATION")) {
-                setPropertyAndAddToJavaOpts("useFixLocationMutants", "true", javaOpts);
-            }
-
         } else {
             // Enable all default criteria
-            String defaultCriteria = "PATCHLINE:PATCH:STRONGMUTATION";
+            String defaultCriteria = line.hasOption("oracleLocations") ? "PATCHLINE:PATCH:STRONGMUTATION:BRANCH:CBRANCH" : "PATCHLINE:PATCH:STRONGMUTATION";
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No criterions provided, using default: {}.", defaultCriteria);
             setPropertyAndAddToJavaOpts("criterion", defaultCriteria, javaOpts);
-            setPropertyAndAddToJavaOpts("useFixLocationMutants", "true", javaOpts);
+            setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
         }
 
         // Name tests in test suite based on ID of test case
@@ -344,6 +330,13 @@ public class CommandLineParameters {
         } else {
             LoggingUtils.getEvoLogger().error("No target patches provided, specify using -targetPatches option.");
             throw new IllegalArgumentException("Missing target patches.");
+        }
+
+        if (line.hasOption("oracleLocations")) {
+            setPropertyAndAddToJavaOpts("oracleLocations", line.getOptionValue("oracleLocations"), javaOpts);
+        } else {
+            LoggingUtils.getEvoLogger().warn("No oracle locations provided, specify using -oracleLocations option.");
+            //throw new IllegalArgumentException("Missing target patches.");
         }
 
         /**

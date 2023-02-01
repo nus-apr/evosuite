@@ -21,13 +21,19 @@ package org.evosuite.ga.metaheuristics;
 
 import org.evosuite.Properties;
 import org.evosuite.TimeController;
+import org.evosuite.coverage.patch.SeedHandler;
 import org.evosuite.ga.*;
+import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testsuite.TestSuiteChromosome;
+import org.evosuite.utils.LoggingUtils;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of steady state GA
@@ -193,7 +199,25 @@ public class MonotonicGA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         currentIteration = 0;
 
         // Set up initial population
-        generateInitialPopulation(Properties.POPULATION);
+        // TODO EvoRepair: Currently handles only one seed test suite - would it make sense to add more suites?
+        if (Properties.EVOREPAIR_SEED_POPULATION != null) {
+            LoggingUtils.getEvoLogger().info("[EvoRepair] Loading seed population from file.");
+            List<TestChromosome> seedTests = SeedHandler.getInstance().loadSeedTestPopulation();
+            if (!seedTests.isEmpty()) {
+                LoggingUtils.getEvoLogger().info("[EvoRepair] Successfully loaded seed test suite of size {}.", seedTests.size());
+                TestSuiteChromosome seedSuite = new TestSuiteChromosome();
+                seedTests.forEach(seedSuite::addTest);
+
+                // TODO EvoRepair: Unchecked cast should be avoided
+                this.population.add((T) seedSuite);
+                this.generateInitialPopulation(Properties.POPULATION - population.size());
+            } else {
+                this.generateInitialPopulation(Properties.POPULATION);
+            }
+        } else {
+            this.generateInitialPopulation(Properties.POPULATION);
+        }
+
         logger.debug("Calculating fitness of initial population");
         calculateFitnessAndSortPopulation();
 
