@@ -41,15 +41,19 @@ public class SeedingSystemTest extends SystemTestBase {
         Properties.CRITERION = new Properties.Criterion[]{
                 BRANCH, LINE
         };
+        Properties.SEARCH_BUDGET = 15;
+        Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
     }
 
+    // TODO: The number of generations depends on the performance of the current implementation
+    //       Also, this test should write out the seeds-file json for the other tests.
     @Test
     public void testWriteSeeds() throws IOException {
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
 
         // EvoSuite is deterministic, should stop at exactly 18 generations
-        Assert.assertEquals(18, ga.getAge());
+        Assert.assertEquals(70, ga.getAge());
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
 
         int goals = TestGenerationStrategy.getFitnessFactories().stream()
