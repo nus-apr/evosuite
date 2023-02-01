@@ -1218,7 +1218,7 @@ public class Properties {
     public static boolean VALIDATE_RUNTIME_VARIABLES = true;
 
     @Parameter(key = "serialize_ga", group = "Output", description = "Include the GA instance in the test generation result")
-    public static boolean SERIALIZE_GA = false;
+    public static boolean SERIALIZE_GA = true;
 
     @Parameter(key = "serialize_dse", group = "Output", description = "Include the DSE instance in the test generation result")
     public static boolean SERIALIZE_DSE = false;
