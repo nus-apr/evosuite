@@ -31,10 +31,7 @@ import org.evosuite.testsuite.AbstractFitnessFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +46,22 @@ public class BranchCoverageFactory extends
 
     private static final Logger logger = LoggerFactory.getLogger(BranchCoverageFactory.class);
 
+    private final Map<String, Set<String>> oracleMethods;
+
+    public BranchCoverageFactory() {
+        this.oracleMethods = new LinkedHashMap<>();
+        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS && Properties.EVOREPAIR_ORACLE_LOCATIONS != null) {
+            Map<String, Map<String, Set<OracleLocation>>> oracleLocationMap = OracleLocationPool.getInstance().getOracleLocations();
+            for (String className : oracleLocationMap.keySet()) {
+                oracleMethods.put(className, oracleLocationMap.get(className).keySet());
+            }
+        }
+    }
+
+    public BranchCoverageFactory(Map<String, Set<String>> oracleMethods) {
+        this.oracleMethods = oracleMethods;
+    }
+
 
     /**
      * return coverage goals of the target class or of all the contextual branches, depending on the limitToCUT parameter
@@ -61,20 +74,26 @@ public class BranchCoverageFactory extends
         long start = System.currentTimeMillis();
         List<BranchCoverageTestFitness> goals = new ArrayList<>();
 
+        Set<String> knownClasses = BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).knownClasses();
         // EvoRepair: Add root branches for oracle methods
         // This is necessary because each instrumented method contains at least one branch (check if oracle is enabled)
         // and we exclude the branch goals for them - we add the root branch as a goal instead
+        // NOTE: The first time client sends an individual to master, the branch pool is not yet initialized
+        //       (seems to happen only after the first round), so we have to check if the class has already been loaded
         if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS && Properties.EVOREPAIR_ORACLE_LOCATIONS != null) {
-            Map<String, Map<String, Set<OracleLocation>>> oracleLocationMap = OracleLocationPool.getInstance().getOracleLocations();
-            for (String className : oracleLocationMap.keySet()) {
-                for (String methodName : oracleLocationMap.get(className).keySet()) {
+            for (String className : oracleMethods.keySet()) {
+                if (!knownClasses.contains(className)) {
+                    continue;
+                }
+
+                for (String methodName : oracleMethods.get(className)) {
                     goals.add(new BranchCoverageTestFitness(new BranchCoverageGoal(className, methodName)));
                 }
             }
         }
 
         // logger.info("Getting branches");
-        for (String className : BranchPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).knownClasses()) {
+        for (String className : knownClasses) {
             //when limitToCUT== true, if not the class under test of a inner/anonymous class, continue
             if (limitToCUT && !isCUT(className)) continue;
             //when limitToCUT==false, consider all classes, but excludes libraries ones according the INSTRUMENT_LIBRARIES property
