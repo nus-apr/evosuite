@@ -3,7 +3,7 @@ package org.evosuite.patch;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 
-public class WeightedFailureRatePatchFitness extends FitnessFunction<PatchChromosome> {
+public class WeightedFailureRatePatchFitness<T extends AbstractPatchChromosome<T>> extends FitnessFunction<T> {
     /**
      * Calculate and set fitness function #TODO the 'set fitness' part should be
      * done by some abstract super class of all FitnessFunctions
@@ -12,7 +12,7 @@ public class WeightedFailureRatePatchFitness extends FitnessFunction<PatchChromo
      * @return new fitness
      */
     @Override
-    public double getFitness(PatchChromosome individual) {
+    public double getFitness(T individual) {
         return individual.getWeightedFailureRateFitness();
     }
 

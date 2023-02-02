@@ -30,7 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
+public class EPatchChromosome extends AbstractPatchChromosome<EPatchChromosome>  {
 
     private static final Logger logger = LoggerFactory.getLogger(EPatchChromosome.class);
 
@@ -371,6 +371,7 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
         }
     }
 
+    @Override
     public double getSizePatchFitness() {
         if (isUndesirable == null) {
             try {
@@ -383,6 +384,7 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
         return isUndesirable ? Double.MAX_VALUE : numberOfEdits;
     }
 
+    @Override
     public double getWeightedFailureRateFitness() {
         if (isUndesirable == null) {
             try {

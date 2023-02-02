@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public final class PatchChromosome extends Chromosome<PatchChromosome> {
+public final class PatchChromosome extends AbstractPatchChromosome<PatchChromosome> {
 
     private static final Logger logger = LoggerFactory.getLogger(PatchChromosome.class);
 
@@ -351,6 +351,7 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
         }
     }
 
+    @Override
     public double getSizePatchFitness() {
         if (isUndesirable == null) {
             try {
@@ -363,6 +364,7 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
         return isUndesirable ? Double.MAX_VALUE : numberOfEdits;
     }
 
+    @Override
     public double getWeightedFailureRateFitness() {
         if (isUndesirable == null) {
             try {

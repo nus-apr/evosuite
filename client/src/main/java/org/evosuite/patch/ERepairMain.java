@@ -56,10 +56,11 @@ public class ERepairMain {
         repairAlg.setCrossOverFunction(new EPatchCrossOver());
         repairAlg.setSelectionFunction(new BinaryTournamentSelectionCrowdedComparison<>(false));
 
-        EWeightedFailureRatePatchFitness weightedFailureRatePatchFitness = new EWeightedFailureRatePatchFitness();
+        WeightedFailureRatePatchFitness<EPatchChromosome> weightedFailureRatePatchFitness =
+                                                                            new WeightedFailureRatePatchFitness<>();
 
         repairAlg.addFitnessFunction(weightedFailureRatePatchFitness);
-        repairAlg.addFitnessFunction(new ESizePatchFitness());
+        repairAlg.addFitnessFunction(new SizePatchFitness<>());
 
 
         String populationSizeS = parameterStrs.get("populationSize");

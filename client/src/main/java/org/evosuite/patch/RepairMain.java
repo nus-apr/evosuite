@@ -39,10 +39,11 @@ public class RepairMain {
         repairAlg.setCrossOverFunction(new PatchCrossOver());
         repairAlg.setSelectionFunction(new BinaryTournamentSelectionCrowdedComparison<>(false));
 
-        WeightedFailureRatePatchFitness weightedFailureRatePatchFitness = new WeightedFailureRatePatchFitness();
+        WeightedFailureRatePatchFitness<PatchChromosome> weightedFailureRatePatchFitness =
+                                                                            new WeightedFailureRatePatchFitness<>();
 
         repairAlg.addFitnessFunction(weightedFailureRatePatchFitness);
-        repairAlg.addFitnessFunction(new SizePatchFitness());
+        repairAlg.addFitnessFunction(new SizePatchFitness<>());
 
 
         String populationSizeS = parameterStrs.get("populationSize");

@@ -1,4 +1,7 @@
 package org.evosuite.patch;
 
-public class Patch {
+public interface Patch {
+    double getSizePatchFitness();
+
+    double getWeightedFailureRateFitness();
 }
