@@ -292,8 +292,8 @@ public final class PatchChromosome extends Chromosome<PatchChromosome> {
         }
 
         locations = new ArrayList<>();
-        for (Map.Entry<Integer, Double> entry: list) {
-            locations.add(entry.getKey());
+        for (int i = 0; i < numberOfEdits; i++) {
+            locations.add(list.get(i).getKey());
         }
 
         modifiedJavaSources = problem.getModifiedJavaSources(astRewriters);

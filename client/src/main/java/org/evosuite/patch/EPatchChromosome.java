@@ -316,8 +316,8 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
         }
 
         locations = new ArrayList<>();
-        for (Map.Entry<Integer, Double> entry: list) {
-            locations.add(entry.getKey());
+        for (int i = 0; i < numberOfEdits; i++) {
+            locations.add(list.get(i).getKey());
         }
 
         modifiedJavaSources = problem.getModifiedJavaSources(astRewriters);
@@ -353,6 +353,7 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
 
                 Set<String> failures = testExecutor.getFailedTests().keySet();
                 if (failures.isEmpty()) {
+                    logger.info("found a plausible patch");
                     save();
                 } else if (failures.stream().noneMatch(problem::isUserTest)) {
                     ArjaSolutionSummary summary = new ArjaSolutionSummary(bits, array, problem);
@@ -367,11 +368,6 @@ public class EPatchChromosome extends Chromosome<EPatchChromosome>  {
             }
         } else {
             isUndesirable = true;
-        }
-
-        if (status) {
-            logger.info("found a plausible patch");
-            save();
         }
     }
 

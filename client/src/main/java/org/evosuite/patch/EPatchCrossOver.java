@@ -8,7 +8,7 @@ public class EPatchCrossOver extends CrossOverFunction<EPatchChromosome> {
     @Override
     public void crossOver(EPatchChromosome parent1, EPatchChromosome parent2) throws ConstructionFailedException {
         // PureHuxCrossOver2 in Arja-E
-        int size = parent1.problem.getNumberOfModificationPoints();
+        int size = parent1.problem.getExtendedModificationPoints().size();
         int arraySize = size * 3;
 
         for (int i = 0; i < arraySize; i++) {
