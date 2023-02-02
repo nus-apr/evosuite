@@ -377,6 +377,23 @@ public final class PatchChromosome extends AbstractPatchChromosome<PatchChromoso
         return isUndesirable ? Double.MAX_VALUE : weightedFailureRate;
     }
 
+    @Override
+    public double getSingleTestFitness(String fullTestName) {
+        if (isUndesirable == null) {
+            try {
+                precomputeFitnesses();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if (isUndesirable) {
+            return Double.MAX_VALUE;
+        }
+
+        return failedTests.contains(fullTestName) ? 1 : 0;
+    }
+
     public void save() {
         List<Integer> opList = new ArrayList<>();
         List<Integer> locList = new ArrayList<>();

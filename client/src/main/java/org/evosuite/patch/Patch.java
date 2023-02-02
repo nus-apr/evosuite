@@ -4,4 +4,6 @@ public interface Patch {
     double getSizePatchFitness();
 
     double getWeightedFailureRateFitness();
+
+    double getSingleTestFitness(String fullTestName);
 }
