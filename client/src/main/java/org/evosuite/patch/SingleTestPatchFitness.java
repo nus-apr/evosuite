@@ -3,6 +3,8 @@ package org.evosuite.patch;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 
+import java.util.Objects;
+
 public class SingleTestPatchFitness<T extends AbstractPatchChromosome<T>> extends FitnessFunction<T> {
 
     final String fullTestName;
@@ -49,6 +51,24 @@ public class SingleTestPatchFitness<T extends AbstractPatchChromosome<T>> extend
     @Override
     public boolean isMaximizationFunction() {
         return false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SingleTestPatchFitness<?> that = (SingleTestPatchFitness<?>) o;
+        return Double.compare(that.getWeight(), getWeight()) == 0 && getFullTestName().equals(that.getFullTestName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getFullTestName(), getWeight());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("SingleTestPatchFitness[%s,%.1f]", getFullTestName(), getWeight());
     }
 
     public String getFullTestName() {
