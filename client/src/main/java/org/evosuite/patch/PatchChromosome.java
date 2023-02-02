@@ -167,6 +167,8 @@ public final class PatchChromosome extends AbstractPatchChromosome<PatchChromoso
                 array[size + i] = Randomness.nextInt(0, numberOfIngredients[i]);
             }
         }
+
+        setChanged(true);
     }
 
     /**

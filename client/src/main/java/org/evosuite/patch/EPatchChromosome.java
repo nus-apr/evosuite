@@ -211,6 +211,8 @@ public class EPatchChromosome extends AbstractPatchChromosome<EPatchChromosome> 
                     throw new RuntimeException(String.format("unexpected random number: %d", u));
             }
         }
+
+        setChanged(true);
     }
 
     int getMutatingLocation() {
