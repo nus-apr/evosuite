@@ -689,7 +689,7 @@ public class TestSuiteGenerator {
             // Note: The suitewriter only writes out tests that compile and are not prefixes of other tests
             TestSuiteChromosome actualSuite = new TestSuiteChromosome();
             suiteWriter.getTestCases().forEach(actualSuite::addTest);
-            SeedHandler.saveTestPopulation(actualSuite);
+            SeedHandler.getInstance().saveTestPopulation(actualSuite);
         }
 
         return TestGenerationResultBuilder.buildSuccessResult();

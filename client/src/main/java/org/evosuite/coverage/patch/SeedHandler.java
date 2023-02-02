@@ -26,7 +26,7 @@ public class SeedHandler {
     private static SeedHandler instance = null;
 
     private List<TestChromosome> seedTestPopulation = null;
-
+    
     public static SeedHandler getInstance() {
         if (instance == null) {
             instance = new SeedHandler();
@@ -35,7 +35,12 @@ public class SeedHandler {
     }
 
     // -- SERIALIZATION
-    public static void saveTestPopulation(TestSuiteChromosome testSuite) {
+
+    /**
+     * Serialize the final test suite to disk
+     * @param testSuite the actual test suite to serialize (does not contain uncompilable tests or prefix tests)
+     */
+    public void saveTestPopulation(TestSuiteChromosome testSuite) {
         String testDir = Properties.TEST_DIR;
 
         // First serialize population
@@ -56,7 +61,6 @@ public class SeedHandler {
         } catch (IOException e) {
             logger.error("Error while serializing test population and test names.");
         }
-
     }
 
 
