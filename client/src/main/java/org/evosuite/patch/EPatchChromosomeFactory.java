@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 public class EPatchChromosomeFactory implements ChromosomeFactory<EPatchChromosome> {
@@ -139,6 +140,19 @@ public class EPatchChromosomeFactory implements ChromosomeFactory<EPatchChromoso
         }
 
         return seedPopulation;
+    }
+
+    public List<EPatchChromosome> getSeeds() {
+        List<EPatchChromosome> seeds = new ArrayList<>();
+        seeds.addAll(problem.getPerfectDecisionVariables()
+                            .stream()
+                            .map(this::wrapArjaDecisionVariable)
+                            .collect(Collectors.toList()));
+        seeds.addAll(problem.getFameDecisionVariables()
+                            .stream()
+                            .map(this::wrapArjaDecisionVariable)
+                            .collect(Collectors.toList()));
+        return seeds;
     }
 
     private EPatchChromosome wrapArjaDecisionVariable(ArjaDecisionVariable var) {
