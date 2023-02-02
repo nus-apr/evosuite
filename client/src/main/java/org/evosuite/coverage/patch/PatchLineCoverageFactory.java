@@ -16,6 +16,12 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
 
     private static final Logger logger = LoggerFactory.getLogger(PatchLineCoverageFactory.class);
 
+    // Set of hash codes of all fix location goals
+    private static final Set<Integer> fixLocationHashCodes = new LinkedHashSet<>();
+
+    // Set of hash codes of all oracle location (thrown custom exception) hash codes
+    private static final Set<Integer> oracleLocationHashCodes = new LinkedHashSet<>();
+
     @Override
     public List<LineCoverageTestFitness> getCoverageGoals() {
         long start = System.currentTimeMillis();
@@ -24,21 +30,36 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
         List<LineCoverageTestFitness> goals  = new ArrayList<>();
         for (String c : patchPool.getPatchedClasses()) {
             // Note: searchOuterClass is set to false because the set returned by the PatchPool contains no inner/anonymous classes
-            goals.addAll(getCoverageGoals(c, new ArrayList<>(patchPool.getFixLocationsForClass(c, false))));
+            for (LineCoverageTestFitness fixLocationGoal : getCoverageGoals(c, new ArrayList<>(patchPool.getFixLocationsForClass(c, false)))) {
+                goals.add(fixLocationGoal);
+                fixLocationHashCodes.add(fixLocationGoal.hashCode());
+            }
         }
 
         // Add goals for custom exceptions thrown by instrumented methods
+        // TODO EvoRepair: Refactor, having this many nested for loops cannot be the way
         Map<String, Map<String, Set<OracleLocation>>> oracleLocations = OracleLocationPool.getInstance().getOracleLocations();
         for (String className : oracleLocations.keySet()) {
             for (String methodName : oracleLocations.get(className).keySet()) {
                 for (OracleLocation loc : oracleLocations.get(className).get(methodName)) {
-                    goals.addAll(getCoverageGoals(className, loc.getCustomExceptionLines()));
+                    for (LineCoverageTestFitness oracleLocationGoal : getCoverageGoals(className, loc.getCustomExceptionLines())) {
+                        goals.add(oracleLocationGoal);
+                        oracleLocationHashCodes.add(oracleLocationGoal.hashCode());
+                    }
                 }
             }
         }
 
         goalComputationTime = System.currentTimeMillis() - start;
         return goals;
+    }
+
+    public static Set<Integer> getFixLocationHashCodes() {
+        return fixLocationHashCodes;
+    }
+
+    public static Set<Integer> getOracleLocationHashCodes() {
+        return oracleLocationHashCodes;
     }
 
     public List<LineCoverageTestFitness> getCoverageGoals(List<TargetLocation> fixLocations) {

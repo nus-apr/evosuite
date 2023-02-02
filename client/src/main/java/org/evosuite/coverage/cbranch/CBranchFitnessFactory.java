@@ -43,6 +43,21 @@ public class CBranchFitnessFactory extends AbstractFitnessFactory<CBranchTestFit
 
     private static final Logger logger = LoggerFactory.getLogger(CBranchFitnessFactory.class);
 
+    // Mapping between fix location hash codes to hash codes of context goals
+    // Note: We use hash codes to allow multiple computations of the goals not mess with the results
+    private static final Map<Integer, Set<Integer>> fixLocationContextMap = new LinkedHashMap<>();
+
+    // Mapping between oracle location hash codes to hash codes of context goals
+    private static final Map<Integer, Set<Integer>> oracleLocationContextMap = new LinkedHashMap<>();
+
+    public static Map<Integer, Set<Integer>> getFixLocationContextMap() {
+        return fixLocationContextMap;
+    }
+
+    public static Map<Integer, Set<Integer>> getOracleLocationContextMap() {
+        return oracleLocationContextMap;
+    }
+
     /* (non-Javadoc)
      * @see org.evosuite.coverage.TestFitnessFactory#getCoverageGoals()
      */
@@ -69,10 +84,25 @@ public class CBranchFitnessFactory extends AbstractFitnessFactory<CBranchTestFit
         branchGoals.removeIf(b -> !shouldInclude(b, oracleLocations));
 
         // Then, add control dependencies of target lines (fix locations and custom exceptions) as branch goals
+
+        Map<BranchCoverageTestFitness, Integer> branchGoalToTargetLocationMap = new LinkedHashMap<>();
+
         if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
             for (LineCoverageTestFitness lineGoal : new PatchLineCoverageFactory().getCoverageGoals()) {
-                branchGoals.addAll(lineGoal.getControlDependencyGoals());
+                for (BranchCoverageTestFitness dependencyGoal: lineGoal.getControlDependencyGoals()) {
+                    branchGoals.add(dependencyGoal);
+                    branchGoalToTargetLocationMap.put(dependencyGoal, lineGoal.hashCode());
+                }
             }
+        }
+
+        // Initialize map for fix location and oracle location goals
+        for (Integer key : PatchLineCoverageFactory.getFixLocationHashCodes()) {
+            fixLocationContextMap.put(key, new LinkedHashSet<>()); // TODO EvoRepair: avoid recomputation
+        }
+
+        for (Integer key : PatchLineCoverageFactory.getOracleLocationHashCodes()) {
+            oracleLocationContextMap.put(key, new LinkedHashSet<>());
         }
 
         CallGraph callGraph = DependencyAnalysis.getCallGraph();
@@ -91,7 +121,20 @@ public class CBranchFitnessFactory extends AbstractFitnessFactory<CBranchTestFit
             }
 
             for (CallContext context : callContexts) {
-                goals.add(new CBranchTestFitness(branchGoal.getBranchGoal(), context));
+                CBranchTestFitness contextGoal = new CBranchTestFitness(branchGoal.getBranchGoal(), context);
+                goals.add(contextGoal);
+
+                // Need to check because there may be additional branch goals
+                if (branchGoalToTargetLocationMap.containsKey(branchGoal)) {
+                    int targetLocationHashCode = branchGoalToTargetLocationMap.get(branchGoal);
+                    if (fixLocationContextMap.containsKey(targetLocationHashCode)) {
+                        fixLocationContextMap.get(targetLocationHashCode).add(contextGoal.hashCode());
+                    } else if (oracleLocationContextMap.containsKey(targetLocationHashCode)) {
+                        oracleLocationContextMap.get(targetLocationHashCode).add(contextGoal.hashCode());
+                    } else {
+                        logger.error("Unable to map context goal to a target location goal.");
+                    }
+                }
             }
         }
 
