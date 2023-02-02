@@ -13,7 +13,9 @@ public class SizePatchFitness<T extends AbstractPatchChromosome<T>> extends Fitn
      */
     @Override
     public double getFitness(T individual) {
-        return individual.getSizePatchFitness();
+        double fitness = individual.getSizePatchFitness();
+        individual.setFitness(this, fitness);
+        return fitness;
     }
 
     /**

@@ -13,7 +13,9 @@ public class WeightedFailureRatePatchFitness<T extends AbstractPatchChromosome<T
      */
     @Override
     public double getFitness(T individual) {
-        return individual.getWeightedFailureRateFitness();
+        double fitness = individual.getWeightedFailureRateFitness();
+        individual.setFitness(this, fitness);
+        return fitness;
     }
 
     /**

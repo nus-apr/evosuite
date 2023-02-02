@@ -23,10 +23,22 @@ public class SingleTestPatchFitness<T extends AbstractPatchChromosome<T>> extend
     @Override
     public double getFitness(T individual) {
         double rawFitness = individual.getSingleTestFitness(fullTestName);
+
+        double fitness;
+
         if (rawFitness == Double.MAX_VALUE) {
-            return Double.MAX_VALUE;
+            fitness = Double.MAX_VALUE;
+        } else {
+            fitness = rawFitness * getWeight();
+
+            if (fitness == 0) {
+                SingleTestArchive.getInstance().updateArchive(this, individual);
+            }
         }
-        return rawFitness * getWeight();
+
+        individual.setFitness(this, fitness);
+
+        return fitness;
     }
 
     /**
