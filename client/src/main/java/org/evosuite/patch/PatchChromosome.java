@@ -325,13 +325,13 @@ public final class PatchChromosome extends AbstractPatchChromosome<PatchChromoso
                                       + testExecutor.getRatioOfFailuresInNegative();
 
                 Set<String> failures = testExecutor.getFailedTests().keySet();
+                failedTests = failures;
                 if (failures.isEmpty()) {
                     save();
                 } else if (failures.stream().noneMatch(problem::isUserTest)) {
                     ArjaSolutionSummary summary = new ArjaSolutionSummary(bits, array, problem);
                     problem.appendToHallOfFameOut(summary, ArjaProblem.getGlobalID());
                     if (problem.getFameOutputRoot() != null) {
-                        failedTests = failures;
                         saveAsFame();
                     }
                 }

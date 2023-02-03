@@ -348,6 +348,7 @@ public class EPatchChromosome extends AbstractPatchChromosome<EPatchChromosome> 
                         + testExecutor.getRatioOfFailuresInNegative();
 
                 Set<String> failures = testExecutor.getFailedTests().keySet();
+                failedTests = failures;
                 if (failures.isEmpty()) {
                     logger.info("found a plausible patch");
                     save();
@@ -355,7 +356,6 @@ public class EPatchChromosome extends AbstractPatchChromosome<EPatchChromosome> 
                     ArjaSolutionSummary summary = new ArjaSolutionSummary(bits, array, problem);
                     problem.appendToHallOfFameOut(summary, ArjaEProblem.getGlobalID());
                     if (problem.getFameOutputRoot() != null) {
-                        failedTests = failures;
                         saveAsFame();
                     }
                 }
