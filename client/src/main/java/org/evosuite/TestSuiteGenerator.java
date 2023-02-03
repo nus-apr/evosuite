@@ -690,6 +690,10 @@ public class TestSuiteGenerator {
             TestSuiteChromosome actualSuite = new TestSuiteChromosome();
             suiteWriter.getTestCases().forEach(actualSuite::addTest);
             SeedHandler.getInstance().saveTestPopulation(actualSuite);
+
+            TestGenerationResult result = TestGenerationResultBuilder.buildSuccessResult();
+            suiteWriter.writeTargetLocationStats(testSuite, result);
+            return result;
         }
 
         return TestGenerationResultBuilder.buildSuccessResult();

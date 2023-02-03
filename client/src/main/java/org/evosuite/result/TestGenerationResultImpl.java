@@ -68,13 +68,13 @@ class TestGenerationResultImpl<T extends Chromosome<T>> implements TestGeneratio
 
     private final Map<String, String> testComments = new LinkedHashMap<>();
 
-    private Set<Integer> fixLocationGoals = new LinkedHashSet<>();
+    private final Set<Integer> fixLocationGoals = new LinkedHashSet<>();
 
-    private Set<Integer> oracleLocationGoals = new LinkedHashSet<>();
+    private final Set<Integer> oracleLocationGoals = new LinkedHashSet<>();
 
-    private Map<Integer, Set<Integer>> fixLocationContextMap = new LinkedHashMap<>();
+    private final Map<Integer, Set<Integer>> fixLocationContextMap = new LinkedHashMap<>();
 
-    private Map<Integer, Set<Integer>> oracleLocationContextMap = new LinkedHashMap<>();
+    private final Map<Integer, Set<Integer>> oracleLocationContextMap = new LinkedHashMap<>();
 
     private String testSuiteCode = "";
 

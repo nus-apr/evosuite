@@ -308,6 +308,9 @@ public class CommandLineParameters {
         setPropertyAndAddToJavaOpts("minimize", "false", javaOpts);
         setPropertyAndAddToJavaOpts("mock_if_no_generator", "false", javaOpts);
 
+        LoggingUtils.getEvoLogger().warn("[EvoRepair] Disabling assertion generation, since this breaks final coverage computation.");
+        setPropertyAndAddToJavaOpts("assertions", "false", javaOpts);
+
         if (line.hasOption("port")) {
             int port = Integer.parseInt(line.getOptionValue("port"));
             LoggingUtils.getEvoLogger().info("[EvoRepair] Setting orchestrator port to: {}.", port);
