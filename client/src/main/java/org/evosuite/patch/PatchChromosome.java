@@ -171,6 +171,12 @@ public final class PatchChromosome extends AbstractPatchChromosome<PatchChromoso
         setChanged(true);
     }
 
+
+    @Override
+    public void clearCachedResults() {
+        isUndesirable = null;
+    }
+
     /**
      * Single point cross over
      *

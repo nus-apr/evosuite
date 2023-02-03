@@ -28,5 +28,8 @@ public class EPatchCrossOver extends CrossOverFunction<EPatchChromosome> {
                 }
             }
         }
+
+        parent1.setChanged(true);
+        parent2.setChanged(true);
     }
 }

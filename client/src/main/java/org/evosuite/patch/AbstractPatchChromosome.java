@@ -35,4 +35,10 @@ public abstract class AbstractPatchChromosome<E extends AbstractPatchChromosome<
     public int compareSecondaryObjective(E o) {
         return hasSizePatchFitness ? 0 : Double.compare(getSizePatchFitness(), o.getSizePatchFitness());
     }
+
+    @Override
+    public void setChanged(boolean changed) {
+        super.setChanged(changed);
+        clearCachedResults();
+    }
 }

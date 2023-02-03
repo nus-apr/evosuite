@@ -6,4 +6,6 @@ public interface Patch {
     double getWeightedFailureRateFitness();
 
     double getSingleTestFitness(String fullTestName);
+
+    void clearCachedResults();
 }

@@ -215,6 +215,11 @@ public class EPatchChromosome extends AbstractPatchChromosome<EPatchChromosome> 
         setChanged(true);
     }
 
+    @Override
+    public void clearCachedResults() {
+        isUndesirable = null;
+    }
+
     int getMutatingLocation() {
         double rnd = Randomness.nextDouble();
 

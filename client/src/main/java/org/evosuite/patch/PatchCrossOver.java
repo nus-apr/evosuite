@@ -42,5 +42,8 @@ public class PatchCrossOver extends CrossOverFunction<PatchChromosome> {
             parent1.array[i] = parent2.array[i];
             parent2.array[i] = tmp;
         }
+
+        parent1.setChanged(true);
+        parent2.setChanged(true);
     }
 }
