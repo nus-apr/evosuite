@@ -39,7 +39,7 @@ public abstract class GenericAbstractMOSA<T extends Chromosome<T>> extends Genet
 
     // Explicitly declared with a more special type than the one used in GeneticAlgorithm.
     // This is required for the Archive, which currently only supports TestFitnessFunctions.
-    protected final List<FitnessFunction<T>> fitnessFunctions = new ArrayList<>();
+//    protected final List<FitnessFunction<T>> fitnessFunctions = new ArrayList<>();
 
 //    private MOSATestSuiteAdapter adapter = null;
 
@@ -190,79 +190,79 @@ public abstract class GenericAbstractMOSA<T extends Chromosome<T>> extends Genet
      * Generates new offspring population without calculating fitness values.
      * @return
      */
-    protected List<T> breedNextGenerationWithoutEvaluation() {
-        List<T> offspringPopulation = new ArrayList<>(Properties.POPULATION);
-        // we apply only Properties.POPULATION/2 iterations since in each generation
-        // we generate two offsprings
-        for (int i = 0; i < Properties.POPULATION / 2 && !this.isFinished(); i++) {
-            // select best individuals
-
-            /*
-             * the same individual could be selected twice! Is this a problem for crossover?
-             * Because crossing over an individual with itself will most certainly give you the
-             * same individual again...
-             */
-
-            T parent1 = this.selectionFunction.select(this.population);
-            T parent2 = this.selectionFunction.select(this.population);
-            T offspring1 = parent1.clone();
-            T offspring2 = parent2.clone();
-            // apply crossover
-            if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE) {
-                try {
-                    this.crossoverFunction.crossOver(offspring1, offspring2);
-                } catch (ConstructionFailedException e) {
-                    logger.debug("CrossOver failed.");
-                    continue;
-                }
-            }
-
-//            this.removeUnusedVariables(offspring1);
-//            this.removeUnusedVariables(offspring2);
-
-            // apply mutation on offspring1
-            this.mutate(offspring1, parent1);
-            if (offspring1.isChanged()) {
-                this.clearCachedResults(offspring1);
-                offspring1.updateAge(this.currentIteration);
-                //this.calculateFitness(offspring1);
-                offspringPopulation.add(offspring1);
-            }
-
-            // apply mutation on offspring2
-            this.mutate(offspring2, parent2);
-            if (offspring2.isChanged()) {
-                this.clearCachedResults(offspring2);
-                offspring2.updateAge(this.currentIteration);
-                //this.calculateFitness(offspring2);
-                offspringPopulation.add(offspring2);
-            }
-        }
-        // Add new randomly generate tests
-        for (int i = 0; i < Properties.POPULATION * Properties.P_TEST_INSERTION; i++) {
-            final T tch;
-            if (this.getCoveredGoals().size() == 0 || Randomness.nextBoolean()) {
-                tch = this.chromosomeFactory.getChromosome();
-                tch.setChanged(true);
-            } else {
-                tch = Randomness.choice(this.getSolutions()).clone();
-                tch.mutate();
-//				tch.mutate(); // TODO why is it mutated twice?
-            }
-            if (tch.isChanged()) {
-                tch.updateAge(this.currentIteration);
-                //this.calculateFitness(tch);
-                offspringPopulation.add(tch);
-            }
-        }
-        logger.info("Number of offsprings = {}", offspringPopulation.size());
-        return offspringPopulation;
-    }
+//    protected List<T> breedNextGenerationWithoutEvaluation() {
+//        List<T> offspringPopulation = new ArrayList<>(Properties.POPULATION);
+//        // we apply only Properties.POPULATION/2 iterations since in each generation
+//        // we generate two offsprings
+//        for (int i = 0; i < Properties.POPULATION / 2 && !this.isFinished(); i++) {
+//            // select best individuals
+//
+//            /*
+//             * the same individual could be selected twice! Is this a problem for crossover?
+//             * Because crossing over an individual with itself will most certainly give you the
+//             * same individual again...
+//             */
+//
+//            T parent1 = this.selectionFunction.select(this.population);
+//            T parent2 = this.selectionFunction.select(this.population);
+//            T offspring1 = parent1.clone();
+//            T offspring2 = parent2.clone();
+//            // apply crossover
+//            if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE) {
+//                try {
+//                    this.crossoverFunction.crossOver(offspring1, offspring2);
+//                } catch (ConstructionFailedException e) {
+//                    logger.debug("CrossOver failed.");
+//                    continue;
+//                }
+//            }
+//
+////            this.removeUnusedVariables(offspring1);
+////            this.removeUnusedVariables(offspring2);
+//
+//            // apply mutation on offspring1
+//            this.mutate(offspring1, parent1);
+//            if (offspring1.isChanged()) {
+//                this.clearCachedResults(offspring1);
+//                offspring1.updateAge(this.currentIteration);
+//                //this.calculateFitness(offspring1);
+//                offspringPopulation.add(offspring1);
+//            }
+//
+//            // apply mutation on offspring2
+//            this.mutate(offspring2, parent2);
+//            if (offspring2.isChanged()) {
+//                this.clearCachedResults(offspring2);
+//                offspring2.updateAge(this.currentIteration);
+//                //this.calculateFitness(offspring2);
+//                offspringPopulation.add(offspring2);
+//            }
+//        }
+//        // Add new randomly generate tests
+//        for (int i = 0; i < Properties.POPULATION * Properties.P_TEST_INSERTION; i++) {
+//            final T tch;
+//            if (this.getCoveredGoals().size() == 0 || Randomness.nextBoolean()) {
+//                tch = this.chromosomeFactory.getChromosome();
+//                tch.setChanged(true);
+//            } else {
+//                tch = Randomness.choice(this.getSolutions()).clone();
+//                tch.mutate();
+////				tch.mutate(); // TODO why is it mutated twice?
+//            }
+//            if (tch.isChanged()) {
+//                tch.updateAge(this.currentIteration);
+//                //this.calculateFitness(tch);
+//                offspringPopulation.add(tch);
+//            }
+//        }
+//        logger.info("Number of offsprings = {}", offspringPopulation.size());
+//        return offspringPopulation;
+//    }
 
     // Updates fitness for each changed test
-    protected void postCalculateFitness(List<T> population) {
-        population.stream().filter(T::isChanged).forEach(this::calculateFitness);
-    }
+//    protected void postCalculateFitness(List<T> population) {
+//        population.stream().filter(T::isChanged).forEach(this::calculateFitness);
+//    }
 
     /**
      * Method used to mutate an offspring.

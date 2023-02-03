@@ -127,8 +127,8 @@ public abstract class GenericMOSA<T extends Chromosome<T>> extends GenericAbstra
             this.distance.fastEpsilonDominanceAssignment(this.rankingFunction.getSubfront(i), this.getUncoveredGoals());
         }
 
-        final ClientNodeLocal<TestChromosome> clientNode =
-                ClientServices.<TestChromosome>getInstance().getClientNode();
+//        final ClientNodeLocal<TestChromosome> clientNode =
+//                ClientServices.<TestChromosome>getInstance().getClientNode();
 
 //        Listener<Set<TestChromosome>> listener = null;
 //        if (Properties.NUM_PARALLEL_CLIENTS > 1) {
