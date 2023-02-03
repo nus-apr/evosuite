@@ -29,7 +29,6 @@ import org.evosuite.Properties.Strategy;
 import org.evosuite.classpath.ClassPathHacker;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.classpath.ResourceList;
-import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.instrumentation.BytecodeInstrumentation;
 import org.evosuite.result.TestGenerationResult;
 import org.evosuite.result.TestGenerationResultBuilder;
@@ -38,9 +37,6 @@ import org.evosuite.rmi.service.ClientNodeRemote;
 import org.evosuite.runtime.util.JarPathing;
 import org.evosuite.runtime.util.JavaExecCmdUtil;
 import org.evosuite.statistics.SearchStatistics;
-import org.evosuite.testcase.TestChromosome;
-import org.evosuite.testcase.TestFitnessFunction;
-import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.ExternalProcessGroupHandler;
 import org.evosuite.utils.LoggingUtils;
 import org.slf4j.Logger;
@@ -548,38 +544,6 @@ public class TestGeneration {
          */
         List<List<TestGenerationResult>> results = SearchStatistics.getInstance().getTestGenerationResults();
 
-        // Write custom statistics
-        try {
-            if (!results.isEmpty() && !results.get(0).isEmpty() && Properties.SERIALIZE_GA) {
-                TestGenerationResult<TestChromosome> result = results.get(0).get(0);
-                GeneticAlgorithm<?> ga = result.getGeneticAlgorithm();
-
-                TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual(); // TODO: Replace with filtered test suite
-
-                // Mapping between fitness class to fitness functions to minimal fitness value
-                Map<Class<?>, Map<TestFitnessFunction, Double>> minFitnessValuesMap = new LinkedHashMap<>();
-
-                // Mapping between fitness functions to number of covering test cases
-                Map<TestFitnessFunction, Integer> numCoveringTestsMap = new LinkedHashMap<>();
-
-                List<TestChromosome> tests = best.getTestChromosomes();
-                for (TestFitnessFunction ff : (List<TestFitnessFunction>) ga.getFitnessFunctions()) {
-                    if (!minFitnessValuesMap.containsKey(ff.getClass())) {
-                        minFitnessValuesMap.put(ff.getClass(), new LinkedHashMap<>());
-                    }
-
-                    int numCoveringSolutions = (int) tests.stream().mapToDouble(t -> t.getFitness(ff)).filter(f -> f == 0.0).count();
-                    numCoveringTestsMap.put(ff, numCoveringSolutions);
-
-                    double minFitness = tests.stream().mapToDouble(t -> t.getFitness(ff)).min().orElse(-1);
-                    minFitnessValuesMap.get(ff.getClass()).put(ff, minFitness);
-                }
-                 writeFitnessStatistics(minFitnessValuesMap, numCoveringTestsMap, result);
-            }
-        } catch (Exception e) {
-            logger.warn("Exception while computing fitness values of final test suite:" + e.getMessage());
-        }
-
         SearchStatistics.clearInstance();
 
         handler.closeServer();
@@ -629,22 +593,6 @@ public class TestGeneration {
         return hasFailed;
     }
 
-    private static boolean writeFitnessStatistics(Map<Class<?>, Map<TestFitnessFunction, Double>> minFitnessValuesMap,
-                                                  Map<TestFitnessFunction, Integer> numCoveringTestsMap,
-                                                  TestGenerationResult<TestChromosome> result) {
-        boolean hasFailed = false;
-
-        if (Properties.NEW_STATISTICS) {
-            if (MasterServices.getInstance().getMasterNode() == null) {
-                logger.error("Cannot write results as RMI master node is not running");
-                hasFailed = true;
-            } else {
-                boolean written = SearchStatistics.getInstance().writeStatistics(minFitnessValuesMap, numCoveringTestsMap, result);
-                hasFailed = !written;
-            }
-        }
-        return hasFailed;
-    }
 
     private static void handleClassPath(List<String> cmdLine) {
         String classPath = ClassPathHandler.getInstance().getEvoSuiteClassPath();

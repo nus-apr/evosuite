@@ -20,28 +20,35 @@
 
 package org.evosuite.junit.writer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import org.evosuite.ClientProcess;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.Properties.OutputGranularity;
 import org.evosuite.TimeController;
+import org.evosuite.coverage.cbranch.CBranchTestFitness;
 import org.evosuite.coverage.dataflow.DefUseCoverageTestFitness;
+import org.evosuite.coverage.line.LineCoverageTestFitness;
+import org.evosuite.coverage.patch.communication.json.TargetLocationFitnessMetrics;
+import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.junit.UnitTestAdapter;
 import org.evosuite.junit.naming.methods.CoverageGoalTestNameGenerationStrategy;
 import org.evosuite.junit.naming.methods.IDTestNameGenerationStrategy;
 import org.evosuite.junit.naming.methods.NumberedTestNameGenerationStrategy;
 import org.evosuite.junit.naming.methods.TestNameGenerationStrategy;
+import org.evosuite.result.TestGenerationResult;
 import org.evosuite.result.TestGenerationResultBuilder;
 import org.evosuite.runtime.*;
 import org.evosuite.runtime.testdata.EnvironmentDataList;
-import org.evosuite.testcase.DefaultTestCase;
-import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.TestCodeVisitor;
-import org.evosuite.testcase.TestFitnessFunction;
+import org.evosuite.testcase.*;
 import org.evosuite.testcase.execution.CodeUnderTestException;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.TestCaseExecutor;
+import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.FileIOUtils;
+import org.evosuite.utils.LoggingUtils;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -50,9 +57,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.evosuite.junit.writer.TestSuiteWriterUtils.*;
 
@@ -275,6 +282,189 @@ public class TestSuiteWriter implements Opcodes {
         TestGenerationResultBuilder.getInstance().setTestSuiteCode(content);
         return generated;
     }
+
+    public void writeTargetLocationStats(TestSuiteChromosome testSuite, TestGenerationResult<TestChromosome> result) {
+        // TODO EvoRepair: Use generic flag to indicate that EvoRepair is enabled
+        if (!Properties.SERIALIZE_GA && Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+            return;
+        }
+
+        LoggingUtils.getEvoLogger().info("* {}Writing target location stats to {}", ClientProcess.getPrettyPrintIdentifier(), Properties.TEST_DIR);
+
+        GeneticAlgorithm<?> ga = result.getGeneticAlgorithm();
+        // Mapping between fitness class to fitness functions to minimal fitness value
+        Map<Class<?>, Map<TestFitnessFunction, Double>> minFitnessValuesMap = new LinkedHashMap<>();
+
+        // Mapping between fitness functions to number of covering test cases
+        Map<TestFitnessFunction, Integer> numCoveringTestsMap = new LinkedHashMap<>();
+
+        // Compute values for maps
+        computeMinFitnessAndNumCoveringTests((List<TestFitnessFunction>) ga.getFitnessFunctions(),
+                testSuite.getTestChromosomes(), minFitnessValuesMap, numCoveringTestsMap);
+
+        try {
+            File outputDir = new File(Properties.TEST_DIR);
+
+            if (!outputDir.exists()) { // should already be created
+                logger.warn("Error while writing statistics: dir {} does not exist.", outputDir);
+                return;
+            }
+
+            // Write overall coverage stats
+            writeCoverageSummary(outputDir, minFitnessValuesMap);
+
+            // Compute and write coverage summary for target locations
+            List<TargetLocationFitnessMetrics> fixLocationMetrics = new ArrayList<>();
+            List<TargetLocationFitnessMetrics> oracleLocationMetrics = new ArrayList<>();
+
+            // Map context branch IDs to more readable names
+            Map <TestFitnessFunction, Double> allContextGoalFitnessValues = minFitnessValuesMap.get(CBranchTestFitness.class);
+            Map <TestFitnessFunction, String> contextToIdMap = new LinkedHashMap<>();
+            Map <String, String> contextIdToNameMap = new LinkedHashMap<>();
+
+            int contextBranchID = 0;
+            for (TestFitnessFunction fitnessFunction : allContextGoalFitnessValues.keySet()) {
+                int id = contextBranchID++;
+                contextToIdMap.put(fitnessFunction, "Context-" + id);
+                contextIdToNameMap.put("Context-" + id, fitnessFunction.toString());
+            }
+
+            // Write out target line stats
+            Map<TestFitnessFunction, Double>  lineFitnessMap = minFitnessValuesMap.get(LineCoverageTestFitness.class);
+            for (TestFitnessFunction fitnessFunction : lineFitnessMap.keySet()) {
+                // Determine context goals
+                // First check if this is a target line or oracle goal
+                int goalHash = fitnessFunction.hashCode();
+                Set<Integer> contextGoalHashCodes;
+
+                boolean isFixLocation;
+                if (result.getFixLocationGoals().contains(goalHash)) {
+                    isFixLocation = true;
+                    contextGoalHashCodes = result.getFixLocationContextMap().get(goalHash);
+                } else if (result.getOracleLocationGoals().contains(goalHash)) {
+                    isFixLocation = false;
+                    contextGoalHashCodes = result.getOracleLocationContextMap().get(goalHash);
+                } else {
+                    logger.warn("Can't find hash of {} in fix location and oracle location hash sets.", fitnessFunction);
+                    continue;
+                }
+
+                List<TestFitnessFunction> contextGoals = allContextGoalFitnessValues.keySet().stream()
+                        .filter(ff -> contextGoalHashCodes.contains(ff.hashCode())).collect(Collectors.toList());
+
+                // Get stats for context goals
+                Map<String, Double> contextGoalFitnessValuesMap = new LinkedHashMap<>();
+                Map<String, Integer> contextGoalCoveringTestsMap = new LinkedHashMap<>();
+
+                int numTotalContexts = 0;
+                int numCoveredContexts = 0;
+                for (TestFitnessFunction contextGoal : contextGoals) {
+                    numTotalContexts++;
+                    double minContextFitness = allContextGoalFitnessValues.get(contextGoal);
+                    if (minContextFitness == 0.0) {
+                        numCoveredContexts++;
+                    }
+                    contextGoalFitnessValuesMap.put(contextToIdMap.get(contextGoal), minContextFitness);
+                    contextGoalCoveringTestsMap.put(contextToIdMap.get(contextGoal), numCoveringTestsMap.get(contextGoal));
+                }
+
+                LineCoverageTestFitness lineFitness = ((LineCoverageTestFitness) fitnessFunction);
+                String className = lineFitness.getClassName();
+                int lineNumber = lineFitness.getLine();
+                double minFitness = minFitnessValuesMap.get(LineCoverageTestFitness.class).get(fitnessFunction);
+                int numCoveringTests = numCoveringTestsMap.get(fitnessFunction);
+
+                TargetLocationFitnessMetrics metrics = new TargetLocationFitnessMetrics(className, lineNumber, minFitness,
+                        numCoveringTests, numTotalContexts, numCoveredContexts, contextGoalFitnessValuesMap, contextGoalCoveringTestsMap);
+
+                if (isFixLocation) {
+                    fixLocationMetrics.add(metrics);
+                } else {
+                    oracleLocationMetrics.add(metrics);
+                }
+            }
+
+            writeTargetLocationSummary(outputDir, fixLocationMetrics, oracleLocationMetrics, contextIdToNameMap);
+        } catch (IOException e) {
+            logger.warn("Error while writing statistics: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Compute minimum fitness and number of covering tests for each fitness function
+     * @param fitnessFunctions List of all fitness functions
+     * @param tests List of all tests
+     * @param minFitnessValuesMap (empty) mapping from classes of fitness functions to fitness functions to min fitness values
+     * @param numCoveringTestsMap (empty) mapping from fitness functions to number of covering tests
+     */
+    private void computeMinFitnessAndNumCoveringTests(List<TestFitnessFunction> fitnessFunctions, List<TestChromosome> tests,
+                                                      Map<Class<?>, Map<TestFitnessFunction, Double>> minFitnessValuesMap,
+                                                      Map<TestFitnessFunction, Integer> numCoveringTestsMap) {
+
+        for (TestFitnessFunction ff : fitnessFunctions) {
+            if (!minFitnessValuesMap.containsKey(ff.getClass())) {
+                minFitnessValuesMap.put(ff.getClass(), new LinkedHashMap<>());
+            }
+
+            int numCoveringSolutions = (int) tests.stream().mapToDouble(t -> t.getFitness(ff)).filter(f -> f == 0.0).count();
+            numCoveringTestsMap.put(ff, numCoveringSolutions);
+
+            double minFitness = tests.stream().mapToDouble(t -> t.getFitness(ff)).min().orElse(-1);
+            minFitnessValuesMap.get(ff.getClass()).put(ff, minFitness);
+        }
+
+    }
+
+    private void writeCoverageSummary(File outputDir, Map<Class<?>, Map<TestFitnessFunction, Double>> minFitnessValuesMap) throws IOException {
+        // General coverage stats
+        File f_stats = new File(outputDir.getAbsolutePath() + File.separator + "coverage_stats.csv");
+        BufferedWriter out_coverage = new BufferedWriter(new FileWriter(f_stats));
+        out_coverage.write("CRITERION, GOALS, COVERED, UNCOVERED" + "\n");
+
+        StringBuilder sb_coverage = new StringBuilder();
+
+        // Write out general stats
+        for (Class<?> fitnessClass : minFitnessValuesMap.keySet()) {
+            int covered = 0;
+            int uncovered = 0;
+            for (TestFitnessFunction fitnessFunction : minFitnessValuesMap.get(fitnessClass).keySet()) {
+                double fitness = minFitnessValuesMap.get(fitnessClass).get(fitnessFunction);
+                if (fitness == 0.0) {
+                    covered++;
+                } else {
+                    uncovered++;
+                }
+            }
+            sb_coverage.append(fitnessClass.toString());
+            sb_coverage.append(",");
+            sb_coverage.append(covered + uncovered);
+            sb_coverage.append(",");
+            sb_coverage.append(covered);
+            sb_coverage.append(",");
+            sb_coverage.append(uncovered);
+            sb_coverage.append("\n");
+        }
+
+        out_coverage.write(sb_coverage.toString());
+        out_coverage.close();
+    }
+
+    private void writeTargetLocationSummary(File outputDir, List<TargetLocationFitnessMetrics> fixLocationMetrics,
+                                            List<TargetLocationFitnessMetrics> oracleLocationMetrics,
+                                            Map <String, String> contextIdToNameMap) throws IOException {
+
+        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+
+        File f_fixLocationStats = new File(outputDir.getAbsolutePath() + File.separator + "fixLocation_stats.json");
+        mapper.writeValue(f_fixLocationStats, fixLocationMetrics);
+
+        File f_oracleLocationStats = new File(outputDir.getAbsolutePath() + File.separator + "oracleLocation_stats.json");
+        mapper.writeValue(f_oracleLocationStats, oracleLocationMetrics);
+
+        File f_contextIdToNameMap = new File(outputDir.getAbsolutePath() + File.separator + "contextIdToFullNameMap.json");
+        mapper.writeValue(f_contextIdToNameMap, contextIdToNameMap);
+    }
+
 
     /**
      * Create JUnit test suite for class. Customized version of {@link TestSuiteWriter#writeTestSuite(String, String, List)}
