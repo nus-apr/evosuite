@@ -383,7 +383,13 @@ public abstract class GenericAbstractMOSA<T extends Chromosome<T>> extends Genet
             isDominated = false;
             List<T> dominatedSolutions = new ArrayList<>(solutions.size());
             for (T best : nextFront) {
-                final int flag = comparator.compare(p, best);
+                /*final*/ int flag = comparator.compare(p, best);
+
+                // TODO: is this the correct way to consider patch size?
+                if (flag == 0) {
+                    flag = p.compareSecondaryObjective(best);
+                }  // done
+
                 if (flag < 0) {
                     dominatedSolutions.add(best);
                 }

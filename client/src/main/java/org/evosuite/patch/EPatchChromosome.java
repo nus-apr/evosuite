@@ -166,17 +166,6 @@ public class EPatchChromosome extends AbstractPatchChromosome<EPatchChromosome> 
     }
 
     /**
-     * Secondary Objectives are specific to chromosome types
-     *
-     * @param o a {@link Chromosome} object.
-     * @return a int.
-     */
-    @Override
-    public int compareSecondaryObjective(EPatchChromosome o) {
-        return 0;
-    }
-
-    /**
      * Apply mutation
      */
     @Override
