@@ -87,7 +87,7 @@ public class ERepairMosaMain {
         repairAlg.addStoppingCondition(maxGenCondition);
         repairAlg.addStoppingCondition(maxTimeCondition);
 
-//        Properties.EVOREPAIR_SEED_POPULATION = true;
+        Properties.EVOREPAIR_SEED_POPULATION = "DUMMY_NON_EMPTY_STRING";
 
         repairAlg.generateSolution();
     }
