@@ -27,7 +27,6 @@ import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.Properties.OutputGranularity;
 import org.evosuite.TimeController;
-import org.evosuite.coverage.cbranch.CBranchTestFitness;
 import org.evosuite.coverage.dataflow.DefUseCoverageTestFitness;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.coverage.patch.ContextLineTestFitness;
@@ -60,7 +59,6 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.evosuite.junit.writer.TestSuiteWriterUtils.*;
 
