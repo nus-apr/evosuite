@@ -469,7 +469,9 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 
         if (!disableContext && (Properties.INSTRUMENT_CONTEXT || Properties.INSTRUMENT_METHOD_CALLS
                 || ArrayUtil.contains(Properties.CRITERION, Criterion.IBRANCH)
-                || ArrayUtil.contains(Properties.CRITERION, Criterion.CBRANCH))) {
+                || ArrayUtil.contains(Properties.CRITERION, Criterion.CBRANCH)
+                || ArrayUtil.contains(Properties.CRITERION, Criterion.CONTEXTLINE)
+        )) {
             updateBranchContextMaps(branch, true_distance, false_distance);
         }
 
@@ -721,7 +723,9 @@ public class ExecutionTraceImpl implements ExecutionTrace, Cloneable {
 
             if (!disableContext
                     && (Properties.INSTRUMENT_CONTEXT || ArrayUtil.contains(Properties.CRITERION, Criterion.IBRANCH)
-                    || ArrayUtil.contains(Properties.CRITERION, Criterion.CBRANCH))) {
+                    || ArrayUtil.contains(Properties.CRITERION, Criterion.CBRANCH)
+                    || ArrayUtil.contains(Properties.CRITERION, Criterion.CONTEXTLINE)
+            )) {
                 updateMethodContextMaps(className, methodName, caller);
             }
         }

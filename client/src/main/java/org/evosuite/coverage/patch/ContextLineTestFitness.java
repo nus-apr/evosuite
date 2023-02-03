@@ -1,21 +1,20 @@
 package org.evosuite.coverage.patch;
 
 import org.evosuite.Properties;
-import org.evosuite.TestGenerationContext;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
 import org.evosuite.coverage.cbranch.CBranchTestFitness;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.ga.archive.Archive;
-import org.evosuite.graphs.cfg.BytecodeInstruction;
-import org.evosuite.graphs.cfg.BytecodeInstructionPool;
+import org.evosuite.setup.CallContext;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
 
 import java.util.Objects;
 
-public class ContextLineCoverageTestFitness extends TestFitnessFunction {
+public class ContextLineTestFitness extends TestFitnessFunction {
 
     private static final long serialVersionUID = 7193796202600984135L;
     /**
@@ -32,11 +31,10 @@ public class ContextLineCoverageTestFitness extends TestFitnessFunction {
     // Control dependency context goal
     protected final CBranchTestFitness contextFitnessGoal;
 
-    public ContextLineCoverageTestFitness(String className, String methodName, Integer line,
-                                          LineCoverageTestFitness lineGoal, CBranchTestFitness contextFitnessGoal) {
-        this.className = Objects.requireNonNull(className, "className cannot be null");
-        this.methodName = Objects.requireNonNull(methodName, "methodName cannot be null");
-        this.line = Objects.requireNonNull(line, "line number cannot be null");
+    public ContextLineTestFitness(LineCoverageTestFitness lineGoal, CBranchTestFitness contextFitnessGoal) {
+        this.className = lineGoal.getClassName();
+        this.methodName = lineGoal.getMethod();
+        this.line = lineGoal.getLine();
         this.lineGoal = lineGoal;
         this.contextFitnessGoal = Objects.requireNonNull(contextFitnessGoal, "controlDependencyContext cannot be null");
 
@@ -86,10 +84,31 @@ public class ContextLineCoverageTestFitness extends TestFitnessFunction {
         return  lineGoal;
     }
 
+    public BranchCoverageGoal getBranchGoal() {
+        return contextFitnessGoal.getBranchGoal();
+    }
+
+    public Branch getBranch() {
+        return contextFitnessGoal.getBranch();
+    }
+
+    public CallContext getContext() {
+        return contextFitnessGoal.getContext();
+    }
+
+    public boolean getValue() {
+        return contextFitnessGoal.getValue();
+    }
+
+    public int getGenericContextBranchIdentifier() {
+        return contextFitnessGoal.getGenericContextBranchIdentifier();
+    }
+
+
+
     @Override
     public double getFitness(TestChromosome individual, ExecutionResult result) {
         double fitness = 1.0;
-
         // Deactivate coverage archive while measuring fitness, since branchcoverage fitness
         // evaluating will attempt to claim coverage for it in the archive
         boolean archive = Properties.TEST_ARCHIVE;
@@ -148,7 +167,7 @@ public class ContextLineCoverageTestFitness extends TestFitnessFunction {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ContextLineCoverageTestFitness that = (ContextLineCoverageTestFitness) o;
+        ContextLineTestFitness that = (ContextLineTestFitness) o;
 
         if (!className.equals(that.className)) return false;
         if (!methodName.equals(that.methodName)) return false;
@@ -168,8 +187,8 @@ public class ContextLineCoverageTestFitness extends TestFitnessFunction {
     @Override
     public int compareTo(TestFitnessFunction other) {
         if (other == null) return 1;
-        if (other instanceof ContextLineCoverageTestFitness) {
-            ContextLineCoverageTestFitness otherLineFitness = (ContextLineCoverageTestFitness) other;
+        if (other instanceof ContextLineTestFitness) {
+            ContextLineTestFitness otherLineFitness = (ContextLineTestFitness) other;
             if (className.compareTo(otherLineFitness.getClassName()) != 0)
                 return className.compareTo(otherLineFitness.getClassName());
             else if (methodName.compareTo(otherLineFitness.getMethod()) != 0)

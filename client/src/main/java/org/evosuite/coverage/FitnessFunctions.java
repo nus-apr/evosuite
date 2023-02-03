@@ -127,6 +127,8 @@ public class FitnessFunctions {
                 return new PatchLineCoverageSuiteFitness();
             case PATCH:
                 return new PatchCoverageSuiteFitness();
+            case CONTEXTLINE:
+                return new ContextLineSuiteFitness();
             default:
                 logger.warn("No TestSuiteFitnessFunction defined for {}; using default one (BranchCoverageSuiteFitness)", Arrays.toString(Properties.CRITERION));
                 return new BranchCoverageSuiteFitness();
@@ -191,6 +193,8 @@ public class FitnessFunctions {
                 return new PatchLineCoverageFactory();
             case PATCH:
                 return new PatchCoverageFactory();
+            case CONTEXTLINE:
+                return new ContextLineFactory();
             default:
                 logger.warn("No TestFitnessFactory defined for " + crit
                         + " using default one (BranchCoverageFactory)");
@@ -251,6 +255,8 @@ public class FitnessFunctions {
                 return LineCoverageTestFitness.class;
             case PATCH:
                 return PatchCoverageTestFitness.class;
+            case CONTEXTLINE:
+                return ContextLineTestFitness.class;
             case OUTPUT:
                 return OutputCoverageTestFitness.class;
             case INPUT:
