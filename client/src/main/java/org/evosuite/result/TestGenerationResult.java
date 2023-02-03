@@ -26,7 +26,6 @@ import org.evosuite.symbolic.dse.algorithm.ExplorationAlgorithmBase;
 import org.evosuite.testcase.TestCase;
 
 import java.io.Serializable;
-import java.util.Map;
 import java.util.Set;
 
 public interface TestGenerationResult<T extends Chromosome<T>> extends Serializable {
@@ -45,24 +44,10 @@ public interface TestGenerationResult<T extends Chromosome<T>> extends Serializa
     void setFixLocationGoals(Set<Integer> fixLocationGoals);
 
     /**
-     * Mapping between (hash codes) of fix location goals and (hash codes) of context goals
-     */
-    Map<Integer, Set<Integer>> getFixLocationContextMap();
-
-    /**
-     * Setter for fix location context goal map
-     * @param fixLocationContextMap Mapping between (hash codes) of fix location goals and (hash codes) of context goals
-     */
-    void setFixLocationContextMap(Map<Integer, Set<Integer>> fixLocationContextMap);
-
-    /**
      * Analogous methods for oracle location goals
      */
-
     Set<Integer> getOracleLocationGoals();
     void setOracleLocationGoals(Set<Integer> oracleLocationGoals);
-    Map<Integer, Set<Integer>> getOracleLocationContextMap();
-    void setOracleLocationContextMap(Map<Integer, Set<Integer>> oracleLocationContextMap);
 
     /**
      * Did test generation succeed?

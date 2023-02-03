@@ -34,7 +34,7 @@ public class OracleLocationGoalsSystemTest extends SystemTestBase {
         URL oracleLocations = this.getClass().getResource("methodWithOracle_oracleLocations.json");
         URL targetPatches = this.getClass().getResource("methodWithOracle_targetPatches.json");
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-class", targetClass, "-criterion", "BRANCH:CBRANCH:PATCHLINE",
+        String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-class", targetClass, "-criterion", "PATCHLINE:CONTEXTLINE",
                 "-oracleLocations", oracleLocations.getPath(), "-targetPatches",  targetPatches.getPath()};
 
         Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
@@ -46,9 +46,9 @@ public class OracleLocationGoalsSystemTest extends SystemTestBase {
         //System.out.println("EvolvedTestSuite:\n" + best);
 
         int goals = TestGenerationStrategy.getFitnessFactories().stream().map(TestFitnessFactory::getCoverageGoals).mapToInt(List::size).sum(); // assuming single fitness function
-        Assert.assertEquals("Wrong number of goals: ", 24, goals);
+        Assert.assertEquals("Wrong number of goals: ", 13, goals);
         // TODO EvoRepair: Investigate why coverage is so low
-        Assert.assertEquals("Non-optimal coverage: ", 0.7, best.getCoverage(), 0.1);
+        Assert.assertEquals("Non-optimal coverage: ", 0.75, best.getCoverage(), 0.1);
     }
 
     @Test
@@ -59,7 +59,7 @@ public class OracleLocationGoalsSystemTest extends SystemTestBase {
         URL targetPatches = this.getClass().getResource("methodWithOracle_targetPatches.json");
 
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-class", targetClass, "-criterion", "BRANCH:CBRANCH:PATCHLINE",
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-class", targetClass, "-criterion", "PATCHLINE:CONTEXTLINE",
                 "-oracleLocations", oracleLocations.getPath(), "-targetPatches",  targetPatches.getPath()};
         Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
         Properties.SEARCH_BUDGET = 20;
@@ -69,7 +69,7 @@ public class OracleLocationGoalsSystemTest extends SystemTestBase {
         //System.out.println("EvolvedTestSuite:\n" + best);
         int goals = TestGenerationStrategy.getFitnessFactories().stream().map(TestFitnessFactory::getCoverageGoals).mapToInt(List::size).sum(); // assuming single fitness function
         int coveredGoals = computeCoveredGoalsFromResult(result);
-        Assert.assertEquals("Wrong number of goals: ", 24, goals);
-        Assert.assertEquals("Non-optimal number of covered goals: ", 19, coveredGoals); // condition in L32 of oracle is always true (or false in bytecode)
+        Assert.assertEquals("Wrong number of goals: ", 13, goals);
+        Assert.assertEquals("Non-optimal number of covered goals: ", 9, coveredGoals); // condition in L32 of oracle is always true (or false in bytecode)
     }
 }
