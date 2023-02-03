@@ -12,7 +12,7 @@ public class SingleTestArchive {
      * Map used to store all covered targets (keys of the map) and the corresponding covering
      * solutions (values of the map)
      */
-    private final Map<SingleTestPatchFitness<?>, AbstractPatchChromosome<?>> covered = new LinkedHashMap<>();
+    private final Map<SingleTestPatchFitness<?>, Set<AbstractPatchChromosome<?>>> covered = new LinkedHashMap<>();
     private final Set<SingleTestPatchFitness<?>> uncovered = new LinkedHashSet<>();
 
     private SingleTestArchive() {}
@@ -36,9 +36,10 @@ public class SingleTestArchive {
         uncovered.remove(target);
 
         if (!covered.containsKey(target)) {
+            covered.put(target, new LinkedHashSet<>());
             logger.debug("Covered target '{}'", target);
         }
-        covered.put(target, solution);
+        covered.get(target).add(solution);
     }
 
     public int getNumberOfTargets() {
@@ -69,6 +70,32 @@ public class SingleTestArchive {
     }
 
     public List<AbstractPatchChromosome<?>> getSolutions() {
-        return new ArrayList<>(this.covered.values());
+        List<AbstractPatchChromosome<?>> solutions = new ArrayList<>();
+        for (Set<AbstractPatchChromosome<?>> s: this.covered.values()) {
+            solutions.addAll(s);
+        }
+        return solutions;
+    }
+
+    public Set<SingleTestPatchFitness<?>> getLeastCoveredTargets() {
+        if (!uncovered.isEmpty()) {
+            return uncovered;
+        }
+
+        int minCount = Integer.MAX_VALUE;
+        Map<Integer, Set<SingleTestPatchFitness<?>>> counter = new LinkedHashMap<>();
+        for (Map.Entry<SingleTestPatchFitness<?>, Set<AbstractPatchChromosome<?>>> entry: covered.entrySet()) {
+            int count = entry.getValue().size();
+            if (!counter.containsKey(count)) {
+                counter.put(count, new LinkedHashSet<>());
+            }
+            counter.get(count).add(entry.getKey());
+
+            if (count < minCount) {
+                minCount = count;
+            }
+        }
+
+        return counter.get(minCount);
     }
 }

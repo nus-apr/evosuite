@@ -41,12 +41,12 @@ public class EPatchMOSA extends GenericMOSA<EPatchChromosome> {
 
     @Override
     protected Set<FitnessFunction<EPatchChromosome>> getUncoveredGoals() {
-        return (Set<FitnessFunction<EPatchChromosome>>) (Object) SingleTestArchive.getInstance().getUncoveredTargets();
+        return (Set<FitnessFunction<EPatchChromosome>>) (Object) SingleTestArchive.getInstance().getLeastCoveredTargets();
     }
 
     @Override
     protected int getNumberOfUncoveredGoals() {
-        return SingleTestArchive.getInstance().getNumberOfUncoveredTargets();
+        return getUncoveredGoals().size();
     }
 
     @Override
