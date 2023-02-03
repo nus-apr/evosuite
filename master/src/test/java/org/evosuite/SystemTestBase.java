@@ -363,8 +363,10 @@ public class SystemTestBase {
                 uncoveredGoals.add(ff);
             }
         }
-
-        System.out.println("Uncovered goals:");
+        System.out.println("========== COVERED GOALS ==========");
+        coveredGoals.forEach(System.out::println);
+        System.out.println();
+        System.out.println("========== UNCOVERED GOALS ==========");
         uncoveredGoals.forEach(System.out::println);
 
         return coveredGoals.size();

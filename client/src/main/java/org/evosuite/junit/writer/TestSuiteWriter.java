@@ -22,14 +22,14 @@ package org.evosuite.junit.writer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.evosuite.ClientProcess;
+
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.Properties.OutputGranularity;
 import org.evosuite.TimeController;
-import org.evosuite.coverage.cbranch.CBranchTestFitness;
 import org.evosuite.coverage.dataflow.DefUseCoverageTestFitness;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
+import org.evosuite.coverage.patch.ContextLineTestFitness;
 import org.evosuite.coverage.patch.communication.json.TargetLocationFitnessMetrics;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.junit.UnitTestAdapter;
@@ -59,7 +59,6 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.evosuite.junit.writer.TestSuiteWriterUtils.*;
 
@@ -283,13 +282,14 @@ public class TestSuiteWriter implements Opcodes {
         return generated;
     }
 
+
     public void writeTargetLocationStats(TestSuiteChromosome testSuite, TestGenerationResult<TestChromosome> result) {
         // TODO EvoRepair: Use generic flag to indicate that EvoRepair is enabled
         if (!Properties.SERIALIZE_GA && Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
             return;
         }
 
-        LoggingUtils.getEvoLogger().info("* {}Writing target location stats to {}", ClientProcess.getPrettyPrintIdentifier(), Properties.TEST_DIR);
+        LoggingUtils.getEvoLogger().info("* Writing target location stats to {}", Properties.TEST_DIR);
 
         GeneticAlgorithm<?> ga = result.getGeneticAlgorithm();
         // Mapping between fitness class to fitness functions to minimal fitness value
@@ -317,8 +317,13 @@ public class TestSuiteWriter implements Opcodes {
             List<TargetLocationFitnessMetrics> fixLocationMetrics = new ArrayList<>();
             List<TargetLocationFitnessMetrics> oracleLocationMetrics = new ArrayList<>();
 
-            // Map context branch IDs to more readable names
-            Map <TestFitnessFunction, Double> allContextGoalFitnessValues = minFitnessValuesMap.get(CBranchTestFitness.class);
+            // Mapping from context goals to min fitness values
+            Map <TestFitnessFunction, Double> allContextGoalFitnessValues = minFitnessValuesMap.get(ContextLineTestFitness.class);
+
+            // Mapping from line goals to context goals
+            Map <TestFitnessFunction, Set<TestFitnessFunction>> targetGoalToContextGoalMap = new LinkedHashMap<>();
+
+            // Mapping between context branch IDs and more readable names
             Map <TestFitnessFunction, String> contextToIdMap = new LinkedHashMap<>();
             Map <String, String> contextIdToNameMap = new LinkedHashMap<>();
 
@@ -327,39 +332,30 @@ public class TestSuiteWriter implements Opcodes {
                 int id = contextBranchID++;
                 contextToIdMap.put(fitnessFunction, "Context-" + id);
                 contextIdToNameMap.put("Context-" + id, fitnessFunction.toString());
+                ContextLineTestFitness contextGoal = (ContextLineTestFitness) fitnessFunction;
+                LineCoverageTestFitness lineGoal = contextGoal.getLineGoal();
+                if (!targetGoalToContextGoalMap.containsKey(lineGoal)) {
+                    targetGoalToContextGoalMap.put(lineGoal, new LinkedHashSet<>());
+                }
+                targetGoalToContextGoalMap.get(lineGoal).add(contextGoal);
             }
 
-            // Write out target line stats
+            // For each line goal, determine context goal stats
             Map<TestFitnessFunction, Double>  lineFitnessMap = minFitnessValuesMap.get(LineCoverageTestFitness.class);
             for (TestFitnessFunction fitnessFunction : lineFitnessMap.keySet()) {
                 // Determine context goals
-                // First check if this is a target line or oracle goal
-                int goalHash = fitnessFunction.hashCode();
-                Set<Integer> contextGoalHashCodes;
-
-                boolean isFixLocation;
-                if (result.getFixLocationGoals().contains(goalHash)) {
-                    isFixLocation = true;
-                    contextGoalHashCodes = result.getFixLocationContextMap().get(goalHash);
-                } else if (result.getOracleLocationGoals().contains(goalHash)) {
-                    isFixLocation = false;
-                    contextGoalHashCodes = result.getOracleLocationContextMap().get(goalHash);
-                } else {
-                    logger.warn("Can't find hash of {} in fix location and oracle location hash sets.", fitnessFunction);
-                    continue;
-                }
-
-                List<TestFitnessFunction> contextGoals = allContextGoalFitnessValues.keySet().stream()
-                        .filter(ff -> contextGoalHashCodes.contains(ff.hashCode())).collect(Collectors.toList());
+                LineCoverageTestFitness lineGoal = (LineCoverageTestFitness) fitnessFunction;
 
                 // Get stats for context goals
                 Map<String, Double> contextGoalFitnessValuesMap = new LinkedHashMap<>();
                 Map<String, Integer> contextGoalCoveringTestsMap = new LinkedHashMap<>();
 
-                int numTotalContexts = 0;
+                Set<TestFitnessFunction> contextGoals = targetGoalToContextGoalMap.get(lineGoal);
+
+                int numTotalContexts = contextGoals.size();
                 int numCoveredContexts = 0;
+
                 for (TestFitnessFunction contextGoal : contextGoals) {
-                    numTotalContexts++;
                     double minContextFitness = allContextGoalFitnessValues.get(contextGoal);
                     if (minContextFitness == 0.0) {
                         numCoveredContexts++;
@@ -368,19 +364,22 @@ public class TestSuiteWriter implements Opcodes {
                     contextGoalCoveringTestsMap.put(contextToIdMap.get(contextGoal), numCoveringTestsMap.get(contextGoal));
                 }
 
-                LineCoverageTestFitness lineFitness = ((LineCoverageTestFitness) fitnessFunction);
-                String className = lineFitness.getClassName();
-                int lineNumber = lineFitness.getLine();
-                double minFitness = minFitnessValuesMap.get(LineCoverageTestFitness.class).get(fitnessFunction);
-                int numCoveringTests = numCoveringTestsMap.get(fitnessFunction);
+                String className = lineGoal.getClassName();
+                int lineNumber = lineGoal.getLine();
+                double minFitness = lineFitnessMap.get(lineGoal);
+                int numCoveringTests = numCoveringTestsMap.get(lineGoal);
 
                 TargetLocationFitnessMetrics metrics = new TargetLocationFitnessMetrics(className, lineNumber, minFitness,
                         numCoveringTests, numTotalContexts, numCoveredContexts, contextGoalFitnessValuesMap, contextGoalCoveringTestsMap);
 
-                if (isFixLocation) {
+                // Check if the line goal is a fix location or oracle location goal
+                int lineGoalHash = fitnessFunction.hashCode();
+                if (result.getFixLocationGoals().contains(lineGoalHash)) {
                     fixLocationMetrics.add(metrics);
-                } else {
+                } else if (result.getOracleLocationGoals().contains(lineGoalHash)) {
                     oracleLocationMetrics.add(metrics);
+                } else {
+                    logger.warn("Can't find hash of {} in fix location or oracle location hash sets.", fitnessFunction);
                 }
             }
 

@@ -330,8 +330,8 @@ public class Properties {
     @Parameter(key = "numTests", group = "EvoRepair", description = "Maximum number of tests to include in the test suite.")
     public static int EVOREPAIR_NUM_TESTS = 50;
 
-    @Parameter(key = "subContextBranches", group = "EvoRepair", description = "Also consider sub-paths starting from each public method for each context branch goal.")
-    public static boolean EVOREPAIR_SUB_CBRANCHES = true;
+    @Parameter(key = "addSubContexts", group = "EvoRepair", description = "Also consider sub-paths starting from each public method for each context goal.")
+    public static boolean EVOREPAIR_USE_SUB_CONTEXTS = true;
 
 
     // Search algorithm
@@ -1548,7 +1548,7 @@ public class Properties {
         EXCEPTION, DEFUSE, ALLDEFS, BRANCH, CBRANCH, STRONGMUTATION, WEAKMUTATION,
         MUTATION, STATEMENT, RHO, AMBIGUITY, IBRANCH, READABILITY,
         ONLYBRANCH, ONLYMUTATION, METHODTRACE, METHOD, METHODNOEXCEPTION, LINE, ONLYLINE, OUTPUT, INPUT,
-        TRYCATCH, PATCHLINE, PATCH
+        TRYCATCH, PATCHLINE, PATCH, CONTEXTLINE
     }
 
     @Parameter(key = "criterion", group = "Runtime", description = "Coverage criterion. Can define more than one criterion by using a ':' separated list")

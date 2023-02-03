@@ -24,8 +24,6 @@ import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.symbolic.dse.algorithm.ExplorationAlgorithmBase;
 import org.evosuite.testcase.TestCase;
-import org.evosuite.testcase.TestChromosome;
-import org.evosuite.testsuite.TestSuiteChromosome;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -72,10 +70,6 @@ class TestGenerationResultImpl<T extends Chromosome<T>> implements TestGeneratio
 
     private final Set<Integer> oracleLocationGoals = new LinkedHashSet<>();
 
-    private final Map<Integer, Set<Integer>> fixLocationContextMap = new LinkedHashMap<>();
-
-    private final Map<Integer, Set<Integer>> oracleLocationContextMap = new LinkedHashMap<>();
-
     private String testSuiteCode = "";
 
     private String targetClass = "";
@@ -98,15 +92,6 @@ class TestGenerationResultImpl<T extends Chromosome<T>> implements TestGeneratio
         this.fixLocationGoals.addAll(fixLocationGoals);
     }
 
-    public Map<Integer, Set<Integer>> getFixLocationContextMap() {
-        return fixLocationContextMap;
-    }
-
-    public void setFixLocationContextMap(Map<Integer, Set<Integer>> fixLocationContextMap) {
-        this.fixLocationContextMap.clear();
-        this.fixLocationContextMap.putAll(fixLocationContextMap);
-    }
-
     public Set<Integer> getOracleLocationGoals() {
         return oracleLocationGoals;
     }
@@ -114,15 +99,6 @@ class TestGenerationResultImpl<T extends Chromosome<T>> implements TestGeneratio
     public void setOracleLocationGoals(Set<Integer> oracleLocationGoals) {
         this.oracleLocationGoals.clear();
         this.oracleLocationGoals.addAll(oracleLocationGoals);
-    }
-
-    public Map<Integer, Set<Integer>> getOracleLocationContextMap() {
-        return oracleLocationContextMap;
-    }
-
-    public void setOracleLocationContextMap(Map<Integer, Set<Integer>> oracleLocationContextMap) {
-        this.oracleLocationContextMap.clear();
-        this.oracleLocationContextMap.putAll(oracleLocationContextMap);
     }
 
     /**

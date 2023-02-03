@@ -110,23 +110,6 @@ public class MOSATestSuiteAdapter extends TestSuiteAdapter<AbstractMOSA> {
         getAlgorithm().getBestIndividuals().stream()
                     .filter(t -> !bestTests.contains(t))
                     .forEach(best::addTestChromosome);
-
-        // Fill up with remaining good tests (that at least cover some fix locations and dont have timeouts)
-        //getAlgorithm().getPopulation()
-        /* TODO EvoRepair: Handle size size of output test suite
-        int remaining = Math.max(0, Properties.EVOREPAIR_NUM_TESTS - best.size());
-
-        if (remaining > 0) {
-            calculateFitnessAndSortPopulation();
-            getAlgorithm().getPopulation().stream()
-                    .filter(t -> !bestTests.contains(t)) // Don't add duplicate tests
-                    .filter(t -> !t.getLastExecutionResult().hasTimeout()) // Don't add tests with timeouts
-                    .filter(t -> t.getTestCase().getCoveredGoals().stream().anyMatch(LineCoverageTestFitness.class::isInstance)) // Only add tests that cover at least one fix location
-                    .limit(remaining) // Only add remaining number of tests
-                    .forEach(best::addTestChromosome);
-        }
-
-         */
         return best;
     }
 

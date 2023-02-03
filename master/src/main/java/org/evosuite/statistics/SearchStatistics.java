@@ -38,6 +38,7 @@ import org.evosuite.coverage.method.MethodNoExceptionCoverageSuiteFitness;
 import org.evosuite.coverage.method.MethodTraceCoverageSuiteFitness;
 import org.evosuite.coverage.mutation.OnlyMutationSuiteFitness;
 import org.evosuite.coverage.mutation.WeakMutationSuiteFitness;
+import org.evosuite.coverage.patch.ContextLineSuiteFitness;
 import org.evosuite.coverage.patch.PatchCoverageSuiteFitness;
 import org.evosuite.coverage.patch.PatchLineCoverageSuiteFitness;
 import org.evosuite.coverage.patch.communication.json.TargetLocationFitnessMetrics;
@@ -163,6 +164,8 @@ public class SearchStatistics implements Listener<ClientStateInformation> {
         sequenceOutputVariableFactories.put(RuntimeVariable.PatchLineCoverageTimeline.name(), new PatchLineCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.PatchFitnessTimeline.name(), new PatchFitnessSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.PatchCoverageTimeline.name(), new PatchCoverageSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.ContextLineFitnessTimeline.name(), new ContextLineFitnessSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.ContextLineCoverageTimeline.name(), new ContextLineCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.DiversityTimeline.name(),
                 DirectSequenceOutputVariableFactory.getDouble(RuntimeVariable.DiversityTimeline));
 
@@ -844,6 +847,30 @@ public class SearchStatistics implements Listener<ClientStateInformation> {
         @Override
         public Double getValue(TestSuiteChromosome individual) {
             return individual.getCoverageInstanceOf(PatchCoverageSuiteFitness.class);
+        }
+    }
+
+    private static class ContextLineFitnessSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+
+        public ContextLineFitnessSequenceOutputVariableFactory() {
+            super(RuntimeVariable.ContextLineFitnessTimeline);
+        }
+
+        @Override
+        public Double getValue(TestSuiteChromosome individual) {
+            return individual.getFitnessInstanceOf(ContextLineSuiteFitness.class);
+        }
+    }
+
+    private static class ContextLineCoverageSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+
+        public ContextLineCoverageSequenceOutputVariableFactory() {
+            super(RuntimeVariable.ContextLineCoverageTimeline);
+        }
+
+        @Override
+        public Double getValue(TestSuiteChromosome individual) {
+            return individual.getCoverageInstanceOf(ContextLineSuiteFitness.class);
         }
     }
 

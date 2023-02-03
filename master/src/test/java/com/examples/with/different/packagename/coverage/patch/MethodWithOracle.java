@@ -11,7 +11,7 @@ public class MethodWithOracle {
     }
 
     public void anotherTopLevelMethod(int x) {
-        if (x * 2 == 10) {
+        if (x != 0) {
             instrumentedMethod("");
         }
     }
