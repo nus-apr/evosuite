@@ -282,6 +282,7 @@ public class EPatchChromosome extends AbstractPatchChromosome<EPatchChromosome> 
     }
 
     private void precomputeFitnesses() throws Exception {
+        logger.info("one fitness evaluation starts");
         isUndesirable = false;
 
         List<ExtendedModificationPoint> modificationPoints = problem.getExtendedModificationPoints();
