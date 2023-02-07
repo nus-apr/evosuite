@@ -22,6 +22,7 @@ package org.evosuite.ga.metaheuristics.mosa.structural;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.TestGenerationContext;
+import org.evosuite.coverage.branch.Branch;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageGoal;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
@@ -37,6 +38,7 @@ import org.evosuite.coverage.method.MethodCoverageTestFitness;
 import org.evosuite.coverage.method.MethodNoExceptionCoverageTestFitness;
 import org.evosuite.coverage.mutation.StrongMutationTestFitness;
 import org.evosuite.coverage.mutation.WeakMutationTestFitness;
+import org.evosuite.coverage.patch.ContextLineTestFitness;
 import org.evosuite.coverage.statement.StatementCoverageTestFitness;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
@@ -111,8 +113,14 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
                     break; // branches have been handled by getControlDepencies4Branches
                 case EXCEPTION:
                     break; // exception coverage is handled by calculateFitness
+                case PATCH:
+                    throw new RuntimeException("PATCH criterion is currently not handled/implemented.");
+                case PATCHLINE:
                 case LINE:
                     addDependencies4Line();
+                    break;
+                case CONTEXTLINE:
+                    addDependencies4ContextLine();
                     break;
                 case STATEMENT:
                     addDependencies4Statement();
@@ -144,6 +152,10 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
                 default:
                     LoggingUtils.getEvoLogger().error("The criterion {} is not currently supported in DynaMOSA", criterion.name());
             }
+        }
+
+        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+            throw new RuntimeException("Implement filtering of branch goals.");
         }
 
         // initialize current goals
@@ -345,6 +357,21 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
                         this.dependencies.get(fitness).add(ff);
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * This method derives the dependencies between {@link org.evosuite.coverage.patch.ContextLineTestFitness} and branches.
+     * Therefore, it is used to update 'this.dependencies'
+     */
+    private void addDependencies4ContextLine() {
+        logger.debug("Adding dependencies for ContextLines");
+        for (TestFitnessFunction ff : this.getUncoveredGoals()) {
+            if (ff instanceof ContextLineTestFitness) {
+                ContextLineTestFitness contextGoal = (ContextLineTestFitness) ff;
+                BranchCoverageTestFitness fitness = new BranchCoverageTestFitness(contextGoal.getBranchGoal());
+                this.dependencies.get(fitness).add(ff);
             }
         }
     }
