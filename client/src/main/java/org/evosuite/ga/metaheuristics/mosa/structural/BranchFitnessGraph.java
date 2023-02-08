@@ -32,7 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -56,12 +58,12 @@ public class BranchFitnessGraph implements Serializable {
         // derive dependencies among branches
         for (TestFitnessFunction fitness : goals) {
             Branch branch = ((BranchCoverageTestFitness) fitness).getBranch();
-            if (branch == null) {
+            if (branch == null) { // Method entry goal -> root branch
                 this.rootBranches.add(fitness);
                 continue;
             }
 
-            if (branch.getInstruction().isRootBranchDependent())
+            if (branch.getInstruction().isRootBranchDependent()) // First branch within a method -> considered a root branch (no parent dependency)
                 //|| branch.getInstruction().getControlDependentBranchIds().contains(-1))
                 this.rootBranches.add(fitness);
             // see dependencies for all true/false branches
@@ -70,7 +72,7 @@ public class BranchFitnessGraph implements Serializable {
             Set<BasicBlock> parents = lookForParent(branch.getInstruction().getBasicBlock(), rcfg, visitedBlock);
             for (BasicBlock bb : parents) {
                 Branch newB = extractBranch(bb);
-                if (newB == null) {
+                if (newB == null) { // Can happen when the first basic block contains a loop (is not root branch dependent but on itself)
                     this.rootBranches.add(fitness);
                     continue;
                 }
@@ -144,9 +146,45 @@ public class BranchFitnessGraph implements Serializable {
                 .collect(toSet());
     }
 
-    public Set<TestFitnessFunction> getStructuralParents(TestFitnessFunction parent) {
-        return this.graph.incomingEdgesOf(parent).stream()
+    public Set<TestFitnessFunction> getStructuralParents(TestFitnessFunction child) {
+        return this.graph.incomingEdgesOf(child).stream()
                 .map(DependencyEdge::getSource)
                 .collect(toSet());
+    }
+
+    public Set<TestFitnessFunction> getStructuralAncestors(TestFitnessFunction node, Set<TestFitnessFunction> visited) {
+        Set<TestFitnessFunction> ancestors = new LinkedHashSet<>();
+        for (DependencyEdge edge : graph.incomingEdgesOf(node)) {
+            TestFitnessFunction parent = edge.getSource();
+            if (visited.contains(parent)) {
+                continue;
+            }
+            visited.add(parent);
+            ancestors.add(parent);
+            ancestors.addAll(getStructuralAncestors(parent, visited));
+        }
+        return ancestors;
+    }
+
+    /**
+     * Removes all branches from the graph that cannot reach any dependent goals
+     * @param directDependencies Set of branches the dependent goal directly depend on
+     * @return Set of branches removed from the graph
+     */
+    public Set<TestFitnessFunction> removeNonDependentBranches(Set<BranchCoverageTestFitness> directDependencies) {
+        Set<TestFitnessFunction> dependencyAncestors = new LinkedHashSet<>();
+
+        // We want to keep the direct dependency branches and all ancestors in the graph
+        dependencyAncestors.addAll(directDependencies);
+        for (BranchCoverageTestFitness branch : directDependencies) {
+            dependencyAncestors.addAll(getStructuralAncestors(branch, new LinkedHashSet<>()));
+        }
+
+        Set<TestFitnessFunction> toRemove = this.graph.vertexSet().stream()
+                .filter(v -> !dependencyAncestors.contains(v))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        this.graph.removeAllVertices(toRemove);
+        return toRemove;
     }
 }

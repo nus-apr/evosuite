@@ -278,7 +278,7 @@ public class CommandLineParameters {
     public static void handleEvoRepairOptions(List<String> javaOpts, CommandLine line) {
         // Enable MOSAPatch
         if (line.hasOption("generateMOSuite")) {
-            setPropertyAndAddToJavaOpts("algorithm", "MOSA", javaOpts);
+            setPropertyAndAddToJavaOpts("algorithm", "DYNAMOSA", javaOpts);
         } else if (line.hasOption("generateSuite")){
             setPropertyAndAddToJavaOpts("algorithm", "NSGAII", javaOpts);
         } else {
@@ -296,10 +296,9 @@ public class CommandLineParameters {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
         } else {
             // Enable all default criteria
-            String defaultCriteria = line.hasOption("oracleLocations") ? "PATCHLINE:PATCH:STRONGMUTATION:CONTEXTLINE" : "PATCHLINE:PATCH:STRONGMUTATION";
+            String defaultCriteria = line.hasOption("oracleLocations") ? "BRANCH:PATCHLINE:STRONGMUTATION:CONTEXTLINE" : "PATCHLINE:STRONGMUTATION";
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No criterions provided, using default: {}.", defaultCriteria);
             setPropertyAndAddToJavaOpts("criterion", defaultCriteria, javaOpts);
-            setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
         }
 
         // Name tests in test suite based on ID of test case

@@ -81,6 +81,12 @@ public abstract class Archive implements Serializable {
         }
     }
 
+
+    public void removeTarget(TestFitnessFunction target){
+        assert target != null;
+    }
+
+
     /**
      * Register a collection of targets.
      *
