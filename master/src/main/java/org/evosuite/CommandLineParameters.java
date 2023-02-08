@@ -278,7 +278,13 @@ public class CommandLineParameters {
     public static void handleEvoRepairOptions(List<String> javaOpts, CommandLine line) {
         // Enable MOSAPatch
         if (line.hasOption("generateMOSuite")) {
-            setPropertyAndAddToJavaOpts("algorithm", "DYNAMOSA", javaOpts);
+            String algorithm = line.getOptionProperties("D").getProperty("algorithm");
+            if (algorithm != null) {
+                setPropertyAndAddToJavaOpts("algorithm", algorithm, javaOpts);
+            } else {
+                setPropertyAndAddToJavaOpts("algorithm", "DYNAMOSA", javaOpts);
+            }
+            LoggingUtils.getEvoLogger().info("[EvoRepair] Using many-objective algorithm: {}", Properties.ALGORITHM);
         } else if (line.hasOption("generateSuite")){
             setPropertyAndAddToJavaOpts("algorithm", "NSGAII", javaOpts);
         } else {
