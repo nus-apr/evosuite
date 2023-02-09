@@ -37,8 +37,10 @@ import org.evosuite.coverage.method.MethodCoverageTestFitness;
 import org.evosuite.coverage.method.MethodNoExceptionCoverageTestFitness;
 import org.evosuite.coverage.mutation.StrongMutationTestFitness;
 import org.evosuite.coverage.mutation.WeakMutationTestFitness;
+import org.evosuite.coverage.patch.ContextLineTestFitness;
 import org.evosuite.coverage.statement.StatementCoverageTestFitness;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
 import org.evosuite.graphs.cfg.BytecodeInstructionPool;
@@ -59,6 +61,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A class for managing multiple coverage targets simultaneously.
@@ -72,6 +75,9 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
     protected BranchFitnessGraph graph;
 
     protected Map<BranchCoverageTestFitness, Set<TestFitnessFunction>> dependencies;
+
+    // Branch goals that have been created for ContextLineGoals that are root branch dependent (and thus are not part of the branch fitness graph)
+    protected Set<TestFitnessFunction> rootContextBranchGoals = new LinkedHashSet<>();
 
     /**
      * Maps branch IDs to the corresponding fitness function, only considering branches we want to
@@ -111,8 +117,14 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
                     break; // branches have been handled by getControlDepencies4Branches
                 case EXCEPTION:
                     break; // exception coverage is handled by calculateFitness
+                case PATCH:
+                    throw new RuntimeException("PATCH criterion is currently not handled/implemented.");
+                case PATCHLINE:
                 case LINE:
                     addDependencies4Line();
+                    break;
+                case CONTEXTLINE:
+                    addDependencies4ContextLine();
                     break;
                 case STATEMENT:
                     addDependencies4Statement();
@@ -146,7 +158,50 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
             }
         }
 
+        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+            // Determine set of branches that our goals directly depend on
+            Set<BranchCoverageTestFitness> directDependencies = dependencies.keySet().stream()
+                    .filter(branch -> !dependencies.get(branch).isEmpty())
+                    //.filter(branch -> !rootContextBranchGoals.contains(branch)) // (manually created) context root branches are not part of the graph
+                    .filter(branch -> graph.graph.containsVertex(branch)) // branch should be part of the graph (root branches are not added)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+
+            // Remove branches from the graph that can't reach any dependencies (i.e., don't help in reaching our goals)
+            Set<TestFitnessFunction> removedBranches = this.graph.removeNonDependentBranches(directDependencies);
+            for (TestFitnessFunction ff : removedBranches) {
+                BranchCoverageTestFitness goal = (BranchCoverageTestFitness) ff;
+
+                // Update branch fitness maps
+                if (goal.getBranch() == null) {
+                    if (!branchlessMethodCoverageMap.remove(goal.getClassName() + "." + goal.getMethod(), ff)) {
+                        throw new IllegalStateException("Trying to remove a branch from map that does not exist.");
+                    }
+                } else if (goal.getBranchExpressionValue()) {
+                    if (!branchCoverageTrueMap.remove(goal.getBranch().getActualBranchId(), ff)) {
+                        throw new IllegalStateException("Trying to remove a branch from map that does not exist.");
+                    }
+                } else {
+                    if (!branchCoverageFalseMap.remove(goal.getBranch().getActualBranchId(), ff)) {
+                        throw new IllegalStateException("Trying to remove a branch from map that does not exist.");
+                    }
+                }
+
+                // Note: There may be some branches left without dependencies (intermediate branches),
+                //       but thats ok as long as we don't remove branches that actually contain dependencies.
+                if (!dependencies.get(goal).isEmpty()) {
+                    throw new IllegalStateException("Trying to remove a branch with dependencies.");
+                }
+
+                dependencies.remove(goal);
+                Archive.getArchiveInstance().removeTarget(goal);
+            }
+        }
+
         // initialize current goals
+        // We can directly target root context goals as they don't have any dependencies themselves
+        this.currentGoals.addAll(rootContextBranchGoals);
+
+        // TODO EvoRepair: Need to remove any branches here?
         this.currentGoals.addAll(graph.getRootBranches());
     }
 
@@ -350,6 +405,31 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
     }
 
     /**
+     * This method derives the dependencies between {@link org.evosuite.coverage.patch.ContextLineTestFitness} and branches.
+     * Therefore, it is used to update 'this.dependencies'
+     */
+    private void addDependencies4ContextLine() {
+        logger.debug("Adding dependencies for ContextLines");
+        for (TestFitnessFunction ff : this.getUncoveredGoals()) {
+            if (ff instanceof ContextLineTestFitness) {
+                ContextLineTestFitness contextGoal = (ContextLineTestFitness) ff;
+                BranchCoverageTestFitness fitness = new BranchCoverageTestFitness(contextGoal.getBranchGoal());
+
+                // The context branch might be an artificial root branch that is not produced by the BranchCoverageFactory
+                if (!this.dependencies.containsKey(fitness)) {
+                    this.dependencies.put(fitness, new LinkedHashSet<>(Collections.singleton(ff)));
+                    rootContextBranchGoals.add(fitness);
+                    if (this.graph.graph.containsVertex(fitness)) {
+                        throw new IllegalStateException("Root branch not in branch maps but in graph.");
+                    }
+                } else {
+                    this.dependencies.get(fitness).add(ff);
+                }
+            }
+        }
+    }
+
+    /**
      * This methods derive the dependencies between  {@link StatementCoverageTestFitness} and branches.
      * Therefore, it is used to update 'this.dependencies'
      */
@@ -431,11 +511,19 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
                  * to see which ones of those goals are already reached by control flow.
                  */
                 if (target instanceof BranchCoverageTestFitness) {
-                    for (TestFitnessFunction child : graph.getStructuralChildren(target)) {
-                        targets.addLast(child);
+
+                    // (Context) root branches are not part of the graph + we removed plenty of other branches in the preprocessing
+                    if (graph.graph.containsVertex(target)) {
+                        for (TestFitnessFunction child : graph.getStructuralChildren(target)) {
+                            targets.addLast(child);
+                        }
                     }
-                    for (TestFitnessFunction dependentTarget : dependencies.get(target)) {
-                        targets.addLast(dependentTarget);
+
+                    // Root branches might have been removed from the graph but are still part of the initial goals
+                    if (dependencies.containsKey(target)) {
+                        for (TestFitnessFunction dependentTarget : dependencies.get(target)) {
+                            targets.addLast(dependentTarget);
+                        }
                     }
                 }
             } else {

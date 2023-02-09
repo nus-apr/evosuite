@@ -21,8 +21,6 @@ package org.evosuite.coverage.branch;
 
 import org.evosuite.Properties;
 import org.evosuite.TestGenerationContext;
-import org.evosuite.coverage.patch.communication.OracleLocationPool;
-import org.evosuite.coverage.patch.communication.json.OracleLocation;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.graphs.cfg.CFGMethodAdapter;
 import org.evosuite.testcase.TestChromosome;
@@ -49,10 +47,9 @@ import java.util.Map.Entry;
  */
 public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
 
-    //private static final long serialVersionUID = 2991632394620406243L;
+    private static final long serialVersionUID = 2991632394620406243L;
 
     private final static Logger logger = LoggerFactory.getLogger(BranchCoverageSuiteFitness.class);
-    private static final long serialVersionUID = -343044495739822939L;
 
     // Coverage targets
     public int totalGoals;
@@ -60,8 +57,6 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
     public int totalBranches;
     private final Set<String> branchlessMethods = new LinkedHashSet<>();
     private final Set<String> methods = new LinkedHashSet<>();
-
-    private final Map<String, Set<String>> oracleMethods = new LinkedHashMap<>();
 
     protected final Set<Integer> branchesId = new LinkedHashSet<>();
 
@@ -107,28 +102,6 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
         totalMethods = CFGMethodAdapter.getNumMethodsPrefix(classLoader, prefix);
         totalBranches = BranchPool.getInstance(classLoader).getBranchCountForPrefix(prefix);
         branchlessMethods.addAll(BranchPool.getInstance(classLoader).getBranchlessMethodsPrefix(prefix));
-
-        // EvoRepair: Add root branches for oracle methods (pseudo "branchless methods")
-        // This is necessary to have the goals in sync with what BranchCoverageFactory would produce
-        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS && Properties.EVOREPAIR_ORACLE_LOCATIONS != null) {
-            Map<String, Map<String, Set<OracleLocation>>> oracleLocationMap = OracleLocationPool.getInstance().getOracleLocations();
-            for(String className : oracleLocationMap.keySet()) {
-                for (String methodName : oracleLocationMap.get(className).keySet()) {
-                    branchlessMethods.add(className + "." + methodName);
-                }
-            }
-        }
-
-        // EvoRepair: Save locations of oracle methods since serialization (when sending individuals to master) will try to reload
-        // the oracle locations from the oracle location pool, which will fail since the LinePool has not yet been initialized.
-        // For some reason, the line pool is initialized (when loading the CUT) after de-serializing the fitness functions.
-        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS && Properties.EVOREPAIR_ORACLE_LOCATIONS != null) {
-            Map<String, Map<String, Set<OracleLocation>>> oracleLocationMap = OracleLocationPool.getInstance().getOracleLocations();
-            for (String className : oracleLocationMap.keySet()) {
-                oracleMethods.put(className, new LinkedHashSet<>(oracleLocationMap.get(className).keySet()));
-            }
-        }
-
         methods.addAll(CFGMethodAdapter.getMethodsPrefix(classLoader, prefix));
 
         determineCoverageGoals(true);
@@ -145,7 +118,7 @@ public class BranchCoverageSuiteFitness extends TestSuiteFitnessFunction {
      * Initialize the set of known coverage goals
      */
     protected void determineCoverageGoals(boolean updateArchive) {
-        List<BranchCoverageTestFitness> goals = new BranchCoverageFactory(oracleMethods).getCoverageGoals();
+        List<BranchCoverageTestFitness> goals = new BranchCoverageFactory().getCoverageGoals();
         for (BranchCoverageTestFitness goal : goals) {
             // Skip instrumented branches - we only want real branches
             if (goal.getBranch() != null) {
