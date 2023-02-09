@@ -292,6 +292,9 @@ public class CommandLineParameters {
         // Enable fix-location based objectives
         setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
 
+        // Enable no seed secondary objective
+        setPropertyAndAddToJavaOpts("secondary_objectives", "NUM_SEEDS:TOTAL_LENGTH", javaOpts);
+
         if (line.hasOption("criterion")) {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
         } else {
