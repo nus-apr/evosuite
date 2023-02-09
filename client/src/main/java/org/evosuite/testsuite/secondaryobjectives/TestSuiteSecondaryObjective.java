@@ -54,6 +54,9 @@ public class TestSuiteSecondaryObjective {
                 case RHO:
                     secondaryObjectiveInstance = new RhoTestSuiteSecondaryObjective();
                     break;
+                case NUM_SEEDS:
+                    secondaryObjectiveInstance = new MinimizeSeedsSecondaryObjective();
+                    break;
                 default:
                     throw new RuntimeException(
                             "ERROR: asked for unknown secondary objective \"" + secondaryObjective.name() + "\"");

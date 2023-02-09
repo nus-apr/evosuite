@@ -38,6 +38,9 @@ public class TestCaseSecondaryObjective {
                     case EXCEPTIONS:
                         secondaryObjectiveInstance = new MinimizeExceptionsSecondaryObjective();
                         break;
+                    case NUM_SEEDS:
+                        secondaryObjectiveInstance = new NoSeedSecondaryObjective();
+                        break;
                     default:
                         throw new RuntimeException("ERROR: asked for unknown secondary objective \""
                                 + secondaryObjective.name() + "\"");
