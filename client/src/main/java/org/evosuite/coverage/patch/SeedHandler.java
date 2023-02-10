@@ -7,6 +7,7 @@ import org.evosuite.coverage.patch.communication.json.*;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteSerialization;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,8 @@ public class SeedHandler {
     private static SeedHandler instance = null;
 
     private List<TestChromosome> seedTestPopulation = null;
+
+    private final Set<TestChromosome> seedTests = new LinkedHashSet<>();
     
     public static SeedHandler getInstance() {
         if (instance == null) {
@@ -171,7 +174,11 @@ public class SeedHandler {
 
         seedTestPopulation = result;
         PatchCoverageTestFitness.setKillMatrix(killMatrix);
-
+        seedTests.addAll(seedTestPopulation);
         return seedTestPopulation;
+    }
+
+    public Set<TestChromosome> getSeedTests() {
+        return seedTests;
     }
 }

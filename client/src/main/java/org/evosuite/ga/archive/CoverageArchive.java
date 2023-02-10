@@ -75,6 +75,30 @@ public class CoverageArchive extends Archive {
         this.registerNonCoveredTargetOfAMethod(target);
     }
 
+    @Override
+    public void removeTarget(TestFitnessFunction target) {
+        super.removeTarget(target);
+        if (!uncovered.remove(target)) {
+            logger.warn("Removing a target that is not part of the uncovered targets: {}.", target);
+        }
+
+        // Unregister target
+        String targetMethod = this.getMethodFullName(target);
+        if (this.nonCoveredTargetsOfEachMethod.containsKey(targetMethod)) {
+            if(!this.nonCoveredTargetsOfEachMethod.get(targetMethod).remove(target)) {
+                logger.warn("Target to remove is not part of the uncovered targets for method {}: {}", targetMethod, target);
+            }
+        } else {
+            logger.warn("Method {} of target {} is not registered in the archive.", targetMethod, target);
+        }
+
+        // Note: We should not remove targets after they are already covered
+        if (covered.containsKey(target)) {
+            logger.warn("Removing a target for which we have already found a solution: {}", target);
+            covered.remove(target);
+        }
+    }
+
     /**
      * {@inheritDoc}
      */

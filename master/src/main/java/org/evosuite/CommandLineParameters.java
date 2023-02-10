@@ -280,7 +280,13 @@ public class CommandLineParameters {
 
         // Enable MOSAPatch
         if (line.hasOption("generateMOSuite")) {
-            setPropertyAndAddToJavaOpts("algorithm", "MOSA", javaOpts);
+            String algorithm = line.getOptionProperties("D").getProperty("algorithm");
+            if (algorithm != null) {
+                setPropertyAndAddToJavaOpts("algorithm", algorithm, javaOpts);
+            } else {
+                setPropertyAndAddToJavaOpts("algorithm", "DYNAMOSA", javaOpts);
+            }
+            LoggingUtils.getEvoLogger().info("[EvoRepair] Using many-objective algorithm: {}", Properties.ALGORITHM);
         } else if (line.hasOption("generateSuite")){
             setPropertyAndAddToJavaOpts("algorithm", "NSGAII", javaOpts);
         } else {
@@ -294,14 +300,16 @@ public class CommandLineParameters {
         // Enable fix-location based objectives
         setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
 
+        // Enable no seed secondary objective
+        setPropertyAndAddToJavaOpts("secondary_objectives", "NUM_SEEDS:TOTAL_LENGTH", javaOpts);
+
         if (line.hasOption("criterion")) {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
         } else {
             // Enable all default criteria
-            String defaultCriteria = line.hasOption("oracleLocations") ? "PATCHLINE:PATCH:STRONGMUTATION:CONTEXTLINE" : "PATCHLINE:PATCH:STRONGMUTATION";
+            String defaultCriteria = line.hasOption("oracleLocations") ? "BRANCH:PATCHLINE:STRONGMUTATION:CONTEXTLINE" : "PATCHLINE:STRONGMUTATION";
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No criterions provided, using default: {}.", defaultCriteria);
             setPropertyAndAddToJavaOpts("criterion", defaultCriteria, javaOpts);
-            setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
         }
 
         // Name tests in test suite based on ID of test case

@@ -46,7 +46,7 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
 
     public static double getNormalizedKillScore(int testId, double lower, double upper) {
         if (!killMatrix.containsKey("testId")) {
-            return upper;
+            return lower;
         }
         double killScore = killMatrix.get(testId).size();
 

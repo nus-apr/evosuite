@@ -20,13 +20,8 @@
 
 package org.evosuite.coverage.cbranch;
 
-import org.evosuite.Properties;
 import org.evosuite.coverage.branch.BranchCoverageFactory;
 import org.evosuite.coverage.branch.BranchCoverageTestFitness;
-import org.evosuite.coverage.line.LineCoverageTestFitness;
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
-import org.evosuite.coverage.patch.communication.OracleLocationPool;
-import org.evosuite.coverage.patch.communication.json.OracleLocation;
 import org.evosuite.setup.CallContext;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.setup.callgraph.CallGraph;
@@ -34,7 +29,10 @@ import org.evosuite.testsuite.AbstractFitnessFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Gordon Fraser, mattia
@@ -42,7 +40,6 @@ import java.util.*;
 public class CBranchFitnessFactory extends AbstractFitnessFactory<CBranchTestFitness> {
 
     private static final Logger logger = LoggerFactory.getLogger(CBranchFitnessFactory.class);
-
 
     /* (non-Javadoc)
      * @see org.evosuite.coverage.TestFitnessFactory#getCoverageGoals()
@@ -52,76 +49,22 @@ public class CBranchFitnessFactory extends AbstractFitnessFactory<CBranchTestFit
         //TODO this creates duplicate goals. Momentary fixed using a Set, but it should be optimised
         Set<CBranchTestFitness> goals = new HashSet<>();
 
-        Map<String, Map<String, Set<OracleLocation>>> oracleLocations;
-        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
-            oracleLocations = OracleLocationPool.getInstance().getOracleLocations();
-        } else {
-            oracleLocations = Collections.emptyMap();
-        }
-        if (oracleLocations.isEmpty()) {
-            logger.warn("No oracle locations available for CBRANCH criterion. No goals will be produced.");
-        }
-
         // retrieve set of branches
         BranchCoverageFactory branchFactory = new BranchCoverageFactory();
         List<BranchCoverageTestFitness> branchGoals = branchFactory.getCoverageGoals();
-
-        // First, filter out any uninteresting branch goals
-        branchGoals.removeIf(b -> !shouldInclude(b, oracleLocations));
-
-        // Then, add control dependencies of target lines (fix locations and custom exceptions) as branch goals
-
-        Map<BranchCoverageTestFitness, Integer> branchGoalToTargetLocationMap = new LinkedHashMap<>();
-
-        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
-            for (LineCoverageTestFitness lineGoal : new PatchLineCoverageFactory().getCoverageGoals()) {
-                for (BranchCoverageTestFitness dependencyGoal: lineGoal.getControlDependencyGoals()) {
-                    branchGoals.add(dependencyGoal);
-                    branchGoalToTargetLocationMap.put(dependencyGoal, lineGoal.hashCode());
-                }
-            }
-        }
-
         CallGraph callGraph = DependencyAnalysis.getCallGraph();
 
         // try to find all occurrences of this branch in the call tree
         for (BranchCoverageTestFitness branchGoal : branchGoals) {
             logger.info("Adding context branches for " + branchGoal.toString());
-
-            Set<CallContext> callContexts;
-            if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
-                callContexts = callGraph.getAllContextsFromTargetClass(branchGoal.getClassName(),
-                        branchGoal.getMethod(), Properties.EVOREPAIR_USE_SUB_CONTEXTS);
-            } else {
-                callContexts = callGraph.getMethodEntryPoint(branchGoal.getClassName(),
-                        branchGoal.getMethod());
-            }
-
-            for (CallContext context : callContexts) {
-                CBranchTestFitness contextGoal = new CBranchTestFitness(branchGoal.getBranchGoal(), context);
-                goals.add(contextGoal);
+            for (CallContext context : callGraph.getMethodEntryPoint(branchGoal.getClassName(),
+                    branchGoal.getMethod())) {
+                goals.add(new CBranchTestFitness(branchGoal.getBranchGoal(), context));
             }
         }
 
         logger.info("Created " + goals.size() + " goals");
         return new ArrayList<>(goals);
-    }
-
-    private boolean shouldInclude(BranchCoverageTestFitness branchGoal, Map<String, Map<String, Set<OracleLocation>>> oracleLocations) {
-        // If we are not running evorepair, allow all ibranch goals
-        if (!Properties.EVOREPAIR_USE_SUB_CONTEXTS) {
-            return true;
-        }
-
-        // Any instrumented methods in this class?
-        String className = branchGoal.getClassName();
-        if (!oracleLocations.containsKey(className)) {
-            return false;
-        }
-
-        // Any instrumented methods with this name + descriptor?
-        String methodName = branchGoal.getMethod();
-        return oracleLocations.get(className).containsKey(methodName); // exclude if not contained
     }
 }
 
