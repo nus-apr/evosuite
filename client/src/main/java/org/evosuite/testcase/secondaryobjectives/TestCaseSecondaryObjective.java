@@ -38,6 +38,12 @@ public class TestCaseSecondaryObjective {
                     case EXCEPTIONS:
                         secondaryObjectiveInstance = new MinimizeExceptionsSecondaryObjective();
                         break;
+                    case NUM_ORACLE_TRIGGERS:
+                        secondaryObjectiveInstance = new MaximizeTriggeredOracleSecondaryObjective();
+                        break;
+                    case NUM_COVERED_FIX_LOCATIONS:
+                        secondaryObjectiveInstance = new MaximizeCoveredFixLocationsSecondaryObjective();
+                        break;
                     case NUM_SEEDS:
                         secondaryObjectiveInstance = new NoSeedSecondaryObjective();
                         break;

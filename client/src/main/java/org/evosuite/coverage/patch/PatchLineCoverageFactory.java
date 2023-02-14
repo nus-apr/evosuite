@@ -22,6 +22,8 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
     // Set of hash codes of all oracle location (thrown custom exception) hash codes
     private static final Set<Integer> oracleLocationHashCodes = new LinkedHashSet<>();
 
+    private static final Set<Integer> fixLocations = new LinkedHashSet<>();
+
     @Override
     public List<LineCoverageTestFitness> getCoverageGoals() {
         long start = System.currentTimeMillis();
@@ -32,6 +34,7 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
             // Note: searchOuterClass is set to false because the set returned by the PatchPool contains no inner/anonymous classes
             for (LineCoverageTestFitness fixLocationGoal : getCoverageGoals(c, new ArrayList<>(patchPool.getFixLocationsForClass(c, false)))) {
                 goals.add(fixLocationGoal);
+                fixLocations.add(fixLocationGoal.getLine());
                 fixLocationHashCodes.add(fixLocationGoal.hashCode());
             }
         }
@@ -60,6 +63,10 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
 
     public static Set<Integer> getOracleLocationHashCodes() {
         return oracleLocationHashCodes;
+    }
+
+    public static Set<Integer> getFixLocations() {
+        return fixLocations;
     }
 
     public List<LineCoverageTestFitness> getCoverageGoals(List<TargetLocation> fixLocations) {

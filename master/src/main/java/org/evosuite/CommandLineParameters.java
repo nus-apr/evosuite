@@ -298,14 +298,22 @@ public class CommandLineParameters {
         // Enable fix-location based objectives
         setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
 
-        // Enable no seed secondary objective
-        setPropertyAndAddToJavaOpts("secondary_objectives", "NUM_SEEDS:TOTAL_LENGTH", javaOpts);
+        // Enable secondary objectives
+        String secondaryObjectives = "NUM_SEEDS:NUM_ORACLE_TRIGGERS:NUM_COVERED_FIX_LOCATIONS:TOTAL_LENGTH";
+        LoggingUtils.getEvoLogger().warn("[EvoRepair] Enabling custom seconday objectives: {}.", secondaryObjectives);
+        setPropertyAndAddToJavaOpts("secondary_objectives", secondaryObjectives, javaOpts);
+        Properties.SECONDARY_OBJECTIVE = new Properties.SecondaryObjective[]{
+                Properties.SecondaryObjective.NUM_SEEDS,
+                Properties.SecondaryObjective.NUM_ORACLE_TRIGGERS,
+                Properties.SecondaryObjective.NUM_COVERED_FIX_LOCATIONS,
+                Properties.SecondaryObjective.TOTAL_LENGTH
+        };
 
         if (line.hasOption("criterion")) {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
         } else {
             // Enable all default criteria
-            String defaultCriteria = line.hasOption("oracleLocations") ? "BRANCH:PATCHLINE:STRONGMUTATION:CONTEXTLINE" : "PATCHLINE:STRONGMUTATION";
+            String defaultCriteria = "PATCHLINE:BRANCH:EXCEPTION:STRONGMUTATION:OUTPUT:METHOD:METHODNOEXCEPTION:CONTEXTLINE";
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No criterions provided, using default: {}.", defaultCriteria);
             setPropertyAndAddToJavaOpts("criterion", defaultCriteria, javaOpts);
         }
