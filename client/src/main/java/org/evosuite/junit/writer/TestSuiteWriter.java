@@ -346,7 +346,7 @@ public class TestSuiteWriter implements Opcodes {
             }
 
             // For each line goal, determine context goal stats
-            Map<TestFitnessFunction, Double>  lineFitnessMap = minFitnessValuesMap.get(LineCoverageTestFitness.class);
+            Map<TestFitnessFunction, Double>  lineFitnessMap = minFitnessValuesMap.getOrDefault(LineCoverageTestFitness.class, Collections.emptyMap());
             for (TestFitnessFunction fitnessFunction : lineFitnessMap.keySet()) {
                 // Determine context goals
                 LineCoverageTestFitness lineGoal = (LineCoverageTestFitness) fitnessFunction;

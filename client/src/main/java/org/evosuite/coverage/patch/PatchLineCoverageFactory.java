@@ -52,8 +52,10 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
                 }
             }
         }
-
         goalComputationTime = System.currentTimeMillis() - start;
+        if (goals.isEmpty()) {
+            logger.warn("No PatchLineGoals were created, check if the specified target locations actually exist.");
+        }
         return goals;
     }
 
