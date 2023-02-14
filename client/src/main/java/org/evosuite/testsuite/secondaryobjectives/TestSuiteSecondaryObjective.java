@@ -54,6 +54,12 @@ public class TestSuiteSecondaryObjective {
                 case RHO:
                     secondaryObjectiveInstance = new RhoTestSuiteSecondaryObjective();
                     break;
+                case NUM_ORACLE_TRIGGERS:
+                    secondaryObjectiveInstance = new MaximizeTriggeredOracleSecondaryObjective();
+                    break;
+                case NUM_COVERED_FIX_LOCATIONS:
+                    secondaryObjectiveInstance = new MaximizeCoveredFixLocationsSecondaryObjective();
+                    break;
                 case NUM_SEEDS:
                     secondaryObjectiveInstance = new MinimizeSeedsSecondaryObjective();
                     break;

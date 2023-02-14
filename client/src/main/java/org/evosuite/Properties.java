@@ -333,6 +333,9 @@ public class Properties {
     @Parameter(key = "addSubContexts", group = "EvoRepair", description = "Also consider sub-paths starting from each public method for each context goal.")
     public static boolean EVOREPAIR_USE_SUB_CONTEXTS = true;
 
+    @Parameter(key = "pruneBranches", group = "EvoRepair", description = "[DynaMOSA] Prune branches from the branch fitness graph that don't contribute to the coverage of other goals.")
+    public static boolean EVOREPAIR_DYNAMOSA_PRUNE_BRANCHES = false;
+
 
     // Search algorithm
     public enum Algorithm {
@@ -771,7 +774,7 @@ public class Properties {
     public static MutationProbabilityDistribution MUTATION_PROBABILITY_DISTRIBUTION = MutationProbabilityDistribution.UNIFORM;
 
     public enum SecondaryObjective {
-        AVG_LENGTH, MAX_LENGTH, TOTAL_LENGTH, SIZE, EXCEPTIONS, IBRANCH, RHO, NUM_SEEDS
+        AVG_LENGTH, MAX_LENGTH, TOTAL_LENGTH, SIZE, EXCEPTIONS, IBRANCH, RHO, NUM_ORACLE_TRIGGERS, NUM_COVERED_FIX_LOCATIONS, NUM_SEEDS
     }
 
     @Parameter(key = "secondary_objectives", group = "Search Algorithm", description = "Secondary objective during search")
