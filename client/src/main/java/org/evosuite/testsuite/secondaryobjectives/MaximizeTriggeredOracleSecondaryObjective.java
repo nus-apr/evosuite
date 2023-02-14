@@ -17,7 +17,7 @@ public class MaximizeTriggeredOracleSecondaryObjective extends SecondaryObjectiv
                 sum += (int) result.getAllThrownExceptions().stream()
                         .filter(RuntimeException.class::isInstance)
                         .map(Throwable::getMessage)
-                        .filter(msg -> msg.equals("[Defects4J_BugReport_Violation]"))
+                        .filter(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"))
                         .count();
             }
         }

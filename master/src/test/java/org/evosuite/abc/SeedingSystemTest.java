@@ -120,7 +120,7 @@ public class SeedingSystemTest extends SystemTestBase {
     public void testLoadGoalsFromJSON() {
         targetClass = MethodReturnsPrimitive.class.getCanonicalName();
         String patchFile = "src/test/resources/org/evosuite/abc/patch_population.json";
-        command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-criterion", "PATCHLINE:PATCH", "-targetPatches", patchFile, "-class", targetClass};
+        command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-Dalgorithm=MOSA", "-criterion", "PATCHLINE:PATCH", "-targetPatches", patchFile, "-class", targetClass};
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();

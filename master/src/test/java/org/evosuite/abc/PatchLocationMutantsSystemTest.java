@@ -53,7 +53,7 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
         Properties.TARGET_CLASS = targetClass;
         URL resource = this.getClass().getResource("patch_population.json");
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "STRONGMUTATION", "-targetPatches", resource.getPath(), "-class", targetClass };
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-Dalgorithm=MOSA", "-criterion", "STRONGMUTATION", "-targetPatches", resource.getPath(), "-class", targetClass };
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
