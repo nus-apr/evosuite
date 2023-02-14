@@ -318,7 +318,12 @@ public class TestSuiteWriter implements Opcodes {
             List<TargetLocationFitnessMetrics> oracleLocationMetrics = new ArrayList<>();
 
             // Mapping from context goals to min fitness values
-            Map <TestFitnessFunction, Double> allContextGoalFitnessValues = minFitnessValuesMap.get(ContextLineTestFitness.class);
+            Map <TestFitnessFunction, Double> allContextGoalFitnessValues = minFitnessValuesMap.getOrDefault(ContextLineTestFitness.class, Collections.emptyMap());
+
+            // TODO EvoRepair: At this point, we should just output the target line stats, no need to do any further computations
+            if (allContextGoalFitnessValues.isEmpty()) {
+                logger.warn("No registered ContextLineGoals. No context line stats will be produced.");
+            }
 
             // Mapping from line goals to context goals
             Map <TestFitnessFunction, Set<TestFitnessFunction>> targetGoalToContextGoalMap = new LinkedHashMap<>();
@@ -350,7 +355,7 @@ public class TestSuiteWriter implements Opcodes {
                 Map<String, Double> contextGoalFitnessValuesMap = new LinkedHashMap<>();
                 Map<String, Integer> contextGoalCoveringTestsMap = new LinkedHashMap<>();
 
-                Set<TestFitnessFunction> contextGoals = targetGoalToContextGoalMap.get(lineGoal);
+                Set<TestFitnessFunction> contextGoals = targetGoalToContextGoalMap.getOrDefault(lineGoal, Collections.emptySet());
 
                 int numTotalContexts = contextGoals.size();
                 int numCoveredContexts = 0;
