@@ -30,6 +30,7 @@ import org.evosuite.coverage.CoverageCriteriaAnalyzer;
 import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.dataflow.DefUseCoverageSuiteFitness;
+import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.coverage.patch.SeedHandler;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
@@ -357,6 +358,14 @@ public class TestSuiteGenerator {
         testSuite.getTestChromosomes()
                 .removeIf(t -> t.getLastExecutionResult() != null && (t.getLastExecutionResult().hasTimeout() ||
                         t.getLastExecutionResult().hasTestException()));
+
+        if (Properties.EVOREPAIR_FILTER_FIXLOCATION_COVERING_TESTS) {
+            int before = testSuite.size();
+            testSuite.getTestChromosomes()
+                    .removeIf(t -> t.getTestCase().getCoveredGoals().stream().noneMatch(LineCoverageTestFitness.class::isInstance));
+            int after = testSuite.size();
+            LoggingUtils.getEvoLogger().info("* Removed {} test cases because they did not cover any fix location. Remaining number of tests cases: {}", before-after, after);
+        }
 
         if (Properties.CTG_SEEDS_FILE_OUT != null) {
             TestSuiteSerialization.saveTests(testSuite, new File(Properties.CTG_SEEDS_FILE_OUT));

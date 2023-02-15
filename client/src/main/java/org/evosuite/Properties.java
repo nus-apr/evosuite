@@ -336,6 +336,9 @@ public class Properties {
     @Parameter(key = "pruneBranches", group = "EvoRepair", description = "[DynaMOSA] Prune branches from the branch fitness graph that don't contribute to the coverage of other goals.")
     public static boolean EVOREPAIR_DYNAMOSA_PRUNE_BRANCHES = false;
 
+    @Parameter(key = "filterFixLocationCoveringTests", group = "EvoRepair", description = "Only retain tests in the final test suite that cover at least one fix location.")
+    public static boolean EVOREPAIR_FILTER_FIXLOCATION_COVERING_TESTS = true;
+
 
     // Search algorithm
     public enum Algorithm {
