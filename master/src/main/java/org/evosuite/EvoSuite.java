@@ -275,6 +275,9 @@ public class EvoSuite {
                             + base_dir_path);
                     return null;
                 }
+                if (Properties.CLIENT_ON_THREAD) {
+                    Properties.BASE_DIR = base_dir_path;
+                }
             }
 
             CommandLineParameters.validateInputOptionsAndParameters(line);

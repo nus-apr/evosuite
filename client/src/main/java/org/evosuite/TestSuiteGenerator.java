@@ -679,7 +679,7 @@ public class TestSuiteGenerator {
             }
 
             String name = Properties.TARGET_CLASS.substring(Properties.TARGET_CLASS.lastIndexOf(".") + 1);
-            String testDir = Properties.TEST_DIR;
+            String testDir = Properties.CLIENT_ON_THREAD ? Properties.BASE_DIR + File.separator + Properties.TEST_DIR : Properties.TEST_DIR;
 
             LoggingUtils.getEvoLogger().info("* " + ClientProcess.getPrettyPrintIdentifier() + "Writing JUnit test case '"
                     + (name + suffix) + "' to " + testDir);
@@ -692,7 +692,7 @@ public class TestSuiteGenerator {
             SeedHandler.getInstance().saveTestPopulation(actualSuite);
 
             TestGenerationResult result = TestGenerationResultBuilder.buildSuccessResult();
-            suiteWriter.writeTargetLocationStats(testSuite, result);
+            suiteWriter.writeTargetLocationStats(testSuite, result, testDir);
             return result;
         }
 
