@@ -301,9 +301,14 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
      */
     private void addDependencies4Methods() {
         logger.debug("Added dependencies for Methods");
+        Set<TestFitnessFunction> goals = Archive.getArchiveInstance().getUncoveredTargets();
         for (BranchCoverageTestFitness branch : this.dependencies.keySet()) {
             MethodCoverageTestFitness method = new MethodCoverageTestFitness(branch.getClassName(), branch.getMethod());
-            this.dependencies.get(branch).add(method);
+            // Note: This check is necessary because for branches inside private methods,
+            //  this leads to an unknown goal assertion error, as these methods have not been added to the archive.
+            if (goals.contains(method)) {
+                this.dependencies.get(branch).add(method);
+            }
         }
     }
 
@@ -313,9 +318,14 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
      */
     private void addDependencies4MethodsNoException() {
         logger.debug("Added dependencies for MethodsNoException");
+        Set<TestFitnessFunction> goals = Archive.getArchiveInstance().getUncoveredTargets();
         for (BranchCoverageTestFitness branch : this.dependencies.keySet()) {
             MethodNoExceptionCoverageTestFitness method = new MethodNoExceptionCoverageTestFitness(branch.getClassName(), branch.getMethod());
-            this.dependencies.get(branch).add(method);
+            // Note: This check is necessary because for branches inside private methods,
+            //  this leads to an unknown goal assertion error, as these methods have not been added to the archive.
+            if (goals.contains(method)) {
+                this.dependencies.get(branch).add(method);
+            }
         }
     }
 
@@ -427,6 +437,8 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
                 }
             }
         }
+        // New goals that previously did not exist in the dependency map
+        Archive.getArchiveInstance().addTargets(rootContextBranchGoals);
     }
 
     /**
