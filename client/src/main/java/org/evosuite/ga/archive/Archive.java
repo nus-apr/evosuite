@@ -20,6 +20,7 @@
 package org.evosuite.ga.archive;
 
 import org.evosuite.Properties;
+import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.SecondaryObjective;
 import org.evosuite.runtime.util.AtMostOnceLogger;
@@ -62,6 +63,8 @@ public abstract class Archive implements Serializable {
     protected final Map<String, Set<TestFitnessFunction>> nonCoveredTargetsOfEachMethod =
             new LinkedHashMap<>();
 
+    protected final Set<LineCoverageTestFitness> targetLineGoals = new LinkedHashSet<>();
+
     /**
      * Has this archive been updated with new candidate solutions?
      */
@@ -79,6 +82,10 @@ public abstract class Archive implements Serializable {
             throw new RuntimeException("Trying to add a target of '" + target.getClass().getSimpleName()
                     + "' type to the archive, but correspondent criterion is not enabled.");
         }
+
+        if (target instanceof LineCoverageTestFitness) {
+            targetLineGoals.add((LineCoverageTestFitness) target);
+        }
     }
 
 
@@ -86,6 +93,9 @@ public abstract class Archive implements Serializable {
         assert target != null;
     }
 
+    public Set<LineCoverageTestFitness> getTargetLineGoals() {
+        return targetLineGoals;
+    }
 
     /**
      * Register a collection of targets.
