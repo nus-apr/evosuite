@@ -31,17 +31,13 @@ public class Defects4JSystemTest extends SystemTestBase {
     public void testMath2() {
 
         EvoSuite evosuite = new EvoSuite();
-
         URL resource = this.getClass().getResource("math2_patches.json");
-
         String targetClass = "org.apache.commons.math3.distribution.HypergeometricDistribution";
         String projectCP = "/home/lam/workspace/nus-apr/evoRepair/test/math_2_instr/target/classes";
         Properties.JUNIT_SUFFIX = "_Debug_ESTest";
         Properties.JUNIT_TESTS = true; // Write test suite to out.
         String[] command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-targetPatches", resource.getPath(), "-class", targetClass,
         "-projectCP", projectCP};
-
-
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<TestSuiteChromosome> ga = getGAFromResult(result);
     }
@@ -49,25 +45,17 @@ public class Defects4JSystemTest extends SystemTestBase {
 
     @Test
     public void testMath58() {
-
         EvoSuite evosuite = new EvoSuite();
-
-        URL resource = this.getClass().getResource("math2_patches.json");
-
         String targetClass = "org.apache.commons.math.optimization.fitting.GaussianFitter";
-
-        // TODO EvoRepair: Avoid using hardcoded paths
         String targetPatches = "../../evorepair-experiments/evorepair/C1-evorepair-defects4j-Math-58-6c757b79/output/math_58-math_58-230118_170804/gen-test/target_patches_gen1.json";
-        String oracleLocations = "../math58_oracleLocations.json";
+        String oracleLocations = "../../defects4j-instrumented/oracle-locations/math_58.json";
         String projectCP = "../../defects4j-instrumented/instrumented-archives/math_58/target/classes";
         //Properties.JUNIT_SUFFIX = "_Debug_ESTest";
         //Properties.JUNIT_TESTS = true; // Write test suite to out.
         String[] command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-targetPatches", targetPatches, "-class", targetClass,
-                "-projectCP", projectCP, "-criterion", "PATCH:PATCHLINE:BRANCH:IBRANCH:STRONGMUTATION", "-oracleLocations", oracleLocations};
-
+                "-projectCP", projectCP, "-oracleLocations", oracleLocations};
         //This is necessary to cover all fix locations, don't uncomment if using additional goals (e.g., patch mutation or patch coverage)
         //Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
-
         Object result = evosuite.parseCommandLine(command);
         computeCoveredGoalsFromResult(result);
         GeneticAlgorithm<TestSuiteChromosome> ga = getGAFromResult(result);
