@@ -136,6 +136,8 @@ public abstract class StructuralGoalManager implements Serializable {
         tc.getTestCase().getCoveredGoals().add(f);
 
         // update covered targets
+        // If we are only interested in tests that also cover fix locations, only consider a target fully covered
+        // if a fix-location covering test covers it
         if (!Properties.EVOREPAIR_FILTER_FIXLOCATION_COVERING_TESTS
             || tc.getTestCase().getCoveredGoals().stream().anyMatch(LineCoverageTestFitness.class::isInstance)) {
                 this.archive.updateArchive(f, tc, tc.getFitness(f));
