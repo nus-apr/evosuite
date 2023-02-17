@@ -23,6 +23,7 @@ import org.evosuite.Properties;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.SecondaryObjective;
+import org.evosuite.instrumentation.LinePool;
 import org.evosuite.runtime.util.AtMostOnceLogger;
 import org.evosuite.setup.TestCluster;
 import org.evosuite.testcase.TestCase;
@@ -63,8 +64,6 @@ public abstract class Archive implements Serializable {
     protected final Map<String, Set<TestFitnessFunction>> nonCoveredTargetsOfEachMethod =
             new LinkedHashMap<>();
 
-    protected final Set<LineCoverageTestFitness> targetLineGoals = new LinkedHashSet<>();
-
     /**
      * Has this archive been updated with new candidate solutions?
      */
@@ -83,9 +82,6 @@ public abstract class Archive implements Serializable {
                     + "' type to the archive, but correspondent criterion is not enabled.");
         }
 
-        if (target instanceof LineCoverageTestFitness) {
-            targetLineGoals.add((LineCoverageTestFitness) target);
-        }
     }
 
 
@@ -93,9 +89,6 @@ public abstract class Archive implements Serializable {
         assert target != null;
     }
 
-    public Set<LineCoverageTestFitness> getTargetLineGoals() {
-        return targetLineGoals;
-    }
 
     /**
      * Register a collection of targets.
@@ -542,11 +535,20 @@ public abstract class Archive implements Serializable {
      */
     public static Archive getArchiveInstance() {
         switch (Properties.ARCHIVE_TYPE) {
+            case COVERAGE_WITH_LINE:
+                return CoverageWithLineArchive.instance;
             case COVERAGE:
             default:
                 return CoverageArchive.instance;
             case MIO:
                 return MIOArchive.instance;
         }
+    }
+
+    public static CoverageWithLineArchive getCoverageWithLineArchive() {
+        if (Properties.ARCHIVE_TYPE != Properties.ArchiveType.COVERAGE_WITH_LINE) {
+            throw new RuntimeException("Cannot return CoverageWithLineArchive because Archive type is: " + Properties.ARCHIVE_TYPE);
+        }
+        return CoverageWithLineArchive.instance;
     }
 }

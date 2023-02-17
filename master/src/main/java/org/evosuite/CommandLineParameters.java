@@ -299,6 +299,7 @@ public class CommandLineParameters {
         setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
 
         // Enable secondary objectives
+        /*
         String secondaryObjectives = "NUM_SEEDS:NUM_ORACLE_TRIGGERS:NUM_COVERED_FIX_LOCATIONS:TOTAL_LENGTH";
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Enabling custom seconday objectives: {}.", secondaryObjectives);
         setPropertyAndAddToJavaOpts("secondary_objectives", secondaryObjectives, javaOpts);
@@ -308,6 +309,14 @@ public class CommandLineParameters {
                 Properties.SecondaryObjective.NUM_COVERED_FIX_LOCATIONS,
                 Properties.SecondaryObjective.TOTAL_LENGTH
         };
+         */
+        LoggingUtils.getEvoLogger().warn("[EvoRepair] Custom seconday objectives are currently DISABLED.");
+
+        LoggingUtils.getEvoLogger().warn("[EvoRepair] Using custom archive.");
+        setPropertyAndAddToJavaOpts("archive_type", "COVERAGE_WITH_LINE", javaOpts);
+        Properties.getInstance();
+        Properties.ARCHIVE_TYPE = Properties.ArchiveType.COVERAGE_WITH_LINE;
+
 
         if (line.hasOption("criterion")) {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);

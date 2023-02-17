@@ -1366,7 +1366,7 @@ public class Properties {
     public static TestFactory TEST_FACTORY = TestFactory.ARCHIVE;
 
     public enum ArchiveType {
-        COVERAGE, MIO
+        COVERAGE, MIO, COVERAGE_WITH_LINE
     }
 
     /**
