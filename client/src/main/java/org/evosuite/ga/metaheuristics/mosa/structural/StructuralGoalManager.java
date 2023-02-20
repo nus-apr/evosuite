@@ -19,8 +19,6 @@
  */
 package org.evosuite.ga.metaheuristics.mosa.structural;
 
-import org.evosuite.Properties;
-import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.testcase.TestChromosome;
@@ -136,11 +134,6 @@ public abstract class StructuralGoalManager implements Serializable {
         tc.getTestCase().getCoveredGoals().add(f);
 
         // update covered targets
-        // If we are only interested in tests that also cover fix locations, only consider a target fully covered
-        // if a fix-location covering test covers it
-        if (!Properties.EVOREPAIR_FILTER_FIXLOCATION_COVERING_TESTS
-            || tc.getTestCase().getCoveredGoals().stream().anyMatch(LineCoverageTestFitness.class::isInstance)) {
-                this.archive.updateArchive(f, tc, tc.getFitness(f));
-        }
+        this.archive.updateArchive(f, tc, tc.getFitness(f));
     }
 }

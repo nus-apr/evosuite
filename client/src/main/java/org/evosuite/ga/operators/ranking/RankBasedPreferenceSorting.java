@@ -86,6 +86,7 @@ public class RankBasedPreferenceSorting<T extends Chromosome<T>> implements Rank
         List<T> zero_front = this.getZeroFront(solutions, uncovered_goals);
 
         // Add fix location covering tests to the zero front
+        /*
         if (Properties.EVOREPAIR_FILTER_FIXLOCATION_COVERING_TESTS) {
             int zeroFrontSize = zero_front.size();
             int addedLineSolutions = 0;
@@ -104,6 +105,7 @@ public class RankBasedPreferenceSorting<T extends Chromosome<T>> implements Rank
                 }
             }
         }
+         */
 
         this.fronts.add(zero_front);
         int frontIndex = 1;

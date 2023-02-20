@@ -349,7 +349,7 @@ public class Properties {
         // mu-lambda
         ONE_PLUS_LAMBDA_LAMBDA_GA, ONE_PLUS_ONE_EA, MU_PLUS_LAMBDA_EA, MU_LAMBDA_EA,
         // many-objective algorithms
-        MOSA, DYNAMOSA, LIPS, MIO, MOSAPATCH,
+        MOSA, DYNAMOSA, LIPS, MIO, MOSA_PATCH, DYNAMOSA_PATCH,
         // multiple-objective optimisation algorithms
         NSGAII, SPEA2
     }
@@ -1366,7 +1366,7 @@ public class Properties {
     public static TestFactory TEST_FACTORY = TestFactory.ARCHIVE;
 
     public enum ArchiveType {
-        COVERAGE, MIO, COVERAGE_WITH_LINE
+        COVERAGE, MIO, MULTI_CRITERIA_COVERAGE
     }
 
     /**

@@ -282,7 +282,7 @@ public class CommandLineParameters {
             if (algorithm != null) {
                 setPropertyAndAddToJavaOpts("algorithm", algorithm, javaOpts);
             } else {
-                setPropertyAndAddToJavaOpts("algorithm", "DYNAMOSA", javaOpts);
+                setPropertyAndAddToJavaOpts("algorithm", "DYNAMOSA_PATCH", javaOpts);
             }
             LoggingUtils.getEvoLogger().info("[EvoRepair] Using many-objective algorithm: {}", Properties.ALGORITHM);
         } else if (line.hasOption("generateSuite")){
@@ -313,9 +313,9 @@ public class CommandLineParameters {
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Custom seconday objectives are currently DISABLED.");
 
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Using custom archive.");
-        setPropertyAndAddToJavaOpts("archive_type", "COVERAGE_WITH_LINE", javaOpts);
+        setPropertyAndAddToJavaOpts("archive_type", "MULTI_CRITERIA_COVERAGE", javaOpts);
         Properties.getInstance();
-        Properties.ARCHIVE_TYPE = Properties.ArchiveType.COVERAGE_WITH_LINE;
+        Properties.ARCHIVE_TYPE = Properties.ArchiveType.MULTI_CRITERIA_COVERAGE;
 
 
         if (line.hasOption("criterion")) {

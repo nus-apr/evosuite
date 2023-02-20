@@ -20,10 +20,8 @@
 package org.evosuite.ga.archive;
 
 import org.evosuite.Properties;
-import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.SecondaryObjective;
-import org.evosuite.instrumentation.LinePool;
 import org.evosuite.runtime.util.AtMostOnceLogger;
 import org.evosuite.setup.TestCluster;
 import org.evosuite.testcase.TestCase;
@@ -535,8 +533,8 @@ public abstract class Archive implements Serializable {
      */
     public static Archive getArchiveInstance() {
         switch (Properties.ARCHIVE_TYPE) {
-            case COVERAGE_WITH_LINE:
-                return CoverageWithLineArchive.instance;
+            case MULTI_CRITERIA_COVERAGE:
+                return MultiCriteriaCoverageArchive.instance;
             case COVERAGE:
             default:
                 return CoverageArchive.instance;
@@ -545,10 +543,10 @@ public abstract class Archive implements Serializable {
         }
     }
 
-    public static CoverageWithLineArchive getCoverageWithLineArchive() {
-        if (Properties.ARCHIVE_TYPE != Properties.ArchiveType.COVERAGE_WITH_LINE) {
+    public static MultiCriteriaCoverageArchive getCoverageWithLineArchive() {
+        if (Properties.ARCHIVE_TYPE != Properties.ArchiveType.MULTI_CRITERIA_COVERAGE) {
             throw new RuntimeException("Cannot return CoverageWithLineArchive because Archive type is: " + Properties.ARCHIVE_TYPE);
         }
-        return CoverageWithLineArchive.instance;
+        return MultiCriteriaCoverageArchive.instance;
     }
 }

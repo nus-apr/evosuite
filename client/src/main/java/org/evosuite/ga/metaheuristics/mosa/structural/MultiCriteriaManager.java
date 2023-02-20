@@ -487,9 +487,11 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
         }
 
         // 0) First update fitness values w.r.t. line coverage goals (need to maintain for preference sorting&selection)
-        for (LineCoverageTestFitness lineGoal : Archive.getCoverageWithLineArchive().getTargetLineGoals()) {
-            if (lineGoal.getFitness(c) == 0.0) { // assume minimization function
-                updateCoveredGoals(lineGoal, c); // marks the current goal as covered
+        if (Properties.ARCHIVE_TYPE == Properties.ArchiveType.MULTI_CRITERIA_COVERAGE) {
+            for (LineCoverageTestFitness lineGoal : Archive.getCoverageWithLineArchive().getTargetLineGoals()) {
+                if (lineGoal.getFitness(c) == 0.0) { // assume minimization function
+                    updateCoveredGoals(lineGoal, c); // marks the current goal as covered
+                }
             }
         }
 
