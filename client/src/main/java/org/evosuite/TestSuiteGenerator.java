@@ -701,7 +701,7 @@ public class TestSuiteGenerator {
             SeedHandler.getInstance().saveTestPopulation(actualSuite);
 
             TestGenerationResult result = TestGenerationResultBuilder.buildSuccessResult();
-            suiteWriter.writeTargetLocationStats(testSuite, result);
+            suiteWriter.writeTargetLocationStats(actualSuite, result);
             return result;
         }
 
