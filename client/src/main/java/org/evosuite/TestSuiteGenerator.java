@@ -31,6 +31,8 @@ import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.coverage.TestFitnessFactory;
 import org.evosuite.coverage.dataflow.DefUseCoverageSuiteFitness;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
+import org.evosuite.coverage.mutation.StrongMutationTestFitness;
+import org.evosuite.coverage.patch.ContextLineTestFitness;
 import org.evosuite.coverage.patch.SeedHandler;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.ga.stoppingconditions.StoppingCondition;
@@ -361,6 +363,25 @@ public class TestSuiteGenerator {
 
         if (Properties.EVOREPAIR_FILTER_FIXLOCATION_COVERING_TESTS) {
             int before = testSuite.size();
+
+            // Sanity check: Tests that cover either contextline or strongmutation goals should also cover a line goal
+            if (Properties.EVOREPAIR_DEBUG) {
+                for (TestChromosome tc : testSuite.getTestChromosomes()) {
+                    Set<TestFitnessFunction> coveredGoals = tc.getTestCase().getCoveredGoals();
+                    if (coveredGoals.stream().anyMatch(t -> (t instanceof StrongMutationTestFitness))) {
+                        if (coveredGoals.stream().noneMatch(LineCoverageTestFitness.class::isInstance)) {
+                            LoggingUtils.getEvoLogger().warn("* Found a test case that covers a strong mutation goal but no line goal!");
+                        }
+                    }
+
+                    if (coveredGoals.stream().anyMatch(t -> (t instanceof ContextLineTestFitness))) {
+                        if (coveredGoals.stream().noneMatch(LineCoverageTestFitness.class::isInstance)) {
+                            LoggingUtils.getEvoLogger().warn("* Found a test case that covers a context line goal but no line goal!");
+                        }
+                    }
+                }
+            }
+
             testSuite.getTestChromosomes()
                     .removeIf(t -> t.getTestCase().getCoveredGoals().stream().noneMatch(LineCoverageTestFitness.class::isInstance));
             int after = testSuite.size();

@@ -339,6 +339,9 @@ public class Properties {
     @Parameter(key = "filterFixLocationCoveringTests", group = "EvoRepair", description = "Only retain tests in the final test suite that cover at least one fix location.")
     public static boolean EVOREPAIR_FILTER_FIXLOCATION_COVERING_TESTS = true;
 
+    @Parameter(key = "evoRepairDebug", group = "EvoRepair", description = "Enable runtime checks while running EvoRepair.")
+    public static boolean EVOREPAIR_DEBUG = false;
+
 
     // Search algorithm
     public enum Algorithm {
