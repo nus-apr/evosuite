@@ -14,6 +14,11 @@ import java.util.List;
 
 public class ERepairMain {
     public static void main(String[] args) throws Exception {
+        String randomSeedS = System.getProperty("random_seed");
+        if (randomSeedS != null) {
+            Properties.RANDOM_SEED = Long.valueOf(randomSeedS);
+        }
+
         HashMap<String, String> parameterStrs = Interpreter.getParameterStrings(args);
         HashMap<String, Object> parameters = Interpreter.getBasicParameterSetting(parameterStrs);
 
