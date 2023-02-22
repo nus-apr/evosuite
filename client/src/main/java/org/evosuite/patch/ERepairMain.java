@@ -9,7 +9,7 @@ import org.evosuite.ga.stoppingconditions.MaxGenerationStoppingCondition;
 import us.msu.cse.repair.Interpreter;
 import us.msu.cse.repair.ec.problems.ArjaEProblem;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 public class ERepairMain {
@@ -19,8 +19,8 @@ public class ERepairMain {
             Properties.RANDOM_SEED = Long.valueOf(randomSeedS);
         }
 
-        HashMap<String, String> parameterStrs = Interpreter.getParameterStrings(args);
-        HashMap<String, Object> parameters = Interpreter.getBasicParameterSetting(parameterStrs);
+        Map<String, String> parameterStrs = Interpreter.getParameterStrings(args);
+        Map<String, Object> parameters = Interpreter.getBasicParameterSetting(parameterStrs);
 
         parameters.put("ingredientScreenerName", "Direct2");
         parameters.put("testExecutorName", "ExternalTestExecutor2");
