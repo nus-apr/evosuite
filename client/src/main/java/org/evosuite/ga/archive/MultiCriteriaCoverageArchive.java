@@ -1,7 +1,9 @@
 package org.evosuite.ga.archive;
 
+import org.evosuite.Properties;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.instrumentation.LinePool;
+import org.evosuite.testcase.TestCaseMinimizer;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
@@ -102,6 +104,17 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
                                        TestChromosome solution,
                                        double fitnessValue) {
 
+        // Minimize test w.r.t. covered line goals
+        List<TestFitnessFunction> coveredLineGoals = solution.getTestCase().getCoveredGoals().stream()
+                        .filter(LineCoverageTestFitness.class::isInstance)
+                        .collect(Collectors.toList());
+
+        // Disabling archive during minimization
+        Properties.TEST_ARCHIVE = false;
+        TestCaseMinimizer minimizer = new TestCaseMinimizer(null); // TODO EvoRepair: null is a bad idea
+        minimizer.minimizeWithCoveredGoals(solution, coveredLineGoals);
+        Properties.TEST_ARCHIVE = true;
+
         // Add solution to archive (or replace existing solution)
         super.updateArchive(target, solution, fitnessValue);
 
@@ -156,6 +169,11 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
         }
         return solutions;
     }
+
+    public Map<LineCoverageTestFitness, Map<Set<Integer>, TestChromosome>> getTargetLineSolutionMap() {
+        return targetLineSolutions;
+    }
+
 
     public List<TestChromosome> getPartialSolutions() {
         return new ArrayList<>(partialSolutions.values());

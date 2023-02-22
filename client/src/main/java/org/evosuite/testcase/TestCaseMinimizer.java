@@ -99,6 +99,21 @@ public class TestCaseMinimizer {
         return false;
     }
 
+    // Check if the new chromosome has worse coverage or worse secondary fitness
+    private static boolean isWorseCoverage(List<TestFitnessFunction> fitnessFunctions,
+                                   TestChromosome oldChromosome, TestChromosome newChromosome) {
+        if (fitnessFunctions.stream().anyMatch(ff -> ff.getFitness(newChromosome) != 0)) {
+            return true;
+        }
+
+        for (SecondaryObjective<TestChromosome> objective : TestChromosome.getSecondaryObjectives()) {
+            if (objective.compareChromosomes(oldChromosome, newChromosome) < 0)
+                return true;
+        }
+
+        return false;
+    }
+
     private boolean isTimeoutReached() {
         return !TimeController.getInstance().isThereStillTimeInThisPhase();
     }
@@ -193,7 +208,74 @@ public class TestCaseMinimizer {
             logger.debug("Minimized test case: ");
             logger.debug(c.test.toCode());
         }
+    }
 
+    // Minimizes a test chromosome w.r.t. covered goals
+    public void minimizeWithCoveredGoals(TestChromosome c, List<TestFitnessFunction> fitnessFunctions) {
+        logger.info("Minimizing test case");
+
+        for (TestFitnessFunction f : fitnessFunctions) {
+            if (f.getFitness(c) > 0.0) {
+                logger.warn("minimizeWithCoveredGoals only retains covered goals, goal with non-optimal fitness: {}", f);
+            }
+        }
+
+        if (isTimeoutReached()) {
+            return;
+        }
+
+        int originalSize = c.size();
+
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+
+            for (int i = c.test.size() - 1; i >= 0; i--) {
+                if (isTimeoutReached()) {
+                    logger.debug("Timeout reached before minimizing statement {}", c.test.getStatement(i).getCode());
+                    return;
+                }
+
+                logger.debug("Deleting statement {}", c.test.getStatement(i).getCode());
+                TestChromosome copy = c.clone();
+                boolean modified;
+                try {
+                    modified = TestFactory.getInstance().deleteStatementGracefully(c.test, i);
+                } catch (ConstructionFailedException e) {
+                    modified = false;
+                }
+
+                if (!modified) {
+                    c.setChanged(false);
+                    c.test = copy.test;
+                    logger.debug("Deleting failed");
+                    continue;
+                }
+
+                c.setChanged(true);
+
+                if (isTimeoutReached()) {
+                    logger.debug("Keeping original version due to timeout");
+                    restoreTestCase(c, copy);
+                    return;
+                }
+
+                if (!isWorseCoverage(fitnessFunctions, copy, c)) {
+                    logger.debug("Keeping shorter version");
+                    changed = true;
+                    break;
+                } else {
+                    logger.debug("Keeping original version");
+                    restoreTestCase(c, copy);
+                }
+
+            }
+        }
+
+        if (Properties.EVOREPAIR_DEBUG) {
+            int newSize = c.size();
+            logger.info("Minimized test case by removing {} statements (new size: {}).", newSize - originalSize, newSize);
+        }
     }
 
     private static void restoreTestCase(TestChromosome c, TestChromosome copy) {
