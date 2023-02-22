@@ -134,6 +134,7 @@ public class CommandLineParameters {
         Option seedPopulation = new Option("seeds", true, "Path to JSON file specifying seed population");
         Option targetPatches = new Option("targetPatches", true, "Path to JSON file specifying target patches");
         Option oracleLocations = new Option("oracleLocations", true, "Path to JSON file specifying oracle check locations");
+        Option targetLineSolutions = new Option("targetLineSolutions", true, "Path to serialized target line solutions");
 
         @SuppressWarnings("static-access")
         Option property = OptionBuilder.withArgName("property=value").hasArgs(2).withValueSeparator().withDescription("use value for given property").create("D");
@@ -166,14 +167,14 @@ public class CommandLineParameters {
         options.addOption(heapDump);
         options.addOption(startedByCtg);
         options.addOption(parallel);
+
+        // EvoRepair options
         options.addOption(evorepair);
         options.addOption(orchestratorPort);
         options.addOption(seedPopulation);
-        //options.addOption(seedKillMatrix);
-        //options.addOption(previousPatchPopulation);
-        //options.addOption(updatedPatchPopulation);
         options.addOption(targetPatches);
         options.addOption(oracleLocations);
+        options.addOption(targetLineSolutions);
 
         return options;
     }
@@ -368,6 +369,12 @@ public class CommandLineParameters {
         } else {
             LoggingUtils.getEvoLogger().warn("No oracle locations provided, specify using -oracleLocations option.");
             //throw new IllegalArgumentException("Missing target patches.");
+        }
+
+        if (line.hasOption("targetLineSolutions")) {
+            setPropertyAndAddToJavaOpts("targetLineSolutions", line.getOptionValue("targetLineSolutions"), javaOpts);
+        } else {
+            LoggingUtils.getEvoLogger().warn("No target line solutions provided, specify using -targetLineSolutions option.");
         }
 
         /**

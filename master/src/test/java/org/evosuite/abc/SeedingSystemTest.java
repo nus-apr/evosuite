@@ -129,6 +129,43 @@ public class SeedingSystemTest extends SystemTestBase {
         int goals = TestGenerationStrategy.getFitnessFactories().stream()
                 .mapToInt(f -> f.getCoverageGoals().size()).sum();
         Assert.assertEquals("Wrong number of goals: ", 8, goals); // 3 patches  + 5 target lines
-        Assert.assertEquals("Non-optimal coverage: ", 5, best.getCoveredGoals().size(), 0.01);
+        Assert.assertEquals("Non-optimal coverage: ", 5, best.getCoveredGoals().size());
+    }
+
+    @Test
+    public void testSaveTargetLineSolutions() {
+        Properties.CRITERION = new Properties.Criterion[]{LINE};
+        Properties.ARCHIVE_TYPE = Properties.ArchiveType.MULTI_CRITERIA_COVERAGE;
+        Object result = evosuite.parseCommandLine(command);
+        GeneticAlgorithm<?> ga = getGAFromResult(result);
+
+        TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
+        int goals = TestGenerationStrategy.getFitnessFactories().stream()
+                .mapToInt(f -> f.getCoverageGoals().size()).sum();
+        Assert.assertEquals("Wrong number of goals: ", 5, goals);
+        Assert.assertEquals("Non-optimal coverage: ", 5, best.getCoveredGoals().size());
+
+        File outputFile = new File("src/test/resources/org/evosuite/abc/targetline_solutions.tmp");
+        SeedHandler.getInstance().saveTargetLineSolutions(outputFile);
+    }
+
+    @Test
+    public void testLoadTargetLineSolutions() {
+        Properties.CRITERION = new Properties.Criterion[]{LINE};
+        Properties.ARCHIVE_TYPE = Properties.ArchiveType.MULTI_CRITERIA_COVERAGE;
+        Properties.EVOREPAIR_TARGET_LINE_SOLUTIONS = "src/test/resources/org/evosuite/abc/targetline_solutions.tmp";
+
+        Object result = evosuite.parseCommandLine(command);
+        GeneticAlgorithm<?> ga = getGAFromResult(result);
+
+        // Seed solutions should already cover all targets
+        Assert.assertEquals(0, ga.getAge());
+
+
+        TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
+        int goals = TestGenerationStrategy.getFitnessFactories().stream()
+                .mapToInt(f -> f.getCoverageGoals().size()).sum();
+        Assert.assertEquals("Wrong number of goals: ", 5, goals);
+        Assert.assertEquals("Non-optimal coverage: ", 5, best.getCoveredGoals().size());
     }
 }

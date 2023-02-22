@@ -3,18 +3,17 @@ package org.evosuite.coverage.patch;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.evosuite.Properties;
+import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.coverage.patch.communication.json.*;
+import org.evosuite.ga.archive.Archive;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.evosuite.testsuite.TestSuiteSerialization;
-import org.junit.Test;
+import org.evosuite.utils.DebuggingObjectOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -29,7 +28,7 @@ public class SeedHandler {
     private List<TestChromosome> seedTestPopulation = null;
 
     private final Set<TestChromosome> seedTests = new LinkedHashSet<>();
-    
+
     public static SeedHandler getInstance() {
         if (instance == null) {
             instance = new SeedHandler();
@@ -63,6 +62,29 @@ public class SeedHandler {
             logger.info("Test names has been written to: {}.", testNamePath);
         } catch (IOException e) {
             logger.error("Error while serializing test population and test names.");
+        }
+    }
+
+    public void saveTargetLineSolutions(File outputFile) {
+        if (Properties.ARCHIVE_TYPE != Properties.ArchiveType.MULTI_CRITERIA_COVERAGE) {
+            logger.warn("No target line solutions to serialize because the archive type is not MULTI_CRITERIA_COVERAGE: {}", Properties.ARCHIVE_TYPE);
+            return;
+        }
+
+        Map<LineCoverageTestFitness, Map<Set<Integer>, TestChromosome>> targetLineSolutions = Archive.getMultiCriteriaArchive().getTargetLineSolutionMap();
+
+        // Check if dir exists, if not create
+        File parent = outputFile.getParentFile();
+        if (!parent.exists()) {
+            parent.mkdirs();
+        }
+
+        try (ObjectOutputStream out = new DebuggingObjectOutputStream(new FileOutputStream(outputFile))) {
+            out.writeObject(targetLineSolutions);
+            out.flush();
+            logger.info("{} target line solutions have been serialized to: {}.", targetLineSolutions.keySet().size(), outputFile.getPath());
+        } catch (IOException e) {
+            logger.error("Failed to open/handle " + outputFile.getAbsolutePath() + " for writing: " + e.getMessage());
         }
     }
 
@@ -180,5 +202,39 @@ public class SeedHandler {
 
     public Set<TestChromosome> getSeedTests() {
         return seedTests;
+    }
+
+    public List<TestChromosome> loadTargetLineSolutions() {
+        logger.info("Loading target line solutions map from file: {}", Properties.EVOREPAIR_TARGET_LINE_SOLUTIONS);
+        File inputFile = new File(Properties.EVOREPAIR_TARGET_LINE_SOLUTIONS);
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(inputFile))) {
+            try {
+                Object obj = in.readObject();
+                if (obj == null) {
+                    logger.error("Unable to read target line solutions map from file: {}", Properties.EVOREPAIR_TARGET_LINE_SOLUTIONS);
+                    return Collections.emptyList();
+                }
+                if (obj instanceof Map) {
+                    List<TestChromosome> seedSolutions = new ArrayList<>();
+                    // TODO EvoRepair: Only add solutions for current target lines
+                    for (Map<Set<Integer>, TestChromosome> traceMap : ((Map<LineCoverageTestFitness, Map<Set<Integer>, TestChromosome>>) obj).values()) {
+                        seedSolutions.addAll(traceMap.values());
+                    }
+                    return seedSolutions;
+                } else {
+                    logger.error("Deserialized object is not a map: {}", obj.getClass());
+                    return Collections.emptyList();
+                }
+            } catch (EOFException e) {
+                //fine
+            } catch (Exception e) {
+                logger.error("Problems when reading a serialized test from " + inputFile.getAbsolutePath() + " : " + e.getMessage());
+            }
+        } catch (FileNotFoundException e) {
+            logger.error("Cannot load target line solutions because file does not exist: " + inputFile.getAbsolutePath());
+        } catch (IOException e) {
+            logger.error("Failed to open/handle " + inputFile.getAbsolutePath() + " for reading: " + e.getMessage());
+        }
+        return Collections.emptyList();
     }
 }
