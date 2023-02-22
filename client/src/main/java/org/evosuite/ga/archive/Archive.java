@@ -543,7 +543,7 @@ public abstract class Archive implements Serializable {
         }
     }
 
-    public static MultiCriteriaCoverageArchive getCoverageWithLineArchive() {
+    public static MultiCriteriaCoverageArchive getMultiCriteriaArchive() {
         if (Properties.ARCHIVE_TYPE != Properties.ArchiveType.MULTI_CRITERIA_COVERAGE) {
             throw new RuntimeException("Cannot return CoverageWithLineArchive because Archive type is: " + Properties.ARCHIVE_TYPE);
         }

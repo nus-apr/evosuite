@@ -36,9 +36,9 @@ public class DynaMOSAPatch extends DynaMOSA {
         super.evolve();
 
         // Attempt to produce additional solutions by crossover of partial solutions with line solutions
-        List<TestChromosome> targetLineSolutions = Archive.getCoverageWithLineArchive().getTargetLineSolutions();
+        List<TestChromosome> targetLineSolutions = Archive.getMultiCriteriaArchive().getTargetLineSolutions();
 
-        for (TestChromosome parent1 : Archive.getCoverageWithLineArchive().getPartialSolutions()) {
+        for (TestChromosome parent1 : Archive.getMultiCriteriaArchive().getPartialSolutions()) {
             for (TestChromosome parent2 : targetLineSolutions) {
                 TestChromosome offspring1 = parent1.clone();
                 TestChromosome offspring2 = parent2.clone();
