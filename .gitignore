@@ -1,3 +1,4 @@
+*.sh
 *.log
 *.dot
 *.iml
