@@ -321,6 +321,9 @@ public class Properties {
     @Parameter(key = "oracleLocations", group = "EvoRepair", description = "Path to JSON specifying oracle locations")
     public static String EVOREPAIR_ORACLE_LOCATIONS = null;
 
+    @Parameter(key = "targetLineSolutions", group = "EvoRepair", description = "Path to serialized target line solutions map")
+    public static String EVOREPAIR_TARGET_LINE_SOLUTIONS = null;
+
     @Parameter(key = "useFixLocationGoals", group = "EvoRepair", description = "Enable fix-location-based objectives.")
     public static boolean EVOREPAIR_USE_FIX_LOCATION_GOALS = false;
 
@@ -1284,7 +1287,7 @@ public class Properties {
     public static boolean VIRTUAL_NET = true;
 
     @Parameter(key = "use_separate_classloader", group = "Sandbox", description = "Usa a separate classloader in the final test cases")
-    public static boolean USE_SEPARATE_CLASSLOADER = true;
+    public static boolean USE_SEPARATE_CLASSLOADER = false;
 
 
     // ---------------------------------------------------------------
