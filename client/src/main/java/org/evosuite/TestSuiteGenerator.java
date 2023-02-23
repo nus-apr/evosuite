@@ -722,7 +722,7 @@ public class TestSuiteGenerator {
             SeedHandler.getInstance().saveTestPopulation(actualSuite);
 
             TestGenerationResult result = TestGenerationResultBuilder.buildSuccessResult();
-            suiteWriter.writeTargetLocationStats(actualSuite, result);
+            suiteWriter.writeTargetLocationStats(actualSuite, result, testDir);
             return result;
         }
 
