@@ -338,6 +338,9 @@ public class CommandLineParameters {
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Disabling assertion generation, since this breaks final coverage computation.");
         setPropertyAndAddToJavaOpts("assertions", "false", javaOpts);
 
+        LoggingUtils.getEvoLogger().warn("[EvoRepair] Disabling option to use a separate classloader for the final test cases, since this breaks trace analysis of ARJA.");
+        setPropertyAndAddToJavaOpts("use_separate_classloader", "false", javaOpts);
+
         if (line.hasOption("port")) {
             int port = Integer.parseInt(line.getOptionValue("port"));
             LoggingUtils.getEvoLogger().info("[EvoRepair] Setting orchestrator port to: {}.", port);
