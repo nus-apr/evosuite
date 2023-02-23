@@ -284,7 +284,7 @@ public class CommandLineParameters {
             if (algorithm != null) {
                 setPropertyAndAddToJavaOpts("algorithm", algorithm, javaOpts);
             } else {
-                setPropertyAndAddToJavaOpts("algorithm", "DYNAMOSA", javaOpts);
+                setPropertyAndAddToJavaOpts("algorithm", "DYNAMOSA_PATCH", javaOpts);
             }
             LoggingUtils.getEvoLogger().info("[EvoRepair] Using many-objective algorithm: {}", Properties.ALGORITHM);
         } else if (line.hasOption("generateSuite")){
@@ -301,6 +301,7 @@ public class CommandLineParameters {
         setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
 
         // Enable secondary objectives
+        /*
         String secondaryObjectives = "NUM_SEEDS:NUM_ORACLE_TRIGGERS:NUM_COVERED_FIX_LOCATIONS:TOTAL_LENGTH";
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Enabling custom seconday objectives: {}.", secondaryObjectives);
         setPropertyAndAddToJavaOpts("secondary_objectives", secondaryObjectives, javaOpts);
@@ -310,6 +311,14 @@ public class CommandLineParameters {
                 Properties.SecondaryObjective.NUM_COVERED_FIX_LOCATIONS,
                 Properties.SecondaryObjective.TOTAL_LENGTH
         };
+         */
+        LoggingUtils.getEvoLogger().warn("[EvoRepair] Custom seconday objectives are currently DISABLED.");
+
+        LoggingUtils.getEvoLogger().warn("[EvoRepair] Using custom archive.");
+        setPropertyAndAddToJavaOpts("archive_type", "MULTI_CRITERIA_COVERAGE", javaOpts);
+        Properties.getInstance();
+        Properties.ARCHIVE_TYPE = Properties.ArchiveType.MULTI_CRITERIA_COVERAGE;
+
 
         if (line.hasOption("criterion")) {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
@@ -330,6 +339,9 @@ public class CommandLineParameters {
 
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Disabling assertion generation, since this breaks final coverage computation.");
         setPropertyAndAddToJavaOpts("assertions", "false", javaOpts);
+
+        LoggingUtils.getEvoLogger().warn("[EvoRepair] Disabling option to use a separate classloader for the final test cases, since this clears the execution trace inside GZoltar (ARJA).");
+        setPropertyAndAddToJavaOpts("use_separate_classloader", "false", javaOpts);
 
         if (line.hasOption("port")) {
             int port = Integer.parseInt(line.getOptionValue("port"));

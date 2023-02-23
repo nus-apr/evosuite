@@ -336,6 +336,12 @@ public class Properties {
     @Parameter(key = "pruneBranches", group = "EvoRepair", description = "[DynaMOSA] Prune branches from the branch fitness graph that don't contribute to the coverage of other goals.")
     public static boolean EVOREPAIR_DYNAMOSA_PRUNE_BRANCHES = false;
 
+    @Parameter(key = "filterFixLocationCoveringTests", group = "EvoRepair", description = "Only retain tests in the final test suite that cover at least one fix location.")
+    public static boolean EVOREPAIR_FILTER_FIXLOCATION_COVERING_TESTS = true;
+
+    @Parameter(key = "evoRepairDebug", group = "EvoRepair", description = "Enable runtime checks while running EvoRepair.")
+    public static boolean EVOREPAIR_DEBUG = false;
+
 
     // Search algorithm
     public enum Algorithm {
@@ -346,7 +352,7 @@ public class Properties {
         // mu-lambda
         ONE_PLUS_LAMBDA_LAMBDA_GA, ONE_PLUS_ONE_EA, MU_PLUS_LAMBDA_EA, MU_LAMBDA_EA,
         // many-objective algorithms
-        MOSA, DYNAMOSA, LIPS, MIO, MOSAPATCH,
+        MOSA, DYNAMOSA, LIPS, MIO, MOSA_PATCH, DYNAMOSA_PATCH,
         // multiple-objective optimisation algorithms
         NSGAII, SPEA2
     }
@@ -1366,7 +1372,7 @@ public class Properties {
     public static TestFactory TEST_FACTORY = TestFactory.ARCHIVE;
 
     public enum ArchiveType {
-        COVERAGE, MIO
+        COVERAGE, MIO, MULTI_CRITERIA_COVERAGE
     }
 
     /**

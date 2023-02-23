@@ -31,10 +31,7 @@ import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessReplacementFunction;
 import org.evosuite.ga.archive.ArchiveTestChromosomeFactory;
 import org.evosuite.ga.metaheuristics.*;
-import org.evosuite.ga.metaheuristics.mosa.DynaMOSA;
-import org.evosuite.ga.metaheuristics.mosa.MOSA;
-import org.evosuite.ga.metaheuristics.mosa.MOSAPatch;
-import org.evosuite.ga.metaheuristics.mosa.MOSATestSuiteAdapter;
+import org.evosuite.ga.metaheuristics.mosa.*;
 import org.evosuite.ga.metaheuristics.mulambda.MuLambdaEA;
 import org.evosuite.ga.metaheuristics.mulambda.MuPlusLambdaEA;
 import org.evosuite.ga.metaheuristics.mulambda.OnePlusLambdaLambdaGA;
@@ -184,8 +181,8 @@ public class PropertiesSuiteGAFactory
                     logger.info("Using a default factory that creates tests with variable length");
                     return new MOSATestSuiteAdapter(new MOSA(new RandomLengthTestFactory()));
                 }
-            case MOSAPATCH:
-                logger.info("Chosen search algorithm: MOSAPatch");
+            case MOSA_PATCH:
+                logger.info("Chosen search algorithm: MOSA-Patch");
                 if (factory instanceof TestSuiteChromosomeFactory) {
                     final TestSuiteChromosomeFactory tscf = (TestSuiteChromosomeFactory) factory;
                     return new MOSATestSuiteAdapter(new MOSAPatch(tscf.getTestChromosomeFactory()));
@@ -204,6 +201,16 @@ public class PropertiesSuiteGAFactory
                     logger.info("No specific factory for test cases given...");
                     logger.info("Using a default factory that creates tests with variable length");
                     return new MOSATestSuiteAdapter(new DynaMOSA(new RandomLengthTestFactory()));
+                }
+            case DYNAMOSA_PATCH:
+                logger.info("Chosen search algorithm: DynaMOSA-Patch");
+                if (factory instanceof TestSuiteChromosomeFactory) {
+                    final TestSuiteChromosomeFactory tscf = (TestSuiteChromosomeFactory) factory;
+                    return new MOSATestSuiteAdapter(new DynaMOSAPatch(tscf.getTestChromosomeFactory()));
+                } else {
+                    logger.info("No specific factory for test cases given...");
+                    logger.info("Using a default factory that creates tests with variable length");
+                    return new MOSATestSuiteAdapter(new DynaMOSAPatch(new RandomLengthTestFactory()));
                 }
             case ONE_PLUS_LAMBDA_LAMBDA_GA:
                 logger.info("Chosen search algorithm: 1 + (lambda, lambda)GA");

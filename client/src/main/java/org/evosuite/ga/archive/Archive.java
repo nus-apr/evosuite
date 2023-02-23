@@ -79,6 +79,7 @@ public abstract class Archive implements Serializable {
             throw new RuntimeException("Trying to add a target of '" + target.getClass().getSimpleName()
                     + "' type to the archive, but correspondent criterion is not enabled.");
         }
+
     }
 
 
@@ -532,11 +533,20 @@ public abstract class Archive implements Serializable {
      */
     public static Archive getArchiveInstance() {
         switch (Properties.ARCHIVE_TYPE) {
+            case MULTI_CRITERIA_COVERAGE:
+                return MultiCriteriaCoverageArchive.instance;
             case COVERAGE:
             default:
                 return CoverageArchive.instance;
             case MIO:
                 return MIOArchive.instance;
         }
+    }
+
+    public static MultiCriteriaCoverageArchive getCoverageWithLineArchive() {
+        if (Properties.ARCHIVE_TYPE != Properties.ArchiveType.MULTI_CRITERIA_COVERAGE) {
+            throw new RuntimeException("Cannot return CoverageWithLineArchive because Archive type is: " + Properties.ARCHIVE_TYPE);
+        }
+        return MultiCriteriaCoverageArchive.instance;
     }
 }

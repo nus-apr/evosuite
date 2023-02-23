@@ -36,10 +36,12 @@
 package org.evosuite.ga.operators.ranking;
 
 import org.evosuite.Properties;
+import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.comparators.DominanceComparator;
 import org.evosuite.ga.comparators.PreferenceSortingComparator;
+import org.evosuite.testcase.TestChromosome;
 import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +84,29 @@ public class RankBasedPreferenceSorting<T extends Chromosome<T>> implements Rank
         // first apply the "preference sorting" to the first front only
         // then compute the ranks according to the non-dominate sorting algorithm
         List<T> zero_front = this.getZeroFront(solutions, uncovered_goals);
+
+        // Add fix location covering tests to the zero front
+        /*
+        if (Properties.EVOREPAIR_FILTER_FIXLOCATION_COVERING_TESTS) {
+            int zeroFrontSize = zero_front.size();
+            int addedLineSolutions = 0;
+
+            // Add fix-location covering tests to zero front
+            Set<T> addedSolutions = new LinkedHashSet<>(zero_front);
+            for (T solution : solutions) {
+                if (addedSolutions.contains(solution)) continue;
+
+                TestChromosome tc = (TestChromosome) solution;
+                if (tc.getTestCase().getCoveredGoals().stream().anyMatch(LineCoverageTestFitness.class::isInstance)) {
+                    zero_front.add(solution);
+                    if (addedLineSolutions++ > zeroFrontSize) { // Don't add more line solutions than other goals
+                        break;
+                    }
+                }
+            }
+        }
+         */
+
         this.fronts.add(zero_front);
         int frontIndex = 1;
 

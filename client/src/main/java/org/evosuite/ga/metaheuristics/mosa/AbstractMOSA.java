@@ -207,6 +207,7 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
         return offspringPopulation;
     }
 
+
     /**
      * Generates new offspring population without calculating fitness values.
      * @return
@@ -291,7 +292,7 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
      * @param offspring the offspring chromosome
      * @param parent    the parent chromosome that {@code offspring} was created from
      */
-    private void mutate(TestChromosome offspring, TestChromosome parent) {
+    protected void mutate(TestChromosome offspring, TestChromosome parent) {
         offspring.mutate();
         if (!offspring.isChanged()) {
             // if offspring is not changed, we try to mutate it once again
@@ -346,7 +347,7 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
      *
      * @param chromosome TestChromosome to clean
      */
-    private void clearCachedResults(TestChromosome chromosome) {
+    protected void clearCachedResults(TestChromosome chromosome) {
         chromosome.clearCachedMutationResults();
         chromosome.clearCachedResults();
         chromosome.clearMutationHistory();
@@ -361,7 +362,7 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
      * @param chromosome
      * @return true or false depending on whether "unused variables" are removed
      */
-    private boolean removeUnusedVariables(TestChromosome chromosome) {
+    protected boolean removeUnusedVariables(TestChromosome chromosome) {
         final int sizeBefore = chromosome.size();
         final TestCase t = chromosome.getTestCase();
         final List<Integer> toDelete = new ArrayList<>(chromosome.size());
