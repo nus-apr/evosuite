@@ -283,13 +283,16 @@ public class TestSuiteWriter implements Opcodes {
     }
 
 
-    public void writeTargetLocationStats(TestSuiteChromosome testSuite, TestGenerationResult<TestChromosome> result) {
+    public void writeTargetLocationStats(TestSuiteChromosome testSuite,
+                                         TestGenerationResult<TestChromosome> result,
+                                         String outputPath) {
+
         // TODO EvoRepair: Use generic flag to indicate that EvoRepair is enabled
         if (!Properties.SERIALIZE_GA && Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
             return;
         }
 
-        LoggingUtils.getEvoLogger().info("* Writing target location stats to {}", Properties.TEST_DIR);
+        LoggingUtils.getEvoLogger().info("* Writing target location stats to {}", outputPath);
 
         GeneticAlgorithm<?> ga = result.getGeneticAlgorithm();
         // Mapping between fitness class to fitness functions to minimal fitness value
@@ -303,7 +306,7 @@ public class TestSuiteWriter implements Opcodes {
                 testSuite.getTestChromosomes(), minFitnessValuesMap, numCoveringTestsMap);
 
         try {
-            File outputDir = new File(Properties.TEST_DIR);
+            File outputDir = new File(outputPath);
 
             if (!outputDir.exists()) { // should already be created
                 logger.warn("Error while writing statistics: dir {} does not exist.", outputDir);
