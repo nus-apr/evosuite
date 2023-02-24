@@ -45,6 +45,12 @@ public class EvoAssertions {
             throw (TooManyResourcesException) t;
         }
 
+        if (t instanceof RuntimeException) {
+            if (t.getMessage().equals("[Defects4J_BugReport_Violation]")) {
+                throw new RuntimeException("[Defects4J_BugReport_Violation]");
+            }
+        }
+
         assertThrownBy(sourceClass, t);
     }
 
