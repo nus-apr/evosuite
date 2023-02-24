@@ -283,13 +283,16 @@ public class TestSuiteWriter implements Opcodes {
     }
 
 
-    public void writeTargetLocationStats(TestSuiteChromosome testSuite, TestGenerationResult<TestChromosome> result, String outputDir) {
+    public void writeTargetLocationStats(TestSuiteChromosome testSuite,
+                                         TestGenerationResult<TestChromosome> result,
+                                         String outputPath) {
+
         // TODO EvoRepair: Use generic flag to indicate that EvoRepair is enabled
         if (!Properties.SERIALIZE_GA && Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
             return;
         }
 
-        LoggingUtils.getEvoLogger().info("* Writing target location stats to {}", outputDir);
+        LoggingUtils.getEvoLogger().info("* Writing target location stats to {}", outputPath);
 
         GeneticAlgorithm<?> ga = result.getGeneticAlgorithm();
         // Mapping between fitness class to fitness functions to minimal fitness value
@@ -303,15 +306,15 @@ public class TestSuiteWriter implements Opcodes {
                 testSuite.getTestChromosomes(), minFitnessValuesMap, numCoveringTestsMap);
 
         try {
-            File output = new File(outputDir);
+            File outputDir = new File(outputPath);
 
-            if (!output.exists()) { // should already be created
-                logger.warn("Error while writing statistics: dir {} does not exist.", output);
+            if (!outputDir.exists()) { // should already be created
+                logger.warn("Error while writing statistics: dir {} does not exist.", outputDir);
                 return;
             }
 
             // Write overall coverage stats
-            writeCoverageSummary(output, minFitnessValuesMap);
+            writeCoverageSummary(outputDir, minFitnessValuesMap);
 
             // Compute and write coverage summary for target locations
             List<TargetLocationFitnessMetrics> fixLocationMetrics = new ArrayList<>();
@@ -388,7 +391,7 @@ public class TestSuiteWriter implements Opcodes {
                 }
             }
 
-            writeTargetLocationSummary(output, fixLocationMetrics, oracleLocationMetrics, contextIdToNameMap);
+            writeTargetLocationSummary(outputDir, fixLocationMetrics, oracleLocationMetrics, contextIdToNameMap);
         } catch (IOException e) {
             logger.warn("Error while writing statistics: " + e.getMessage());
         }

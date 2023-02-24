@@ -275,6 +275,8 @@ public class EvoSuite {
                             + base_dir_path);
                     return null;
                 }
+                // FIXME EvoRepair: This is only a temporary fix.
+                //  For some reason, the working directory would not be changed to base_dir when CLIENT_ON_THREAD==true
                 if (Properties.CLIENT_ON_THREAD) {
                     Properties.BASE_DIR = base_dir_path;
                 }
