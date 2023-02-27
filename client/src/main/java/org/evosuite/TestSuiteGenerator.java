@@ -361,7 +361,7 @@ public class TestSuiteGenerator {
                 .removeIf(t -> t.getLastExecutionResult() != null && (t.getLastExecutionResult().hasTimeout() ||
                         t.getLastExecutionResult().hasTestException()));
 
-        if (Properties.EVOREPAIR_FILTER_FIXLOCATION_COVERING_TESTS) {
+        if (Properties.EVOREPAIR_TEST_GENERATION) {
             int before = testSuite.size();
 
             // Sanity check: Tests that cover either contextline or strongmutation goals should also cover a line goal

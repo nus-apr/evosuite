@@ -21,7 +21,6 @@ package org.evosuite.graphs.cfg;
 
 import org.evosuite.Properties;
 import org.evosuite.classpath.ResourceList;
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
 import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.runtime.instrumentation.RemoveFinalClassAdapter;
 import org.evosuite.utils.ArrayUtil;
@@ -142,7 +141,7 @@ public class CFGClassAdapter extends ClassVisitor {
                 || ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.WEAKMUTATION)
                 || ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.ONLYMUTATION)
                 || ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.STRONGMUTATION)) {
-            if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS && PatchPool.getInstance().isPatchedOrInnerClass(classNameWithDots)) {
+            if (Properties.EVOREPAIR_TEST_GENERATION && PatchPool.getInstance().isPatchedOrInnerClass(classNameWithDots)) {
                 isPatchedClass = true;
             }
         }

@@ -46,7 +46,7 @@ public class IBranchFitnessFactory extends AbstractFitnessFactory<IBranchTestFit
     private final Map<String, Map<String, Set<OracleLocation>>> oracleLocations;
 
     public IBranchFitnessFactory() {
-        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+        if (Properties.EVOREPAIR_TEST_GENERATION) {
             oracleLocations = OracleLocationPool.getInstance().getOracleLocations();
         } else {
             oracleLocations = Collections.emptyMap();
@@ -85,7 +85,7 @@ public class IBranchFitnessFactory extends AbstractFitnessFactory<IBranchTestFit
                 goals.add(new IBranchTestFitness(branchGoal.getBranchGoal(), context));
             }
         }
-        assert Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS || (goals.size() >= branchFactory.getCoverageGoals().size());
+        assert Properties.EVOREPAIR_TEST_GENERATION || (goals.size() >= branchFactory.getCoverageGoals().size());
         logger.info("Created " + goals.size() + " goals");
 
         return new ArrayList<>(goals);
@@ -93,7 +93,7 @@ public class IBranchFitnessFactory extends AbstractFitnessFactory<IBranchTestFit
 
     private boolean shouldInclude(BranchCoverageTestFitness branchGoal) {
         // If we are not running evorepair, allow all ibranch goals
-        if (!Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+        if (!Properties.EVOREPAIR_TEST_GENERATION) {
             return true;
         }
 

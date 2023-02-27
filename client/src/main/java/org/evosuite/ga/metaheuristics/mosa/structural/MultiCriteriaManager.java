@@ -158,7 +158,7 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
             }
         }
 
-        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS && Properties.EVOREPAIR_DYNAMOSA_PRUNE_BRANCHES) {
+        if (Properties.EVOREPAIR_TEST_GENERATION && Properties.EVOREPAIR_DYNAMOSA_PRUNE_BRANCHES) {
             // Determine set of branches that our goals directly depend on
             Set<BranchCoverageTestFitness> directDependencies = dependencies.keySet().stream()
                     .filter(branch -> !dependencies.get(branch).isEmpty())

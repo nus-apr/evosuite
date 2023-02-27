@@ -22,7 +22,6 @@ package org.evosuite.graphs.cfg;
 import org.evosuite.Properties;
 import org.evosuite.Properties.Criterion;
 import org.evosuite.coverage.branch.BranchPool;
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
 import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.instrumentation.coverage.*;
 import org.evosuite.runtime.annotation.EvoSuiteExclude;
@@ -175,7 +174,7 @@ public class CFGMethodAdapter extends MethodVisitor {
 
                 // TODO EvoRepair: Refactor logic
                 // PATCHMUTATION may interfere with other mutation goals
-                if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+                if (Properties.EVOREPAIR_TEST_GENERATION) {
                     if (hasFixLocation) {
                         instrumentations.add(new BranchInstrumentation());
                         instrumentations.add(new PatchMutationInstrumentation());
