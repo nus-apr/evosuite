@@ -71,18 +71,18 @@ public class ERepairMain {
         String populationSizeS = parameterStrs.get("populationSize");
         Properties.POPULATION = populationSizeS != null ? Integer.parseInt(populationSizeS) : 40;
 
-        String maxGenerationsS = parameterStrs.get("maxGenerations");
-        final int maxGenerations = maxGenerationsS != null ? Integer.parseInt(maxGenerationsS) : 50;
-        MaxGenerationStoppingCondition<EPatchChromosome> maxGenCondition = new MaxGenerationStoppingCondition<>();
-        maxGenCondition.setMaxIterations(maxGenerations);
+        // String maxGenerationsS = parameterStrs.get("maxGenerations");
+        // final int maxGenerations = maxGenerationsS != null ? Integer.parseInt(maxGenerationsS) : 50;
+        // MaxGenerationStoppingCondition<EPatchChromosome> maxGenCondition = new MaxGenerationStoppingCondition<>();
+        // maxGenCondition.setMaxIterations(maxGenerations);
 
-        String maxTimeS = parameterStrs.get("maxTime");
-        int maxTime = maxTimeS != null ? Integer.parseInt(maxTimeS) * 60 : 60 * 60;
-        MaxTimeStoppingCondition<EPatchChromosome> maxTimeCondition = new MaxTimeStoppingCondition<>();
-        maxTimeCondition.setLimit(maxTime);
+        // String maxTimeS = parameterStrs.get("maxTime");
+        // int maxTime = maxTimeS != null ? Integer.parseInt(maxTimeS) * 60 : 60 * 60;
+        // MaxTimeStoppingCondition<EPatchChromosome> maxTimeCondition = new MaxTimeStoppingCondition<>();
+        // maxTimeCondition.setLimit(maxTime);
 
-        repairAlg.addStoppingCondition(maxGenCondition);
-        repairAlg.addStoppingCondition(maxTimeCondition);
+        // repairAlg.addStoppingCondition(maxGenCondition);
+        // repairAlg.addStoppingCondition(maxTimeCondition);
 
         repairAlg.generateSolution();
     }
