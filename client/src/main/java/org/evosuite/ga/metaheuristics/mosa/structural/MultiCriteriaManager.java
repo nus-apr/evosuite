@@ -119,7 +119,7 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
                     break; // exception coverage is handled by calculateFitness
                 case PATCH:
                     throw new RuntimeException("PATCH criterion is currently not handled/implemented.");
-                case PATCHLINE:
+                case FIXLOCATION:
                 case LINE:
                     addDependencies4Line();
                     break;

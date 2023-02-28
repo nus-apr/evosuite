@@ -30,7 +30,7 @@ public class ContextLineFactory extends AbstractFitnessFactory<ContextLineTestFi
 
         CallGraph callGraph = DependencyAnalysis.getCallGraph();
 
-        for (LineCoverageTestFitness lineGoal : new PatchLineCoverageFactory().getCoverageGoals()) {
+        for (LineCoverageTestFitness lineGoal : new FixLocationCoverageFactory().getCoverageGoals()) {
             for (BranchCoverageTestFitness dependencyGoal: lineGoal.getControlDependencyGoals()) {
 
                 Set<CallContext> callContexts = callGraph.getAllContextsFromTargetClass(dependencyGoal.getClassName(),

@@ -161,7 +161,7 @@ public final class ArchiveUtils {
                         return true;
                     }
                     break;
-                case PATCHLINE:
+                case FIXLOCATION:
                     if (goal instanceof LineCoverageTestFitness) {
                         return true;
                     }

@@ -123,8 +123,8 @@ public class FitnessFunctions {
                 return new InputCoverageSuiteFitness();
             case TRYCATCH:
                 return new TryCatchCoverageSuiteFitness();
-            case PATCHLINE:
-                return new PatchLineCoverageSuiteFitness();
+            case FIXLOCATION:
+                return new FixLocationCoverageSuiteFitness();
             case PATCH:
                 return new PatchCoverageSuiteFitness();
             case CONTEXTLINE:
@@ -189,8 +189,8 @@ public class FitnessFunctions {
                 return new InputCoverageFactory();
             case TRYCATCH:
                 return new TryCatchCoverageFactory();
-            case PATCHLINE:
-                return new PatchLineCoverageFactory();
+            case FIXLOCATION:
+                return new FixLocationCoverageFactory();
             case PATCH:
                 return new PatchCoverageFactory();
             case CONTEXTLINE:
@@ -251,7 +251,7 @@ public class FitnessFunctions {
                 return LineCoverageTestFitness.class;
             case LINE:
                 return LineCoverageTestFitness.class;
-            case PATCHLINE:
+            case FIXLOCATION:
                 return LineCoverageTestFitness.class;
             case PATCH:
                 return PatchCoverageTestFitness.class;

@@ -323,7 +323,7 @@ public class CommandLineParameters {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
         } else {
             // Enable all default criteria
-            String defaultCriteria = "PATCHLINE:BRANCH:EXCEPTION:STRONGMUTATION:OUTPUT:METHOD:METHODNOEXCEPTION:CONTEXTLINE";
+            String defaultCriteria = "FIXLOCATION:BRANCH:EXCEPTION:STRONGMUTATION:OUTPUT:METHOD:METHODNOEXCEPTION:CONTEXTLINE";
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No criterions provided, using default: {}.", defaultCriteria);
             setPropertyAndAddToJavaOpts("criterion", defaultCriteria, javaOpts);
         }

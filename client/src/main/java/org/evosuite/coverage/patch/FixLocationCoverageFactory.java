@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverageTestFitness> {
+public class FixLocationCoverageFactory extends AbstractFitnessFactory<LineCoverageTestFitness> {
 
-    private static final Logger logger = LoggerFactory.getLogger(PatchLineCoverageFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(FixLocationCoverageFactory.class);
 
     // Set of hash codes of all fix location goals
     private static final Set<Integer> fixLocationHashCodes = new LinkedHashSet<>();
@@ -54,7 +54,7 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
         }
         goalComputationTime = System.currentTimeMillis() - start;
         if (goals.isEmpty()) {
-            logger.warn("No PatchLineGoals were created, check if the specified target locations actually exist.");
+            logger.warn("No fix location goals were created, check if the specified target locations actually exist.");
         }
         return goals;
     }
