@@ -2,29 +2,19 @@ package com.examples.with.different.packagename.coverage.patch;
 
 public class ClassWithCustomException {
 
-    public int testInt(int x) {
-        if  (x > 1024) {
-            throw new RuntimeException("[Defects4J_BugReport_Violation]");
-        } else {
-            return x;
-        }
-    }
-
-    /*
-    public char test(String s) {
-        return s.charAt(0);
-    }
-
-
-    public int other(String s) {
-        if (s.length() > 1) {
-            if (s.endsWith("&")) {
+    public int div(int x, int y) {
+        if (Boolean.parseBoolean(System.getProperty("defects4j.instrumentation.enabled"))) {
+            try {
+                return div_original(x, y);
+            } catch(ArithmeticException e) {
                 throw new RuntimeException("[Defects4J_BugReport_Violation]");
             }
-            return 0;
+        } else {
+            return div_original(x, y);
         }
-        return 1;
     }
 
-     */
+    public int div_original(int x, int y) {
+        return (x+y) / (x+y+1);
+    }
 }

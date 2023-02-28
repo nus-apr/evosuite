@@ -22,7 +22,7 @@ public class CustomExceptionSystemTest extends SystemTestBase {
         Properties.TARGET_CLASS = targetClass;
         URL resource = this.getClass().getResource("patch_population_custom_exception.json");
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-criterion", "FIXLOCATION:EXCEPTION", "-targetPatches", resource.getPath(), "-class", targetClass };
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "FIXLOCATION:EXCEPTION", "-targetPatches", resource.getPath(), "-class", targetClass };
 
 
         Object result = evosuite.parseCommandLine(command);
@@ -42,7 +42,7 @@ public class CustomExceptionSystemTest extends SystemTestBase {
         String targetClass = ClassWithCustomException.class.getCanonicalName();
         Properties.TARGET_CLASS = targetClass;
 
-        String[] command = new String[] {"-generateMOSuite", "-criterion", "BRANCH:EXCEPTION", "-class", targetClass };
+        String[] command = new String[] {"-generateMOSuite", "-criterion", "FIXLOCATION:EXCEPTION", "-class", targetClass };
         Properties.ALGORITHM= Properties.Algorithm.MOSA;
 
 
