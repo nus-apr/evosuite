@@ -27,6 +27,7 @@ public class ContextLineFactory extends AbstractFitnessFactory<ContextLineTestFi
         if (oracleLocations.isEmpty()) {
             logger.warn("No oracle locations available for CONTEXTLINE criterion. No goals will be produced.");
         }
+        logger.warn("CONTEXTLINE goals are currently not produced for oracle locations - need to fix context handling for catch-blocks.");
 
         CallGraph callGraph = DependencyAnalysis.getCallGraph();
 

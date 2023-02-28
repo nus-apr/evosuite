@@ -125,10 +125,12 @@ public class FitnessFunctions {
                 return new TryCatchCoverageSuiteFitness();
             case FIXLOCATION:
                 return new FixLocationCoverageSuiteFitness();
-            case PATCH:
-                return new PatchCoverageSuiteFitness();
             case CONTEXTLINE:
                 return new ContextLineSuiteFitness();
+            case ORACLE:
+                return new OracleExceptionSuiteFitness();
+            case PATCH:
+                return new PatchCoverageSuiteFitness();
             default:
                 logger.warn("No TestSuiteFitnessFunction defined for {}; using default one (BranchCoverageSuiteFitness)", Arrays.toString(Properties.CRITERION));
                 return new BranchCoverageSuiteFitness();
@@ -191,10 +193,12 @@ public class FitnessFunctions {
                 return new TryCatchCoverageFactory();
             case FIXLOCATION:
                 return new FixLocationCoverageFactory();
-            case PATCH:
-                return new PatchCoverageFactory();
+            case ORACLE:
+                return new OracleExceptionFactory();
             case CONTEXTLINE:
                 return new ContextLineFactory();
+            case PATCH:
+                return new PatchCoverageFactory();
             default:
                 logger.warn("No TestFitnessFactory defined for " + crit
                         + " using default one (BranchCoverageFactory)");
@@ -251,18 +255,20 @@ public class FitnessFunctions {
                 return LineCoverageTestFitness.class;
             case LINE:
                 return LineCoverageTestFitness.class;
-            case FIXLOCATION:
-                return LineCoverageTestFitness.class;
-            case PATCH:
-                return PatchCoverageTestFitness.class;
-            case CONTEXTLINE:
-                return ContextLineTestFitness.class;
             case OUTPUT:
                 return OutputCoverageTestFitness.class;
             case INPUT:
                 return InputCoverageTestFitness.class;
             case TRYCATCH:
                 return TryCatchCoverageTestFitness.class;
+            case FIXLOCATION:
+                return LineCoverageTestFitness.class;
+            case ORACLE:
+                return OracleExceptionTestFitness.class;
+            case CONTEXTLINE:
+                return ContextLineTestFitness.class;
+            case PATCH:
+                return PatchCoverageTestFitness.class;
             default:
                 throw new RuntimeException("No criterion defined for " + criterion.name());
         }
