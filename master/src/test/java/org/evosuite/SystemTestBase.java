@@ -349,6 +349,11 @@ public class SystemTestBase {
     }
 
     protected int computeCoveredGoalsFromResult(Object result) {
+        return computeCoveredGoalsFromResult(result, null);
+    }
+
+    protected int computeCoveredGoalsFromResult(Object result, Class<?> fitnessFunctionClass) {
+
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
 
@@ -356,18 +361,26 @@ public class SystemTestBase {
         List<TestFitnessFunction> uncoveredGoals = new ArrayList<>();
         List<TestChromosome> tests = best.getTestChromosomes();
 
-        for (TestFitnessFunction ff : (List<TestFitnessFunction>) ga.getFitnessFunctions()) {
+        List<TestFitnessFunction> fitnessFunctions = (List<TestFitnessFunction>) ga.getFitnessFunctions();
+        if (fitnessFunctionClass != null) fitnessFunctions.removeIf(f -> !fitnessFunctionClass.isInstance(f));
+
+        for (TestFitnessFunction ff : fitnessFunctions) {
             if (tests.stream().map(t -> t.getFitness(ff)).anyMatch(fitness -> fitness == 0.0)) {
                 coveredGoals.add(ff);
             } else {
                 uncoveredGoals.add(ff);
             }
         }
-        System.out.println("========== COVERED GOALS ==========");
-        coveredGoals.forEach(System.out::println);
+
+        if (fitnessFunctionClass != null) System.out.println("\n*** Fitness function: " + fitnessFunctionClass + " ***");
+
+        System.out.println("Covered goals:");
+        if (coveredGoals.isEmpty()) System.out.println("[None]");
+        coveredGoals.forEach(ff -> System.out.println("+ " + ff));
         System.out.println();
-        System.out.println("========== UNCOVERED GOALS ==========");
-        uncoveredGoals.forEach(System.out::println);
+        System.out.println("Uncovered goals:");
+        uncoveredGoals.forEach(ff -> System.out.println("- " + ff));
+        if (uncoveredGoals.isEmpty()) System.out.println("[None]");
 
         return coveredGoals.size();
     }
