@@ -124,7 +124,7 @@ public class StrongMutationTestFitness extends MutationTestFitness {
         return result;
     }
 
-    private MutationExecutionResult getMutationResult(ExecutionResult originalResult,
+    protected MutationExecutionResult getMutationResult(ExecutionResult originalResult,
                                                       ExecutionResult mutationResult) {
 
         MutationExecutionResult result = new MutationExecutionResult();
@@ -284,7 +284,7 @@ public class StrongMutationTestFitness extends MutationTestFitness {
         return num;
     }
 
-    private void ensureExecutionResultHasTraces(TestChromosome individual, ExecutionResult result) {
+    protected void ensureExecutionResultHasTraces(TestChromosome individual, ExecutionResult result) {
         if (result.getTraces().isEmpty() && observerClasses.length > 0) {
             ExecutionResult newResult = runTest(individual.getTestCase());
             for (Class<?> observerClass : observerClasses) {
