@@ -169,7 +169,7 @@ public class StrongMutationTestFitness extends MutationTestFitness {
                 .map(Throwable::getMessage)
                 .anyMatch(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"));
         result.setHasOracleException(oracleException);
-        
+
         if (oracleException) {
             result.setOracleExceptionDistance(0.0);
         } else { // If no oracle exception has been triggered, compute minimum distance to any oracle exception

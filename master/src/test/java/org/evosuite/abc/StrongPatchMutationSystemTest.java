@@ -4,7 +4,6 @@ import com.examples.with.different.packagename.coverage.patch.ArithmeticOracleEx
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.SystemTestBase;
-import org.evosuite.coverage.mutation.StrongMutationTestFitness;
 import org.evosuite.coverage.mutation.StrongPatchMutationTestFitness;
 import org.evosuite.coverage.patch.OracleExceptionTestFitness;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
