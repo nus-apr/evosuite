@@ -22,6 +22,8 @@ package org.evosuite.coverage.mutation;
 import org.evosuite.Properties;
 import org.evosuite.assertion.*;
 import org.evosuite.coverage.TestCoverageGoal;
+import org.evosuite.coverage.patch.OracleExceptionFactory;
+import org.evosuite.coverage.patch.OracleExceptionTestFitness;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.stoppingconditions.MaxStatementsStoppingCondition;
 import org.evosuite.testcase.TestCase;
@@ -29,12 +31,10 @@ import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.ExecutionTrace;
 import org.evosuite.testcase.execution.TestCaseExecutor;
+import org.evosuite.utils.LoggingUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * <p>
@@ -47,6 +47,15 @@ public class StrongMutationTestFitness extends MutationTestFitness {
 
     private static final long serialVersionUID = -262199037689935052L;
 
+    private static final List<OracleExceptionTestFitness> oracleGoals = new ArrayList<>();
+
+    static {
+        if (Properties.EVOREPAIR_TEST_GENERATION && Properties.EVOREPAIR_ORACLE_LOCATIONS != null) {
+            oracleGoals.addAll(new OracleExceptionFactory().getCoverageGoals());
+        } else {
+            LoggingUtils.getEvoLogger().warn("\u001b[1m\u001B[31m[EvoRepair]: Missing oracle locations!\u001B[0m");
+        }
+    }
     /**
      * Constant <code>observerClasses</code>
      */
@@ -124,8 +133,9 @@ public class StrongMutationTestFitness extends MutationTestFitness {
         return result;
     }
 
-    protected MutationExecutionResult getMutationResult(ExecutionResult originalResult,
-                                                      ExecutionResult mutationResult) {
+    protected MutationExecutionResult getMutationResult(TestChromosome individual,
+                                                        ExecutionResult originalResult,
+                                                        ExecutionResult mutationResult) {
 
         MutationExecutionResult result = new MutationExecutionResult();
 
@@ -147,6 +157,32 @@ public class StrongMutationTestFitness extends MutationTestFitness {
             double impact = getSumDistance(originalResult.getTrace(),
                     mutationResult.getTrace());
             result.setImpact(impact);
+        }
+
+        if (!Properties.EVOREPAIR_TEST_GENERATION) {
+            return result;
+        }
+
+        // Check if execution of the mutant resulted in an oracle exception
+        boolean oracleException = mutationResult.getAllThrownExceptions().stream()
+                .filter(RuntimeException.class::isInstance)
+                .map(Throwable::getMessage)
+                .anyMatch(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"));
+        result.setHasOracleException(oracleException);
+        
+        if (oracleException) {
+            result.setOracleExceptionDistance(0.0);
+        } else { // If no oracle exception has been triggered, compute minimum distance to any oracle exception
+            // Disabling archive since the test may cover the oracle in the mutant, but not original  program
+            Properties.TEST_ARCHIVE = false;
+            double minFitness = oracleGoals.stream().mapToDouble(o -> o.getFitness(individual, mutationResult)).min().orElse(1.0);
+            Properties.TEST_ARCHIVE = true;
+            result.setOracleExceptionDistance(minFitness);
+
+            if (Properties.EVOREPAIR_DEBUG && (result.hasTimeout() || result.hasException() || numAssertions > 0)) {
+                logger.warn("Test case kills mutant, but without triggering the oracle (distance: {})", minFitness);
+            }
+
         }
         return result;
     }
@@ -357,7 +393,7 @@ public class StrongMutationTestFitness extends MutationTestFitness {
 
                 if (mutationResult == null) {
                     ExecutionResult exResult = runTest(individual.getTestCase(), mutation);
-                    mutationResult = getMutationResult(result, exResult);
+                    mutationResult = getMutationResult(individual, result, exResult);
                     individual.setLastExecutionResult(mutationResult, mutation);
                 }
                 if (mutationResult.hasTimeout()) {

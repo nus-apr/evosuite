@@ -361,7 +361,7 @@ public class SystemTestBase {
         List<TestFitnessFunction> uncoveredGoals = new ArrayList<>();
         List<TestChromosome> tests = best.getTestChromosomes();
 
-        List<TestFitnessFunction> fitnessFunctions = (List<TestFitnessFunction>) ga.getFitnessFunctions();
+        List<TestFitnessFunction> fitnessFunctions = new ArrayList<>((List<TestFitnessFunction>) ga.getFitnessFunctions());
         if (fitnessFunctionClass != null) fitnessFunctions.removeIf(f -> !fitnessFunctionClass.isInstance(f));
 
         for (TestFitnessFunction ff : fitnessFunctions) {

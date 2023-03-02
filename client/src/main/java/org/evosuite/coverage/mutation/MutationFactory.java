@@ -29,6 +29,7 @@ import org.evosuite.instrumentation.mutation.ReplaceVariable;
 import org.evosuite.rmi.ClientServices;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.testsuite.AbstractFitnessFactory;
+import org.evosuite.utils.LoggingUtils;
 
 import java.util.*;
 
@@ -44,6 +45,10 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
     private boolean strong = true;
 
     protected List<MutationTestFitness> goals = null;
+
+    static {
+        LoggingUtils.getEvoLogger().warn("\u001b[1m\u001B[31m[EvoRepair-TODO]: Implement option to enable StrongMutation and/or PatchStrongMutation\u001B[0m");
+    }
 
     /**
      * <p>
@@ -105,10 +110,13 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
             // We need to return all mutants to make coverage values and bitstrings consistent
             //if (MutationTimeoutStoppingCondition.isDisabled(m))
             //	continue;
-            if (strong)
-                goals.add(new StrongMutationTestFitness(m));
-            else
+            if (strong) {
+                //goals.add(new StrongMutationTestFitness(m));
+                goals.add(new StrongPatchMutationTestFitness(m));
+            }
+            else {
                 goals.add(new WeakMutationTestFitness(m));
+            }
         }
 
         ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Mutants, goals.size());

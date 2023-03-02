@@ -1,26 +1,17 @@
 package org.evosuite.coverage.mutation;
 
 import org.evosuite.Properties;
-import org.evosuite.assertion.AssertionTraceObserver;
-import org.evosuite.coverage.TestCoverageGoal;
-import org.evosuite.coverage.patch.OracleExceptionFactory;
-import org.evosuite.coverage.patch.OracleExceptionTestFitness;
 import org.evosuite.ga.archive.Archive;
-import org.evosuite.ga.stoppingconditions.MaxStatementsStoppingCondition;
-import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
-import org.evosuite.testcase.execution.TestCaseExecutor;
-
-import java.util.List;
 
 /**
  * This fitness function considers a mutant to be killed if we observe exceptional behavior (i.e., custom exception)
  */
-public class PatchMutationTestFitness extends StrongMutationTestFitness {
+public class StrongPatchMutationTestFitness extends StrongMutationTestFitness {
     private static final long serialVersionUID = 7149790438450400843L;
 
-    private static List<OracleExceptionTestFitness> oracleGoals = new OracleExceptionFactory().getCoverageGoals();
+
     /**
      * <p>
      * Constructor for MutationTestFitness.
@@ -28,43 +19,10 @@ public class PatchMutationTestFitness extends StrongMutationTestFitness {
      *
      * @param mutation a {@link Mutation} object.
      */
-    public PatchMutationTestFitness(Mutation mutation) {
+    public StrongPatchMutationTestFitness(Mutation mutation) {
         super(mutation);
     }
 
-    // Check if execution of the mutant resulted in an oracle exception...
-    protected MutationExecutionResult getMutationResult(TestChromosome individual,
-                                                        ExecutionResult originalResult,
-                                                        ExecutionResult mutationResult) {
-
-        MutationExecutionResult result = new MutationExecutionResult();
-
-        // Check default mutant killing conditions
-        boolean timeout = TestCoverageGoal.hasTimeout(mutationResult);
-        boolean exceptions = !mutationResult.noThrownExceptions();
-        boolean assertions = getNumAssertions(originalResult, mutationResult) > 0;
-
-        boolean oracleException = mutationResult.getAllThrownExceptions().stream()
-                .filter(RuntimeException.class::isInstance)
-                .map(Throwable::getMessage)
-                .anyMatch(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"));
-
-        // Rather than computing impact (coverage difference), we compute the distance to any oracle location
-        double minFitness = getOracleExceptionDistance(individual, mutationResult);
-        result.setImpact(minFitness);
-
-        if (oracleException) {
-            result.setHasException(true);
-        } else if (timeout || exceptions || assertions) {
-            logger.warn("Test case kills mutant, but without triggering the oracle (distance: {})", minFitness);
-        }
-
-        return result;
-    }
-
-    private double getOracleExceptionDistance(TestChromosome individual, ExecutionResult mutationResult) {
-        return oracleGoals.stream().mapToDouble(o -> o.getFitness(individual, mutationResult)).min().orElse(1.0);
-    }
 
     @Override
     public double getFitness(TestChromosome individual, ExecutionResult result) {
@@ -90,7 +48,7 @@ public class PatchMutationTestFitness extends StrongMutationTestFitness {
 
         double oracleExceptionDistance = 2.0; // used to be impactDistance, can range between 0 and 2.0
 
-        boolean exceptionCase = false;
+        boolean oracleExceptionCase = false;
 
         // If executed...but not with reflection
         if (executionDistance <= 0 && !result.calledReflection()) {
@@ -116,18 +74,16 @@ public class PatchMutationTestFitness extends StrongMutationTestFitness {
                     individual.setLastExecutionResult(mutationResult, mutation);
                 }
 
-                if (mutationResult.hasException()) {
+                if (mutationResult.hasOracleException()) {
                     logger.debug("Mutant raises exception");
 
-                    // We don't care if the original program also throws the exception
-                    //if (result.noThrownExceptions()) {
-                        fitness = 0.0; // Exception difference
-                        exceptionCase = true;
-                    //}
+                    // We don't care if the original program also throws the exception, this mutant is considered as killed
+                    fitness = 0.0;
+                    oracleExceptionCase = true;
                 }
 
-                if (!exceptionCase) {
-                    oracleExceptionDistance = mutationResult.getImpact();
+                if (!oracleExceptionCase) {
+                    oracleExceptionDistance = mutationResult.getOracleExceptionDistance();
                     if (oracleExceptionDistance == 0.0) {
                         logger.warn("Test case has zero oracle exception distance but did not throw an exception.");
                     }
@@ -135,7 +91,7 @@ public class PatchMutationTestFitness extends StrongMutationTestFitness {
             }
         }
 
-        if (!exceptionCase)
+        if (!oracleExceptionCase)
             fitness = oracleExceptionDistance + infectionDistance + executionDistance;
 
         updateIndividual(individual, fitness);

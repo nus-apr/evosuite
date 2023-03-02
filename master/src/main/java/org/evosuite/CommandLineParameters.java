@@ -388,7 +388,7 @@ public class CommandLineParameters {
         if (line.hasOption("targetLineSolutions")) {
             setPropertyAndAddToJavaOpts("targetLineSolutions", line.getOptionValue("targetLineSolutions"), javaOpts);
         } else {
-            LoggingUtils.getEvoLogger().warn("No target line solutions provided, specify using -targetLineSolutions option.");
+            LoggingUtils.getEvoLogger().warn("[EvoRepair] No target line solutions provided, specify using -targetLineSolutions option.");
         }
 
         /**
