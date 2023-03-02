@@ -135,7 +135,8 @@ public class StrongMutationTestFitness extends MutationTestFitness {
             result.setHasTimeout(true);
         }
 
-        if (mutationResult.noThrownExceptions()) {
+        // TODO EvoRepair: This used to be without negation, but that's wrong right?
+        if (!mutationResult.noThrownExceptions()) {
             result.setHasException(true);
         }
 
@@ -258,7 +259,7 @@ public class StrongMutationTestFitness extends MutationTestFitness {
         return normalize(coverage_impact) + normalize(data_impact) + branch_impact;
     }
 
-    private int getNumAssertions(ExecutionResult origResult,
+    protected int getNumAssertions(ExecutionResult origResult,
                                  ExecutionResult mutant_result) {
         int num = 0;
         if (origResult.test.size() == 0) {
