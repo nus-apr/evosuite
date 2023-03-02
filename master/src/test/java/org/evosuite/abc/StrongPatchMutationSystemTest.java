@@ -4,7 +4,6 @@ import com.examples.with.different.packagename.coverage.patch.ArithmeticOracleEx
 import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.SystemTestBase;
-import org.evosuite.TestGenerationContext;
 import org.evosuite.coverage.mutation.StrongMutationTestFitness;
 import org.evosuite.coverage.mutation.StrongPatchMutationTestFitness;
 import org.evosuite.coverage.patch.OracleExceptionTestFitness;
@@ -34,7 +33,7 @@ public class StrongPatchMutationSystemTest extends SystemTestBase {
     @Test
     public void testStrongMutation() {
         Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXGENERATIONS;
-        Properties.SEARCH_BUDGET = 50;
+        Properties.SEARCH_BUDGET = 35;
 
         Object result = evosuite.parseCommandLine(command);
 
@@ -63,7 +62,7 @@ public class StrongPatchMutationSystemTest extends SystemTestBase {
     @Test
     public void testStrongPatchMutationOnly() {
         Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXGENERATIONS;
-        Properties.SEARCH_BUDGET = 25;
+        Properties.SEARCH_BUDGET = 10;
         Properties.EVOREPAIR_STRONG_MUTATION_GOALS = false;
 
         Object result = evosuite.parseCommandLine(command);
@@ -111,7 +110,7 @@ public class StrongPatchMutationSystemTest extends SystemTestBase {
         int coveredOracleExceptionGoals = computeCoveredGoalsFromResult(result, OracleExceptionTestFitness.class);
 
         // All strong mutants can be killed
-        Assert.assertEquals("Non-optimal number of covered  mutation goals: ", coveredStrongMutationGoals, 19);
+        Assert.assertEquals("Non-optimal number of covered mutation goals: ", coveredStrongMutationGoals, 19);
 
         // ArithmeticException can't be triggered because it is only thrown by integer division!
         Assert.assertEquals("Non-optimal number of covered oracle exception goals: ", coveredOracleExceptionGoals, 1);
