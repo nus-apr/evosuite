@@ -49,6 +49,9 @@ public class StrongMutationTestFitness extends MutationTestFitness {
 
     private static final List<OracleExceptionTestFitness> oracleGoals = new ArrayList<>();
 
+    private boolean strongMutation = false;
+    private boolean strongPatchMutation = false;
+
     static {
         if (Properties.EVOREPAIR_TEST_GENERATION && Properties.EVOREPAIR_ORACLE_LOCATIONS != null) {
             oracleGoals.addAll(new OracleExceptionFactory().getCoverageGoals());
@@ -78,8 +81,10 @@ public class StrongMutationTestFitness extends MutationTestFitness {
      *
      * @param mutation a {@link org.evosuite.coverage.mutation.Mutation} object.
      */
-    public StrongMutationTestFitness(Mutation mutation) {
+    public StrongMutationTestFitness(Mutation mutation, boolean strongMutation, boolean strongPatchMutation) {
         super(mutation);
+        this.strongMutation = strongMutation;
+        this.strongPatchMutation = strongPatchMutation;
         for (AssertionTraceObserver<?> observer : observers) {
             logger.debug("StrongMutation adding observer " + observer);
             TestCaseExecutor.getInstance().addObserver(observer);
@@ -139,51 +144,53 @@ public class StrongMutationTestFitness extends MutationTestFitness {
 
         MutationExecutionResult result = new MutationExecutionResult();
 
-        if (TestCoverageGoal.hasTimeout(mutationResult)) {
-            logger.debug("Found timeout in mutant!");
-            MutationTimeoutStoppingCondition.timeOut(mutation);
-            result.setHasTimeout(true);
-        }
-
-        // TODO EvoRepair: This used to be without negation, but that's wrong right?
-        if (!mutationResult.noThrownExceptions()) {
-            result.setHasException(true);
-        }
-
-        int numAssertions = getNumAssertions(originalResult, mutationResult);
-        result.setNumAssertions(numAssertions);
-
-        if (numAssertions == 0) {
-            double impact = getSumDistance(originalResult.getTrace(),
-                    mutationResult.getTrace());
-            result.setImpact(impact);
-        }
-
-        if (!Properties.EVOREPAIR_TEST_GENERATION) {
-            return result;
-        }
-
-        // Check if execution of the mutant resulted in an oracle exception
-        boolean oracleException = mutationResult.getAllThrownExceptions().stream()
-                .filter(RuntimeException.class::isInstance)
-                .map(Throwable::getMessage)
-                .anyMatch(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"));
-        result.setHasOracleException(oracleException);
-
-        if (oracleException) {
-            result.setOracleExceptionDistance(0.0);
-        } else { // If no oracle exception has been triggered, compute minimum distance to any oracle exception
-            // Disabling archive since the test may cover the oracle in the mutant, but not original  program
-            Properties.TEST_ARCHIVE = false;
-            double minFitness = oracleGoals.stream().mapToDouble(o -> o.getFitness(individual, mutationResult)).min().orElse(1.0);
-            Properties.TEST_ARCHIVE = true;
-            result.setOracleExceptionDistance(minFitness);
-
-            if (Properties.EVOREPAIR_DEBUG && (result.hasTimeout() || result.hasException() || numAssertions > 0)) {
-                logger.warn("Test case kills mutant, but without triggering the oracle (distance: {})", minFitness);
+        // The following information is needed if we perform (traditional) strong mutation testing
+        if (strongMutation) {
+            if (TestCoverageGoal.hasTimeout(mutationResult)) {
+                logger.debug("Found timeout in mutant!");
+                MutationTimeoutStoppingCondition.timeOut(mutation);
+                result.setHasTimeout(true);
             }
 
+            // TODO EvoRepair: This used to be without negation, but that's wrong right?
+            if (!mutationResult.noThrownExceptions()) {
+                result.setHasException(true);
+            }
+
+            int numAssertions = getNumAssertions(originalResult, mutationResult);
+            result.setNumAssertions(numAssertions);
+
+            if (numAssertions == 0) {
+                double impact = getSumDistance(originalResult.getTrace(),
+                        mutationResult.getTrace());
+                result.setImpact(impact);
+            }
         }
+
+        // The following information is needed for strong patch mutation testing
+        if (strongPatchMutation) {
+            // Check if execution of the mutant resulted in an oracle exception
+            boolean oracleException = mutationResult.getAllThrownExceptions().stream()
+                    .filter(RuntimeException.class::isInstance)
+                    .map(Throwable::getMessage)
+                    .anyMatch(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"));
+            result.setHasOracleException(oracleException);
+
+            if (oracleException) {
+                result.setOracleExceptionDistance(0.0);
+            } else { // If no oracle exception has been triggered, compute minimum distance to any oracle exception
+                // Disabling archive since the test may cover the oracle in the mutant, but not original  program
+                Properties.TEST_ARCHIVE = false;
+                double minFitness = oracleGoals.stream().mapToDouble(o -> o.getFitness(individual, mutationResult)).min().orElse(1.0);
+                Properties.TEST_ARCHIVE = true;
+                result.setOracleExceptionDistance(minFitness);
+
+                if (Properties.EVOREPAIR_DEBUG && (result.hasTimeout() || result.hasException() || result.getNumAssertions() > 0)) {
+                    logger.warn("Test case kills mutant, but without triggering the oracle (distance: {})", minFitness);
+                }
+            }
+        }
+
         return result;
     }
 

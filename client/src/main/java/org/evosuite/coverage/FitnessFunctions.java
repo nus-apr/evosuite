@@ -150,9 +150,9 @@ public class FitnessFunctions {
         switch (crit) {
             case STRONGMUTATION:
             case MUTATION:
-                return new MutationFactory();
+                return new MutationFactory(Properties.EVOREPAIR_STRONG_MUTATION_GOALS, Properties.EVOREPAIR_STRONG_PATCH_MUTATION_GOALS);
             case WEAKMUTATION:
-                return new MutationFactory(false);
+                return new MutationFactory(false, false);
             case ONLYMUTATION:
                 return new OnlyMutationFactory();
             case DEFUSE:

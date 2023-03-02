@@ -19,8 +19,8 @@ public class StrongPatchMutationTestFitness extends StrongMutationTestFitness {
      *
      * @param mutation a {@link Mutation} object.
      */
-    public StrongPatchMutationTestFitness(Mutation mutation) {
-        super(mutation);
+    public StrongPatchMutationTestFitness(Mutation mutation, boolean strong, boolean patchStrong) {
+        super(mutation, strong, patchStrong);
     }
 
 

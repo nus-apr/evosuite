@@ -44,11 +44,9 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
 
     private boolean strong = true;
 
-    protected List<MutationTestFitness> goals = null;
+    private boolean patchStrong = false;
 
-    static {
-        LoggingUtils.getEvoLogger().warn("\u001b[1m\u001B[31m[EvoRepair-TODO]: Implement option to enable StrongMutation and/or PatchStrongMutation\u001B[0m");
-    }
+    protected List<MutationTestFitness> goals = null;
 
     /**
      * <p>
@@ -65,8 +63,12 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
      *
      * @param strongMutation a boolean.
      */
-    public MutationFactory(boolean strongMutation) {
+    public MutationFactory(boolean strongMutation, boolean patchStrongMutation) {
         this.strong = strongMutation;
+        this.patchStrong = patchStrongMutation;
+        if (!(strong || patchStrong)) {
+            throw new IllegalArgumentException("Either strong mutation or strong patch mutation criteria must be enabled for strong mutation testing!");
+        }
     }
 
     /* (non-Javadoc)
@@ -110,9 +112,9 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
             // We need to return all mutants to make coverage values and bitstrings consistent
             //if (MutationTimeoutStoppingCondition.isDisabled(m))
             //	continue;
-            if (strong) {
-                //goals.add(new StrongMutationTestFitness(m));
-                goals.add(new StrongPatchMutationTestFitness(m));
+            if (strong || patchStrong) {
+                if (strong) goals.add(new StrongMutationTestFitness(m, strong, patchStrong));
+                if (patchStrong) goals.add(new StrongPatchMutationTestFitness(m, strong, patchStrong));
             }
             else {
                 goals.add(new WeakMutationTestFitness(m));

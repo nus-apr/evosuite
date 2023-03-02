@@ -349,10 +349,18 @@ public class SystemTestBase {
     }
 
     protected int computeCoveredGoalsFromResult(Object result) {
-        return computeCoveredGoalsFromResult(result, null);
+        return computeCoveredGoalsFromResult(result, null, true);
+    }
+
+    protected int computeCoveredGoalsFromResult(Object result, boolean printStats) {
+        return computeCoveredGoalsFromResult(result, null, printStats);
     }
 
     protected int computeCoveredGoalsFromResult(Object result, Class<?> fitnessFunctionClass) {
+        return computeCoveredGoalsFromResult(result, fitnessFunctionClass, true);
+    }
+
+        protected int computeCoveredGoalsFromResult(Object result, Class<?> fitnessFunctionClass, boolean printStats) {
 
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
@@ -372,15 +380,19 @@ public class SystemTestBase {
             }
         }
 
-        if (fitnessFunctionClass != null) System.out.println("\n*** Fitness function: " + fitnessFunctionClass + " ***");
+        if (printStats) {
+            if (fitnessFunctionClass != null) {
+                System.out.println("\n*** Fitness function: " + fitnessFunctionClass + " ***");
+            }
 
-        System.out.println("Covered goals:");
-        if (coveredGoals.isEmpty()) System.out.println("[None]");
-        coveredGoals.forEach(ff -> System.out.println("+ " + ff));
-        System.out.println();
-        System.out.println("Uncovered goals:");
-        uncoveredGoals.forEach(ff -> System.out.println("- " + ff));
-        if (uncoveredGoals.isEmpty()) System.out.println("[None]");
+            System.out.println("Covered goals:");
+            if (coveredGoals.isEmpty()) System.out.println("[None]");
+            coveredGoals.forEach(ff -> System.out.println("+ " + ff));
+            System.out.println();
+            System.out.println("Uncovered goals:");
+            uncoveredGoals.forEach(ff -> System.out.println("- " + ff));
+            if (uncoveredGoals.isEmpty()) System.out.println("[None]");
+        }
 
         return coveredGoals.size();
     }

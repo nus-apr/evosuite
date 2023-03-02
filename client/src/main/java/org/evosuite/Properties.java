@@ -330,6 +330,12 @@ public class Properties {
     @Parameter(key = "maxMutantsPerFixLocation", group = "EvoRepair", description = "Maximum number of mutants to generate per fix location.")
     public static int EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION = 500;
 
+    @Parameter(key = "strongMutationGoals", group = "EvoRepair", description = "Enable traditional strong mutation goals (i.e., kill via propagated output difference) for fix location mutants.")
+    public static boolean EVOREPAIR_STRONG_MUTATION_GOALS = true;
+
+    @Parameter(key = "strongPatchMutationGoals", group = "EvoRepair", description = "Enable strong patch mutation goals (i.e., kill via oracle exception) for fix location mutants.")
+    public static boolean EVOREPAIR_STRONG_PATCH_MUTATION_GOALS = true;
+
     @Parameter(key = "numTests", group = "EvoRepair", description = "Maximum number of tests to include in the test suite.")
     public static int EVOREPAIR_NUM_TESTS = 50;
 
