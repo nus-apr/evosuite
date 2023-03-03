@@ -33,7 +33,7 @@ public class StrongPatchMutationSystemTest extends SystemTestBase {
     @Test
     public void testStrongMutation() {
         Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXGENERATIONS;
-        Properties.SEARCH_BUDGET = 35;
+        Properties.SEARCH_BUDGET = 40;
 
         Object result = evosuite.parseCommandLine(command);
 
