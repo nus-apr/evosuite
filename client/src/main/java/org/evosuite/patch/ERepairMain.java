@@ -2,6 +2,7 @@ package org.evosuite.patch;
 
 import org.evosuite.Properties;
 import org.evosuite.ga.stoppingconditions.MaxTimeStoppingCondition;
+import org.evosuite.ga.stoppingconditions.StoppingCondition;
 import org.evosuite.patch.NonDomNSGAIIWithInit;
 import org.evosuite.ga.operators.selection.BinaryTournamentSelectionCrowdedComparison;
 import org.evosuite.ga.stoppingconditions.MaxGenerationStoppingCondition;
@@ -9,10 +10,18 @@ import org.evosuite.ga.stoppingconditions.MaxGenerationStoppingCondition;
 import us.msu.cse.repair.Interpreter;
 import us.msu.cse.repair.ec.problems.ArjaEProblem;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.List;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ERepairMain {
+
+    private static final Logger logger = LoggerFactory.getLogger(ERepairMain.class);
+
     public static void main(String[] args) throws Exception {
         String randomSeedS = System.getProperty("random_seed");
         if (randomSeedS != null) {
@@ -83,6 +92,13 @@ public class ERepairMain {
 
         // repairAlg.addStoppingCondition(maxGenCondition);
         // repairAlg.addStoppingCondition(maxTimeCondition);
+
+        Set<StoppingCondition<EPatchChromosome>> conditions = new LinkedHashSet<>(repairAlg.getStoppingConditions());
+        for (StoppingCondition<EPatchChromosome> condition: conditions) {
+            repairAlg.removeStoppingCondition(condition);
+        }
+
+        logger.debug("Stopping conditions: {}", repairAlg.getStoppingConditions());
 
         repairAlg.generateSolution();
     }
