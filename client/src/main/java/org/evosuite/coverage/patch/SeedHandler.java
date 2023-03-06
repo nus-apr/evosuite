@@ -51,7 +51,7 @@ public class SeedHandler {
         TestSuiteSerialization.saveTests(testSuite, populationDump);
 
         // Then write test names to file
-        Path testNamePath = Paths.get(testDir, "test_names.txt");
+        Path testNamePath = Paths.get(outputDir, "test_names.txt");
         String testNamePrefix = Properties.TARGET_CLASS + Properties.JUNIT_SUFFIX + "#test";
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(testNamePath.toFile()))) {
