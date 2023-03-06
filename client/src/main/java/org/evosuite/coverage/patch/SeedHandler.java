@@ -43,10 +43,10 @@ public class SeedHandler {
      * @param testSuite the actual test suite to serialize (does not contain uncompilable tests or prefix tests)
      */
     public void saveTestPopulation(TestSuiteChromosome testSuite) {
-        String testDir = Properties.TEST_DIR;
+        String outputDir = Properties.CLIENT_ON_THREAD ? Properties.BASE_DIR + File.separator + Properties.TEST_DIR : Properties.TEST_DIR;
 
         // First serialize population
-        File populationDump = Paths.get(testDir, "dump").toFile();
+        File populationDump = Paths.get(outputDir, "dump").toFile();
         logger.info("Test population has been serialized to: {}.", populationDump.getPath());
         TestSuiteSerialization.saveTests(testSuite, populationDump);
 
