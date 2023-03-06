@@ -287,7 +287,6 @@ public class TestSuiteWriter implements Opcodes {
                                          TestGenerationResult<TestChromosome> result,
                                          String outputPath) {
 
-        // TODO EvoRepair: Use generic flag to indicate that EvoRepair is enabled
         if (!Properties.SERIALIZE_GA && Properties.EVOREPAIR_TEST_GENERATION) {
             return;
         }
@@ -416,7 +415,8 @@ public class TestSuiteWriter implements Opcodes {
             int numCoveringSolutions = (int) tests.stream().mapToDouble(t -> t.getFitness(ff)).filter(f -> f == 0.0).count();
             numCoveringTestsMap.put(ff, numCoveringSolutions);
 
-            double minFitness = tests.stream().mapToDouble(t -> t.getFitness(ff)).min().orElse(-1);
+            // How close is the next test to cover the goal? I.e., only consider remaining tests that don't already cover the goal
+            double minFitness = tests.stream().mapToDouble(t -> t.getFitness(ff)).filter(f -> f > 0.0).min().orElse(-1);
             minFitnessValuesMap.get(ff.getClass()).put(ff, minFitness);
         }
 
