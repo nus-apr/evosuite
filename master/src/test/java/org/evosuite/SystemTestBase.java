@@ -360,8 +360,7 @@ public class SystemTestBase {
         return computeCoveredGoalsFromResult(result, fitnessFunctionClass, true);
     }
 
-        protected int computeCoveredGoalsFromResult(Object result, Class<?> fitnessFunctionClass, boolean printStats) {
-
+    protected int computeCoveredGoalsFromResult(Object result, Class<?> fitnessFunctionClass, boolean printStats) {
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
 
@@ -373,7 +372,10 @@ public class SystemTestBase {
         if (fitnessFunctionClass != null) fitnessFunctions.removeIf(f -> !fitnessFunctionClass.isInstance(f));
 
         for (TestFitnessFunction ff : fitnessFunctions) {
-            if (tests.stream().map(t -> t.getFitness(ff)).anyMatch(fitness -> fitness == 0.0)) {
+            // Note: At this point, the TestGenerationContext (and TestCaseExecutor) have been shut down,
+            //  so re-running tests may not be possible (NPE). As long as only cached fitness results are used
+            //  for evaluation, we should be fine. Thats why we use the getFitnessValues() instead of getFitness
+            if (tests.stream().map(t -> t.getFitnessValues().getOrDefault(ff, 1.0)).anyMatch(fitness -> fitness == 0.0)) {
                 coveredGoals.add(ff);
             } else {
                 uncoveredGoals.add(ff);

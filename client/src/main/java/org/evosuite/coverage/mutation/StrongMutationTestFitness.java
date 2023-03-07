@@ -24,6 +24,7 @@ import org.evosuite.assertion.*;
 import org.evosuite.coverage.TestCoverageGoal;
 import org.evosuite.coverage.patch.OracleExceptionFactory;
 import org.evosuite.coverage.patch.OracleExceptionTestFitness;
+import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.stoppingconditions.MaxStatementsStoppingCondition;
 import org.evosuite.testcase.TestCase;
@@ -181,7 +182,10 @@ public class StrongMutationTestFitness extends MutationTestFitness {
             } else { // If no oracle exception has been triggered, compute minimum distance to any oracle exception
                 // Disabling archive since the test may cover the oracle in the mutant, but not original  program
                 Properties.TEST_ARCHIVE = false;
+                // Have to back up fitness values since they might change in the mutated program
+                Map<FitnessFunction<TestChromosome>, Double> fitnessValues = new LinkedHashMap<>(individual.getFitnessValues());
                 double minFitness = oracleGoals.stream().mapToDouble(o -> o.getFitness(individual, mutationResult)).min().orElse(1.0);
+                individual.setFitnessValues(fitnessValues);
                 Properties.TEST_ARCHIVE = true;
                 result.setOracleExceptionDistance(minFitness);
 

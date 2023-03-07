@@ -21,8 +21,8 @@ public class StrongPatchMutationSystemTest extends SystemTestBase {
     private String targetClass = ArithmeticOracleException.class.getCanonicalName();
     private URL targetPatches = this.getClass().getResource("ArithmeticOracleException_targetPatches.json");
     private URL oracleLocations = this.getClass().getResource("ArithmeticOracleException_oracleLocations.json");
-    private String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-Dalgorithm=MOSA", "-class", targetClass,
-            "-criterion", "STRONGMUTATION:ORACLE", "-targetPatches", targetPatches.getPath(), "-oracleLocations", oracleLocations.getPath()};
+    private String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-Dalgorithm=DYNAMOSA", "-class", targetClass,
+            "-criterion", "STRONGMUTATION:ORACLE:FIXLOCATION", "-targetPatches", targetPatches.getPath(), "-oracleLocations", oracleLocations.getPath()};
 
     @Before
     public void setup() {

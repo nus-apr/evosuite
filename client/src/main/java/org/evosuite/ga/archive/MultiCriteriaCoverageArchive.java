@@ -75,7 +75,7 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
         // Perform basic checks usually done by super
         validateSolution(target, solution, fitnessValue);
 
-        boolean isCoveringTargetLine = getTargetLineGoals().stream().anyMatch(solution.getTestCase()::isGoalCovered);
+        boolean isCoveringTargetLine = getTargetLineGoals().stream().anyMatch(ff -> solution.getFitness(ff) == 0.0);
         // This is a full solution, let super add it to the coverage archive, remove from map of partial solutions
         if (isCoveringTargetLine) {
             super.updateArchive(target, solution, fitnessValue);
@@ -104,6 +104,7 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
                                        TestChromosome solution,
                                        double fitnessValue) {
 
+        /* TODO: Implement
         // Minimize test w.r.t. covered line goals
         List<TestFitnessFunction> coveredLineGoals = solution.getTestCase().getCoveredGoals().stream()
                         .filter(LineCoverageTestFitness.class::isInstance)
@@ -114,6 +115,8 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
         TestCaseMinimizer minimizer = new TestCaseMinimizer(null); // TODO EvoRepair: null is a bad idea
         minimizer.minimizeWithCoveredGoals(solution, coveredLineGoals);
         Properties.TEST_ARCHIVE = true;
+
+         */
 
         // Add solution to archive (or replace existing solution)
         super.updateArchive(target, solution, fitnessValue);
@@ -153,7 +156,7 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
         assert target != null;
         assert solution != null;
         assert fitnessValue >= 0.0;
-        assert this.covered.containsKey(target) || this.uncovered.contains(target) : "Unknown goal: " + target;
+        assert this.covered.containsKey(target) || this.uncovered.contains(target) || removed.contains(target) : "Unknown goal: " + target;
 
         if (!ArchiveUtils.isCriterionEnabled(target)) {
             throw new RuntimeException(
