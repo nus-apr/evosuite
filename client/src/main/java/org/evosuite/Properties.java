@@ -345,6 +345,9 @@ public class Properties {
     @Parameter(key = "pruneBranches", group = "EvoRepair", description = "[DynaMOSA] Prune branches from the branch fitness graph that don't contribute to the coverage of other goals.")
     public static boolean EVOREPAIR_DYNAMOSA_PRUNE_BRANCHES = true;
 
+    @Parameter(key = "minimizeTargetLineSolutions", group = "EvoRepair", description = "Minimize discovered target line solutions to make them more concise for crossover.")
+    public static boolean EVOREPAIR_MINIMIZE_TARGET_LINE_SOLUTIONS = false;
+
     @Parameter(key = "evoRepairDebug", group = "EvoRepair", description = "Enable runtime checks while running EvoRepair.")
     public static boolean EVOREPAIR_DEBUG = false;
 

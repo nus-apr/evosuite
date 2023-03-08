@@ -104,19 +104,18 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
                                        TestChromosome solution,
                                        double fitnessValue) {
 
-        /* TODO: Implement
         // Minimize test w.r.t. covered line goals
-        List<TestFitnessFunction> coveredLineGoals = solution.getTestCase().getCoveredGoals().stream()
-                        .filter(LineCoverageTestFitness.class::isInstance)
-                        .collect(Collectors.toList());
+        if (Properties.EVOREPAIR_MINIMIZE_TARGET_LINE_SOLUTIONS) {
+            List<TestFitnessFunction> coveredLineGoals = solution.getTestCase().getCoveredGoals().stream()
+                    .filter(LineCoverageTestFitness.class::isInstance)
+                    .collect(Collectors.toList());
 
-        // Disabling archive during minimization
-        Properties.TEST_ARCHIVE = false;
-        TestCaseMinimizer minimizer = new TestCaseMinimizer(null); // TODO EvoRepair: null is a bad idea
-        minimizer.minimizeWithCoveredGoals(solution, coveredLineGoals);
-        Properties.TEST_ARCHIVE = true;
-
-         */
+            // Disabling archive during minimization
+            Properties.TEST_ARCHIVE = false;
+            TestCaseMinimizer minimizer = new TestCaseMinimizer(null); // TODO EvoRepair: null is a bad idea
+            minimizer.minimizeWithCoveredGoals(solution, coveredLineGoals);
+            Properties.TEST_ARCHIVE = true;
+        }
 
         // Add solution to archive (or replace existing solution)
         super.updateArchive(target, solution, fitnessValue);
