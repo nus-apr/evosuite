@@ -120,6 +120,7 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
                 case PATCH:
                     throw new RuntimeException("PATCH criterion is currently not handled/implemented.");
                 case FIXLOCATION:
+                case ORACLE:
                 case LINE:
                     addDependencies4Line();
                     break;
@@ -200,8 +201,6 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
         // initialize current goals
         // We can directly target root context goals as they don't have any dependencies themselves
         this.currentGoals.addAll(rootContextBranchGoals);
-
-        // TODO EvoRepair: Need to remove any branches here?
         this.currentGoals.addAll(graph.getRootBranches());
     }
 

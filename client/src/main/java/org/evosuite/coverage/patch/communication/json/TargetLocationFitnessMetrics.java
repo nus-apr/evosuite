@@ -3,33 +3,35 @@ package org.evosuite.coverage.patch.communication.json;
 import java.util.Map;
 
 public class TargetLocationFitnessMetrics {
-    private String className;
-    private int targetLine;
+    protected String className;
+    protected int targetLine;
 
-    private double minFitness;
+    protected int numCoveringTests;
 
-    private int numCoveringTests;
+    protected double minFitness;
 
-    private int numTotalContexts;
+    protected int numContexts;
 
-    private int numCoveredContexts;
+    protected int numCoveredContexts;
 
-    private Map<String, Double> contextMinFitnessMap;
+    protected Map<String, Double> contextToMinFitness;
 
-    private Map<String, Integer> contextCoveringTestsMap;
+    protected Map<String, Integer> contextToNumCoveringTests;
 
     public TargetLocationFitnessMetrics() {}
-    public TargetLocationFitnessMetrics(String className, int targetLine, double minFitness, int numCoveringTests,
-        int numTotalContexts, int numCoveredContexts, Map<String, Double> contextMinFitnessMap, Map<String, Integer> contextCoveringTestsMap) {
+    public TargetLocationFitnessMetrics(String className, int targetLine, int numCoveringTests, double minFitness,
+                                        int numContexts, int numCoveredContexts,
+                                        Map<String, Integer> contextToNumCoveringTests,
+                                        Map<String, Double> contextToMinFitness) {
 
         this.className = className;
         this.targetLine = targetLine;
-        this.minFitness = minFitness;
         this.numCoveringTests = numCoveringTests;
-        this.numTotalContexts = numTotalContexts;
+        this.minFitness = minFitness;
+        this.numContexts = numContexts;
         this.numCoveredContexts = numCoveredContexts;
-        this.contextMinFitnessMap = contextMinFitnessMap;
-        this.contextCoveringTestsMap =  contextCoveringTestsMap;
+        this.contextToNumCoveringTests =  contextToNumCoveringTests;
+        this.contextToMinFitness = contextToMinFitness;
     }
 
     public String getClassName() {
@@ -40,27 +42,27 @@ public class TargetLocationFitnessMetrics {
         return targetLine;
     }
 
-    public double getMinFitness() {
-        return minFitness;
-    }
-
     public int getNumCoveringTests() {
         return numCoveringTests;
     }
 
-    public int getNumTotalContexts() {
-        return numTotalContexts;
+    public double getMinFitness() {
+        return minFitness;
+    }
+
+    public int getNumContexts() {
+        return numContexts;
     }
 
     public int getNumCoveredContexts() {
         return numCoveredContexts;
     }
 
-    public Map<String, Double> getContextMinFitnessMap() {
-        return contextMinFitnessMap;
+    public Map<String, Integer> getContextToNumCoveringTests() {
+        return contextToNumCoveringTests;
     }
 
-    public Map<String, Integer> getContextCoveringTestsMap() {
-        return contextCoveringTestsMap;
+    public Map<String, Double> getContextToMinFitness() {
+        return contextToMinFitness;
     }
 }

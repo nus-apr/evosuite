@@ -185,6 +185,7 @@ public class BranchFitnessGraph implements Serializable {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         this.graph.removeAllVertices(toRemove);
+        this.rootBranches.removeAll(toRemove);
         return toRemove;
     }
 }

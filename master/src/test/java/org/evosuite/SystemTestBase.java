@@ -349,6 +349,18 @@ public class SystemTestBase {
     }
 
     protected int computeCoveredGoalsFromResult(Object result) {
+        return computeCoveredGoalsFromResult(result, null, true);
+    }
+
+    protected int computeCoveredGoalsFromResult(Object result, boolean printStats) {
+        return computeCoveredGoalsFromResult(result, null, printStats);
+    }
+
+    protected int computeCoveredGoalsFromResult(Object result, Class<?> fitnessFunctionClass) {
+        return computeCoveredGoalsFromResult(result, fitnessFunctionClass, true);
+    }
+
+    protected int computeCoveredGoalsFromResult(Object result, Class<?> fitnessFunctionClass, boolean printStats) {
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
 
@@ -356,18 +368,33 @@ public class SystemTestBase {
         List<TestFitnessFunction> uncoveredGoals = new ArrayList<>();
         List<TestChromosome> tests = best.getTestChromosomes();
 
-        for (TestFitnessFunction ff : (List<TestFitnessFunction>) ga.getFitnessFunctions()) {
-            if (tests.stream().map(t -> t.getFitness(ff)).anyMatch(fitness -> fitness == 0.0)) {
+        List<TestFitnessFunction> fitnessFunctions = new ArrayList<>((List<TestFitnessFunction>) ga.getFitnessFunctions());
+        if (fitnessFunctionClass != null) fitnessFunctions.removeIf(f -> !fitnessFunctionClass.isInstance(f));
+
+        for (TestFitnessFunction ff : fitnessFunctions) {
+            // Note: At this point, the TestGenerationContext (and TestCaseExecutor) have been shut down,
+            //  so re-running tests may not be possible (NPE). As long as only cached fitness results are used
+            //  for evaluation, we should be fine. Thats why we use the getFitnessValues() instead of getFitness
+            if (tests.stream().map(t -> t.getFitnessValues().getOrDefault(ff, 1.0)).anyMatch(fitness -> fitness == 0.0)) {
                 coveredGoals.add(ff);
             } else {
                 uncoveredGoals.add(ff);
             }
         }
-        System.out.println("========== COVERED GOALS ==========");
-        coveredGoals.forEach(System.out::println);
-        System.out.println();
-        System.out.println("========== UNCOVERED GOALS ==========");
-        uncoveredGoals.forEach(System.out::println);
+
+        if (printStats) {
+            if (fitnessFunctionClass != null) {
+                System.out.println("\n*** Fitness function: " + fitnessFunctionClass + " ***");
+            }
+
+            System.out.println("Covered goals:");
+            if (coveredGoals.isEmpty()) System.out.println("[None]");
+            coveredGoals.forEach(ff -> System.out.println("+ " + ff));
+            System.out.println();
+            System.out.println("Uncovered goals:");
+            uncoveredGoals.forEach(ff -> System.out.println("- " + ff));
+            if (uncoveredGoals.isEmpty()) System.out.println("[None]");
+        }
 
         return coveredGoals.size();
     }

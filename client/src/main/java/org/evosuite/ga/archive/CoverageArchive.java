@@ -57,6 +57,11 @@ public class CoverageArchive extends Archive {
      */
     protected final Set<TestFitnessFunction> uncovered = new LinkedHashSet<>();
 
+    /**
+     * Set used to store all removed targets to ignore
+     */
+    protected final Set<TestFitnessFunction> removed = new LinkedHashSet<>();
+
     public static final CoverageArchive instance = new CoverageArchive();
 
 
@@ -97,6 +102,8 @@ public class CoverageArchive extends Archive {
             logger.warn("Removing a target for which we have already found a solution: {}", target);
             covered.remove(target);
         }
+
+        removed.add(target);
     }
 
     /**
@@ -105,7 +112,7 @@ public class CoverageArchive extends Archive {
     @Override
     public void updateArchive(TestFitnessFunction target, TestChromosome solution, double fitnessValue) {
         super.updateArchive(target, solution, fitnessValue);
-        assert this.covered.containsKey(target) || this.uncovered.contains(target) : "Unknown goal: " + target;
+        assert this.covered.containsKey(target) || this.uncovered.contains(target) || this.removed.contains(target) : "Unknown goal: " + target;
 
         if (fitnessValue > 0.0) {
             // as this type of archive only cares about covered targets, it ignores all

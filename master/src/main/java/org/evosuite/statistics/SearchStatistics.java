@@ -39,6 +39,7 @@ import org.evosuite.coverage.method.MethodTraceCoverageSuiteFitness;
 import org.evosuite.coverage.mutation.OnlyMutationSuiteFitness;
 import org.evosuite.coverage.mutation.WeakMutationSuiteFitness;
 import org.evosuite.coverage.patch.ContextLineSuiteFitness;
+import org.evosuite.coverage.patch.OracleExceptionSuiteFitness;
 import org.evosuite.coverage.patch.PatchCoverageSuiteFitness;
 import org.evosuite.coverage.patch.FixLocationCoverageSuiteFitness;
 import org.evosuite.coverage.rho.RhoCoverageSuiteFitness;
@@ -165,6 +166,8 @@ public class SearchStatistics implements Listener<ClientStateInformation> {
         sequenceOutputVariableFactories.put(RuntimeVariable.PatchCoverageTimeline.name(), new PatchCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.ContextLineFitnessTimeline.name(), new ContextLineFitnessSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.ContextLineCoverageTimeline.name(), new ContextLineCoverageSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.OracleExceptionFitnessTimeline.name(), new OracleExceptionFitnessSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.OracleExceptionCoverageTimeline.name(), new OracleExceptionCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.DiversityTimeline.name(),
                 DirectSequenceOutputVariableFactory.getDouble(RuntimeVariable.DiversityTimeline));
 
@@ -821,6 +824,30 @@ public class SearchStatistics implements Listener<ClientStateInformation> {
         @Override
         public Double getValue(TestSuiteChromosome individual) {
             return individual.getCoverageInstanceOf(FixLocationCoverageSuiteFitness.class);
+        }
+    }
+
+    private static class OracleExceptionFitnessSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+
+        public OracleExceptionFitnessSequenceOutputVariableFactory() {
+            super(RuntimeVariable.OracleExceptionFitnessTimeline);
+        }
+
+        @Override
+        public Double getValue(TestSuiteChromosome individual) {
+            return individual.getFitnessInstanceOf(OracleExceptionSuiteFitness.class);
+        }
+    }
+
+    private static class OracleExceptionCoverageSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+
+        public OracleExceptionCoverageSequenceOutputVariableFactory() {
+            super(RuntimeVariable.OracleExceptionCoverageTimeline);
+        }
+
+        @Override
+        public Double getValue(TestSuiteChromosome individual) {
+            return individual.getCoverageInstanceOf(OracleExceptionSuiteFitness.class);
         }
     }
 
