@@ -1,0 +1,8 @@
+[
+  {
+    "index": "patchIndex1",
+    "fixLocations": [
+      {"classname": "com.examples.with.different.packagename.coverage.patch.ArithmeticOracleException", "targetLines": [25]}
+    ]
+  }
+]

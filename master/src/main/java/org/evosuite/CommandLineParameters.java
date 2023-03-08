@@ -25,6 +25,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.evosuite.classpath.ClassPathHandler;
 import org.evosuite.executionmode.*;
+import org.evosuite.utils.ArrayUtil;
 import org.evosuite.utils.LoggingUtils;
 
 import java.io.File;
@@ -289,8 +290,15 @@ public class CommandLineParameters {
                 setPropertyAndAddToJavaOpts("algorithm", "DYNAMOSA_PATCH", javaOpts);
             }
             LoggingUtils.getEvoLogger().info("[EvoRepair] Using many-objective algorithm: {}", Properties.ALGORITHM);
+            LoggingUtils.getEvoLogger().warn("[EvoRepair] Using custom archive.");
+            setPropertyAndAddToJavaOpts("archive_type", "MULTI_CRITERIA_COVERAGE", javaOpts);
+            Properties.getInstance();
+            Properties.ARCHIVE_TYPE = Properties.ArchiveType.MULTI_CRITERIA_COVERAGE;
         } else if (line.hasOption("generateSuite")){
             setPropertyAndAddToJavaOpts("algorithm", "NSGAII", javaOpts);
+
+            // Using the default archive since the mcc archive uses test case level minimization
+            setPropertyAndAddToJavaOpts("archive_type", "COVERAGE", javaOpts);
         } else {
             LoggingUtils.getEvoLogger().error("[EvoRepair] No search strategy is provided, enable with either -generateMOSuite or -generateSuite");
         }
@@ -313,17 +321,20 @@ public class CommandLineParameters {
          */
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Custom secondary objectives are currently DISABLED.");
 
-        LoggingUtils.getEvoLogger().warn("[EvoRepair] Using custom archive.");
-        setPropertyAndAddToJavaOpts("archive_type", "MULTI_CRITERIA_COVERAGE", javaOpts);
-        Properties.getInstance();
-        Properties.ARCHIVE_TYPE = Properties.ArchiveType.MULTI_CRITERIA_COVERAGE;
-
 
         if (line.hasOption("criterion")) {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
+
+            // DynaMOSA(_Patch) require the branch fitness criterion to compute the dependency graph
+            if (Properties.ALGORITHM == Properties.Algorithm.DYNAMOSA
+                    || Properties.ALGORITHM == Properties.Algorithm.DYNAMOSA_PATCH) {
+                if (!ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.BRANCH)) {
+                    setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion") + ":BRANCH", javaOpts);
+                }
+            }
         } else {
             // Enable all default criteria
-            String defaultCriteria = "FIXLOCATION:BRANCH:EXCEPTION:STRONGMUTATION:OUTPUT:METHOD:METHODNOEXCEPTION:CONTEXTLINE";
+            String defaultCriteria = "BRANCH:FIXLOCATION:ORACLE:CONTEXTLINE:STRONGMUTATION";
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No criterions provided, using default: {}.", defaultCriteria);
             setPropertyAndAddToJavaOpts("criterion", defaultCriteria, javaOpts);
         }
@@ -363,7 +374,7 @@ public class CommandLineParameters {
         if (line.hasOption("targetPatches")) {
             setPropertyAndAddToJavaOpts("targetPatches", line.getOptionValue("targetPatches"), javaOpts);
         } else {
-            LoggingUtils.getEvoLogger().error("No target patches provided, specify using -targetPatches option.");
+            LoggingUtils.getEvoLogger().warn("No target patches provided, specify using -targetPatches option.");
             throw new IllegalArgumentException("Missing target patches.");
         }
 
@@ -377,7 +388,7 @@ public class CommandLineParameters {
         if (line.hasOption("targetLineSolutions")) {
             setPropertyAndAddToJavaOpts("targetLineSolutions", line.getOptionValue("targetLineSolutions"), javaOpts);
         } else {
-            LoggingUtils.getEvoLogger().warn("No target line solutions provided, specify using -targetLineSolutions option.");
+            LoggingUtils.getEvoLogger().warn("[EvoRepair] No target line solutions provided, specify using -targetLineSolutions option.");
         }
 
         /**
