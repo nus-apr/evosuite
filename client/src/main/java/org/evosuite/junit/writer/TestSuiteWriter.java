@@ -288,7 +288,7 @@ public class TestSuiteWriter implements Opcodes {
                                          String outputPath) {
 
         // TODO EvoRepair: Use generic flag to indicate that EvoRepair is enabled
-        if (!Properties.SERIALIZE_GA && Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+        if (!Properties.SERIALIZE_GA && Properties.EVOREPAIR_TEST_GENERATION) {
             return;
         }
 

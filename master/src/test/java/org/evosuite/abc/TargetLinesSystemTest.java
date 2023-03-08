@@ -27,7 +27,7 @@ public class TargetLinesSystemTest extends SystemTestBase {
         Properties.TARGET_CLASS = targetClass;
 
         URL resource = this.getClass().getResource("patch_population.json");
-        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass };
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "FIXLOCATION", "-targetPatches", resource.getPath(), "-class", targetClass };
         Object result = evosuite.parseCommandLine(command);
 
         PatchPool patchPool = PatchPool.getInstance();
@@ -42,13 +42,13 @@ public class TargetLinesSystemTest extends SystemTestBase {
     }
 
     @Test
-    public void testPatchLineFitness() {
+    public void testFixLocationFitness() {
         EvoSuite evosuite = new EvoSuite();
         String targetClass = MethodReturnsPrimitive.class.getCanonicalName();
         Properties.TARGET_CLASS = targetClass;
         URL resource = this.getClass().getResource("patch_population.json");
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass};
+        String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-criterion", "FIXLOCATION", "-targetPatches", resource.getPath(), "-class", targetClass};
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
@@ -64,13 +64,13 @@ public class TargetLinesSystemTest extends SystemTestBase {
     }
 
     @Test
-    public void testMOSAPatchLineFitness() {
+    public void testMOSAfixLocationFitness() {
         EvoSuite evosuite = new EvoSuite();
         String targetClass = MethodReturnsPrimitive.class.getCanonicalName();
         Properties.TARGET_CLASS = targetClass;
         URL resource = this.getClass().getResource("patch_population.json");
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass };
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "FIXLOCATION", "-targetPatches", resource.getPath(), "-class", targetClass };
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
@@ -90,7 +90,7 @@ public class TargetLinesSystemTest extends SystemTestBase {
         String targetClass = ClassWithInnerClass.class.getCanonicalName();
         URL resource = this.getClass().getResource("patch_population_with_inner_classes.json");
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass };
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "FIXLOCATION", "-targetPatches", resource.getPath(), "-class", targetClass };
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);

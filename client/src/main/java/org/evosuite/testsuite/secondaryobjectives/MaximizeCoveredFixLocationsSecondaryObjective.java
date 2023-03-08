@@ -1,6 +1,6 @@
 package org.evosuite.testsuite.secondaryobjectives;
 
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
+import org.evosuite.coverage.patch.FixLocationCoverageFactory;
 import org.evosuite.ga.SecondaryObjective;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
@@ -13,7 +13,7 @@ public class MaximizeCoveredFixLocationsSecondaryObjective extends SecondaryObje
 
     private int getNumCoveredFixLocations(TestSuiteChromosome chromosome) {
         int sum = 0;
-        Set<Integer> fixLocations = PatchLineCoverageFactory.getFixLocations();
+        Set<Integer> fixLocations = FixLocationCoverageFactory.getFixLocations();
         for (TestChromosome test: chromosome.getTestChromosomes()) {
             ExecutionResult result = test.getLastExecutionResult();
             if (result != null) {

@@ -174,8 +174,8 @@ public class CoverageCriteriaAnalyzer {
             case ONLYLINE:
             case LINE:
                 return RuntimeVariable.LineCoverage;
-            case PATCHLINE:
-                return RuntimeVariable.PatchLineCoverage;
+            case FIXLOCATION:
+                return RuntimeVariable.FixLocationCoverage;
             case PATCH:
                 return RuntimeVariable.PatchCoverage;
             case CONTEXTLINE:
@@ -348,8 +348,8 @@ public class CoverageCriteriaAnalyzer {
                 return RuntimeVariable.LineCoverageBitString;
             case TRYCATCH:
                 return null;
-            case PATCHLINE:
-                return RuntimeVariable.PatchLineCoverageBitString;
+            case FIXLOCATION:
+                return RuntimeVariable.FixLocationCoverageBitString;
             case PATCH:
                 return RuntimeVariable.PatchCoverageBitString;
             default:

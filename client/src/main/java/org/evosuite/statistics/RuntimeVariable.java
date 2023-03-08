@@ -255,10 +255,10 @@ public enum RuntimeVariable {
     /**
      * The obtained patch line coverage
      */
-    PatchLineCoverage,
-    PatchLineFitnessTimeline,
-    PatchLineCoverageTimeline,
-    PatchLineCoverageBitString,
+    FixLocationCoverage,
+    FixLocationFitnessTimeline,
+    FixLocationCoverageTimeline,
+    FixLocationCoverageBitString,
     /**
      * The obtained patch coverage
      */

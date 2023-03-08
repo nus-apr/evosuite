@@ -111,7 +111,7 @@ public class TestSuiteGeneratorHelper {
             case TRYCATCH:
                 LoggingUtils.getEvoLogger().info("  - Try-Catch Branch Coverage");
                 break;
-            case PATCHLINE:
+            case FIXLOCATION:
                 LoggingUtils.getEvoLogger().info("  - Patch Line Coverage");
                 break;
             case PATCH:

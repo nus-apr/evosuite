@@ -34,7 +34,7 @@ public class OracleLocationGoalsSystemTest extends SystemTestBase {
         URL oracleLocations = this.getClass().getResource("methodWithOracle_oracleLocations.json");
         URL targetPatches = this.getClass().getResource("methodWithOracle_targetPatches.json");
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-class", targetClass, "-criterion", "PATCHLINE:CONTEXTLINE",
+        String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-class", targetClass, "-criterion", "FIXLOCATION:CONTEXTLINE",
                 "-oracleLocations", oracleLocations.getPath(), "-targetPatches",  targetPatches.getPath()};
 
         Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
@@ -59,7 +59,7 @@ public class OracleLocationGoalsSystemTest extends SystemTestBase {
         URL targetPatches = this.getClass().getResource("methodWithOracle_targetPatches.json");
 
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-Dalgorithm", "MOSA", "-class", targetClass, "-criterion", "PATCHLINE:CONTEXTLINE",
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-Dalgorithm", "MOSA", "-class", targetClass, "-criterion", "FIXLOCATION:CONTEXTLINE",
                 "-oracleLocations", oracleLocations.getPath(), "-targetPatches",  targetPatches.getPath()};
         Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
         Properties.SEARCH_BUDGET = 20;

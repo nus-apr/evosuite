@@ -21,7 +21,7 @@ public class PatchCoverageTestFitness extends TestFitnessFunction {
 
     public PatchCoverageTestFitness(Patch targetPatch) {
         this.targetPatch = Objects.requireNonNull(targetPatch, "targetPatch cannot be null");
-        this.fixLocationGoals.addAll(new PatchLineCoverageFactory().getCoverageGoals(targetPatch.getFixLocations()));
+        this.fixLocationGoals.addAll(new FixLocationCoverageFactory().getCoverageGoals(targetPatch.getFixLocations()));
     }
 
     public Patch getTargetPatch() {

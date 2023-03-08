@@ -277,7 +277,9 @@ public class CommandLineParameters {
     }
 
     public static void handleEvoRepairOptions(List<String> javaOpts, CommandLine line) {
-        Properties.getInstance();
+        // Enable evorepair flag for custom test generation objectives and search
+		Properties.getInstance();
+        setPropertyAndAddToJavaOpts("evorepairTestGeneration", "true", javaOpts);
 
         // Enable MOSAPatch
         if (line.hasOption("generateMOSuite")) {
@@ -298,9 +300,6 @@ public class CommandLineParameters {
         System.setProperty("defects4j.instrumentation.enabled", "true");
         javaOpts.add("-Ddefects4j.instrumentation.enabled=true");
 
-        // Enable fix-location based objectives
-        setPropertyAndAddToJavaOpts("useFixLocationGoals", "true", javaOpts);
-
         // Enable secondary objectives
         /*
         String secondaryObjectives = "NUM_SEEDS:NUM_ORACLE_TRIGGERS:NUM_COVERED_FIX_LOCATIONS:TOTAL_LENGTH";
@@ -313,7 +312,7 @@ public class CommandLineParameters {
                 Properties.SecondaryObjective.TOTAL_LENGTH
         };
          */
-        LoggingUtils.getEvoLogger().warn("[EvoRepair] Custom seconday objectives are currently DISABLED.");
+        LoggingUtils.getEvoLogger().warn("[EvoRepair] Custom secondary objectives are currently DISABLED.");
 
         LoggingUtils.getEvoLogger().warn("[EvoRepair] Using custom archive.");
         setPropertyAndAddToJavaOpts("archive_type", "MULTI_CRITERIA_COVERAGE", javaOpts);
@@ -325,7 +324,7 @@ public class CommandLineParameters {
             setPropertyAndAddToJavaOpts("criterion", line.getOptionValue("criterion"), javaOpts);
         } else {
             // Enable all default criteria
-            String defaultCriteria = "PATCHLINE:BRANCH:EXCEPTION:STRONGMUTATION:OUTPUT:METHOD:METHODNOEXCEPTION:CONTEXTLINE";
+            String defaultCriteria = "FIXLOCATION:BRANCH:EXCEPTION:STRONGMUTATION:OUTPUT:METHOD:METHODNOEXCEPTION:CONTEXTLINE";
             LoggingUtils.getEvoLogger().warn("[EvoRepair] No criterions provided, using default: {}.", defaultCriteria);
             setPropertyAndAddToJavaOpts("criterion", defaultCriteria, javaOpts);
         }

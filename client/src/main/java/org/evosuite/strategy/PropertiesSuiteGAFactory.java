@@ -181,16 +181,6 @@ public class PropertiesSuiteGAFactory
                     logger.info("Using a default factory that creates tests with variable length");
                     return new MOSATestSuiteAdapter(new MOSA(new RandomLengthTestFactory()));
                 }
-            case MOSA_PATCH:
-                logger.info("Chosen search algorithm: MOSA-Patch");
-                if (factory instanceof TestSuiteChromosomeFactory) {
-                    final TestSuiteChromosomeFactory tscf = (TestSuiteChromosomeFactory) factory;
-                    return new MOSATestSuiteAdapter(new MOSAPatch(tscf.getTestChromosomeFactory()));
-                } else {
-                    logger.info("No specific factory for test cases given...");
-                    logger.info("Using a default factory that creates tests with variable length");
-                    return new MOSATestSuiteAdapter(new MOSAPatch(new RandomLengthTestFactory()));
-                }
             case DYNAMOSA:
                 logger.info("Chosen search algorithm: DynaMOSA");
 //				return new DynaMOSA(factory);
