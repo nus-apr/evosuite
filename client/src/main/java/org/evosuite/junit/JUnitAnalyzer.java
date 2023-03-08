@@ -193,6 +193,12 @@ public abstract class JUnitAnalyzer {
 
             failure_loop:
             for (JUnitFailure failure : result.getFailures()) {
+                if (failure.getExceptionClassName().equals("class java.lang.RuntimeException")) {
+                    String msg = failure.getMessage();
+                    if (msg != null && msg.equals("[Defects4J_BugReport_Violation]")) {
+                        continue; // Expected failure, continue
+                    }
+                }
                 String testName = failure.getDescriptionMethodName();//TODO check if correct
                 for (int i = 0; i < tests.size(); i++) {
                     if (TestSuiteWriterUtils.getNameOfTest(tests, i).equals(testName)) {
