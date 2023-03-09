@@ -10,18 +10,14 @@ public class MaximizeTriggeredOracleSecondaryObjective extends SecondaryObjectiv
     private static final long serialVersionUID = 4331589926389178555L;
 
     public int getNumOracleTriggers(TestSuiteChromosome chromosome) {
-        int sum = 0;
+        int count = 0;
         for (TestChromosome test: chromosome.getTestChromosomes()) {
             ExecutionResult result = test.getLastExecutionResult();
-            if (result != null) {
-                sum += (int) result.getAllThrownExceptions().stream()
-                        .filter(RuntimeException.class::isInstance)
-                        .map(Throwable::getMessage)
-                        .filter(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"))
-                        .count();
+            if (result != null && result.hasOracleException()) {
+                count ++;
             }
         }
-        return sum;
+        return count;
     }
 
     @Override
