@@ -31,7 +31,7 @@ public class MutationExecutionResult {
 
     private double impact = 0.0;
 
-    private double oracleExceptionDistance = 2.0;
+    private double oracleExceptionFitness = 4.0;
 
     boolean hasTimeout = false;
 
@@ -85,12 +85,12 @@ public class MutationExecutionResult {
         this.impact = impact;
     }
 
-    public double getOracleExceptionDistance() {
-        return oracleExceptionDistance;
+    public double getOracleExceptionFitness() {
+        return oracleExceptionFitness;
     }
 
-    public void setOracleExceptionDistance(double distance) {
-        this.oracleExceptionDistance = distance;
+    public void setOracleExceptionFitness(double distance) {
+        this.oracleExceptionFitness = distance;
     }
 
     /**

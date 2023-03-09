@@ -171,31 +171,63 @@ public class StrongMutationTestFitness extends MutationTestFitness {
         // The following information is needed for strong patch mutation testing
         if (strongPatchMutation) {
             // Check if execution of the mutant resulted in an oracle exception
-            boolean oracleException = mutationResult.getAllThrownExceptions().stream()
+            boolean mutantThrowsOracleException = mutationResult.getAllThrownExceptions().stream()
                     .filter(RuntimeException.class::isInstance)
                     .map(Throwable::getMessage)
                     .anyMatch(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"));
-            result.setHasOracleException(oracleException);
 
-            if (oracleException) {
-                result.setOracleExceptionDistance(0.0);
-            } else { // If no oracle exception has been triggered, compute minimum distance to any oracle exception
-                // Disabling archive since the test may cover the oracle in the mutant, but not original  program
-                Properties.TEST_ARCHIVE = false;
-                // Have to back up fitness values since they might change in the mutated program
-                Map<FitnessFunction<TestChromosome>, Double> fitnessValues = new LinkedHashMap<>(individual.getFitnessValues());
-                double minFitness = oracleGoals.stream().mapToDouble(o -> o.getFitness(individual, mutationResult)).min().orElse(1.0);
-                individual.setFitnessValues(fitnessValues);
-                Properties.TEST_ARCHIVE = true;
-                result.setOracleExceptionDistance(minFitness);
+            // Do the same for the original execution
+            boolean originalThrowsOracleException = originalResult.getAllThrownExceptions().stream()
+                    .filter(RuntimeException.class::isInstance)
+                    .map(Throwable::getMessage)
+                    .anyMatch(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"));
+
+            // If only the mutated program throws the exception, we have found a regression
+            boolean exceptionOnlyInMutant = mutantThrowsOracleException && !originalThrowsOracleException;
+            result.setHasOracleException(exceptionOnlyInMutant);
+
+            if (exceptionOnlyInMutant) {
+                result.setOracleExceptionFitness(0.0);
+            } else {
+                // If no oracle exception has been triggered, we want to minimize distance to any oracle exception
+                // in the mutant and maximize it in the original program, i.e. maximize the difference.
+                double oracleExceptionFitness = getOracleExceptionFitness(individual, originalResult, mutationResult);
+                result.setOracleExceptionFitness(oracleExceptionFitness);
 
                 if (Properties.EVOREPAIR_DEBUG && (result.hasTimeout() || result.hasException() || result.getNumAssertions() > 0)) {
-                    logger.warn("Test case kills mutant, but without triggering the oracle (distance: {})", minFitness);
+                    logger.warn("Test case kills mutant, but without triggering the oracle (fitness: {})", oracleExceptionFitness);
                 }
             }
         }
 
         return result;
+    }
+
+    /**
+     * Computes fitness as the difference in distance to any oracle exception between the mutant and original program.
+     * To minimize the fitness, the distance should be minimized for the mutant and maximized for the original program.
+     * @param individual the individual/test case to evaluate
+     * @param origResult result of executing the test on the original program
+     * @param mutationResult result of executing the test on the mutant
+     * @return
+     */
+    private double getOracleExceptionFitness(TestChromosome individual,
+                                             ExecutionResult origResult,
+                                             ExecutionResult mutationResult) {
+
+        // Disabling archive since the test may cover the oracle in the mutant, but not original  program
+        Properties.TEST_ARCHIVE = false;
+        // Have to back up fitness values since they might change in the mutated program
+        Map<FitnessFunction<TestChromosome>, Double> fitnessValues = new LinkedHashMap<>(individual.getFitnessValues());
+
+        double minMutantDistance = oracleGoals.stream().mapToDouble(o -> o.getFitness(individual, mutationResult)).min().orElse(2.0);
+        double minOriginalDistance = oracleGoals.stream().mapToDouble(o -> o.getFitness(individual, origResult)).min().orElse(2.0);
+
+        // Restore fitness map
+        individual.setFitnessValues(fitnessValues);
+        Properties.TEST_ARCHIVE = true;
+
+        return minMutantDistance + normalize(2.0 - minOriginalDistance);
     }
 
     private Set<String> getDifference(

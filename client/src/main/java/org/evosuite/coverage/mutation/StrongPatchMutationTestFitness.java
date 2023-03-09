@@ -75,18 +75,13 @@ public class StrongPatchMutationTestFitness extends StrongMutationTestFitness {
                 }
 
                 if (mutationResult.hasOracleException()) {
-                    logger.debug("Mutant raises exception");
-
-                    // We don't care if the original program also throws the exception, this mutant is considered as killed
+                    logger.debug("Mutant raises oracle exception");
                     fitness = 0.0;
                     oracleExceptionCase = true;
                 }
 
                 if (!oracleExceptionCase) {
-                    oracleExceptionDistance = mutationResult.getOracleExceptionDistance();
-                    if (oracleExceptionDistance == 0.0) {
-                        logger.warn("Test case has zero oracle exception distance but did not throw an exception.");
-                    }
+                    oracleExceptionDistance = mutationResult.getOracleExceptionFitness();
                 }
             }
         }

@@ -53,7 +53,7 @@ public class StrongPatchMutationSystemTest extends SystemTestBase {
         int coveredOracleExceptionGoals = computeCoveredGoalsFromResult(result, OracleExceptionTestFitness.class);
 
         // All strong mutants can be killed
-        Assert.assertEquals("Non-optimal number of covered mutation goals: ", coveredStrongMutationGoals, 35);
+        Assert.assertEquals("Non-optimal number of covered mutation goals: ", coveredStrongMutationGoals, 31);
 
         // ArithmeticException can't be triggered because it is only thrown by integer division!
         Assert.assertEquals("Non-optimal number of covered oracle exception goals: ", coveredOracleExceptionGoals, 1);
@@ -81,8 +81,8 @@ public class StrongPatchMutationSystemTest extends SystemTestBase {
         int coveredStrongPatchMutationGoals = computeCoveredGoalsFromResult(result, StrongPatchMutationTestFitness.class);
         int coveredOracleExceptionGoals = computeCoveredGoalsFromResult(result, OracleExceptionTestFitness.class);
 
-        // All strong patch mutants can be killed except for those that replace the division operand (except by %)
-        Assert.assertEquals("Non-optimal number of covered strong patch mutation goals: ", coveredStrongPatchMutationGoals, 16);
+        // All strong patch mutants can be killed except for those that replace the division operand or change constants
+        Assert.assertEquals("Non-optimal number of covered strong patch mutation goals: ", coveredStrongPatchMutationGoals, 12);
 
         // ArithmeticException can't be triggered because it is only thrown by integer division!
         Assert.assertEquals("Non-optimal number of covered oracle exception goals: ", coveredOracleExceptionGoals, 1);
