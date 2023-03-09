@@ -11,11 +11,7 @@ public class MaximizeTriggeredOracleSecondaryObjective extends SecondaryObjectiv
     public int getNumOracleTriggers(TestChromosome chromosome) {
         ExecutionResult result = chromosome.getLastExecutionResult();
         if (result != null) {
-            return (int) result.getAllThrownExceptions().stream()
-                    .filter(RuntimeException.class::isInstance)
-                    .map(Throwable::getMessage)
-                    .filter(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"))
-                    .count();
+            return result.hasOracleException() ? 1 : 0;
         } else {
             return 0;
         }
@@ -28,7 +24,7 @@ public class MaximizeTriggeredOracleSecondaryObjective extends SecondaryObjectiv
 
     @Override
     public int compareGenerations(TestChromosome parent1, TestChromosome parent2, TestChromosome child1, TestChromosome child2) {
-        return Math.max(getNumOracleTriggers(child1), getNumOracleTriggers(child2))
-                - Math.max(getNumOracleTriggers(parent1), getNumOracleTriggers(parent2));
+        return (getNumOracleTriggers(child1) + getNumOracleTriggers(child2))
+                - (getNumOracleTriggers(parent1) + getNumOracleTriggers(parent2));
     }
 }

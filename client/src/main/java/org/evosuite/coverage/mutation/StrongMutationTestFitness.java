@@ -171,6 +171,7 @@ public class StrongMutationTestFitness extends MutationTestFitness {
         // The following information is needed for strong patch mutation testing
         if (strongPatchMutation) {
             // Check if execution of the mutant resulted in an oracle exception
+            /*
             boolean mutantThrowsOracleException = mutationResult.getAllThrownExceptions().stream()
                     .filter(RuntimeException.class::isInstance)
                     .map(Throwable::getMessage)
@@ -181,6 +182,9 @@ public class StrongMutationTestFitness extends MutationTestFitness {
                     .filter(RuntimeException.class::isInstance)
                     .map(Throwable::getMessage)
                     .anyMatch(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"));
+             */
+            boolean mutantThrowsOracleException = mutationResult.hasOracleException();
+            boolean originalThrowsOracleException = originalResult.hasOracleException();
 
             // If only the mutated program throws the exception, we have found a regression
             boolean exceptionOnlyInMutant = mutantThrowsOracleException && !originalThrowsOracleException;

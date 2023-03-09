@@ -87,6 +87,11 @@ public class ExecutionResult implements Cloneable {
      */
     protected boolean wasAnyPropertyWritten;
 
+    /**
+     * Indicates whether the custom oracle exception was thrown during execution
+     */
+    protected boolean hasOracleException = false;
+
     private List<FeatureVector> featureVectors = new ArrayList<>(1);
 
     /**
@@ -163,6 +168,16 @@ public class ExecutionResult implements Cloneable {
      */
     public void reportNewThrownException(Integer position, Throwable t) {
         exceptions.put(position, t);
+        if (t instanceof RuntimeException) {
+            String msg = t.getMessage();
+            if (msg != null && msg.equals("[Defects4J_BugReport_Violation]")) {
+                hasOracleException = true;
+            }
+        }
+    }
+
+    public boolean hasOracleException() {
+        return hasOracleException;
     }
 
     /**
