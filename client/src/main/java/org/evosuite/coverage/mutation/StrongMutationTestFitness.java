@@ -22,6 +22,9 @@ package org.evosuite.coverage.mutation;
 import org.evosuite.Properties;
 import org.evosuite.assertion.*;
 import org.evosuite.coverage.TestCoverageGoal;
+import org.evosuite.coverage.patch.OracleExceptionFactory;
+import org.evosuite.coverage.patch.OracleExceptionTestFitness;
+import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.stoppingconditions.MaxStatementsStoppingCondition;
 import org.evosuite.testcase.TestCase;
@@ -29,12 +32,10 @@ import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 import org.evosuite.testcase.execution.ExecutionTrace;
 import org.evosuite.testcase.execution.TestCaseExecutor;
+import org.evosuite.utils.LoggingUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * <p>
@@ -47,6 +48,18 @@ public class StrongMutationTestFitness extends MutationTestFitness {
 
     private static final long serialVersionUID = -262199037689935052L;
 
+    private static final List<OracleExceptionTestFitness> oracleGoals = new ArrayList<>();
+
+    private boolean strongMutation = false;
+    private boolean strongPatchMutation = false;
+
+    static {
+        if (Properties.EVOREPAIR_TEST_GENERATION && Properties.EVOREPAIR_ORACLE_LOCATIONS != null) {
+            oracleGoals.addAll(new OracleExceptionFactory().getCoverageGoals());
+        } else {
+            LoggingUtils.getEvoLogger().warn("\u001b[1m\u001B[31m[EvoRepair]: Missing oracle locations!\u001B[0m");
+        }
+    }
     /**
      * Constant <code>observerClasses</code>
      */
@@ -69,8 +82,10 @@ public class StrongMutationTestFitness extends MutationTestFitness {
      *
      * @param mutation a {@link org.evosuite.coverage.mutation.Mutation} object.
      */
-    public StrongMutationTestFitness(Mutation mutation) {
+    public StrongMutationTestFitness(Mutation mutation, boolean strongMutation, boolean strongPatchMutation) {
         super(mutation);
+        this.strongMutation = strongMutation;
+        this.strongPatchMutation = strongPatchMutation;
         for (AssertionTraceObserver<?> observer : observers) {
             logger.debug("StrongMutation adding observer " + observer);
             TestCaseExecutor.getInstance().addObserver(observer);
@@ -124,30 +139,99 @@ public class StrongMutationTestFitness extends MutationTestFitness {
         return result;
     }
 
-    private MutationExecutionResult getMutationResult(ExecutionResult originalResult,
-                                                      ExecutionResult mutationResult) {
+    protected MutationExecutionResult getMutationResult(TestChromosome individual,
+                                                        ExecutionResult originalResult,
+                                                        ExecutionResult mutationResult) {
 
         MutationExecutionResult result = new MutationExecutionResult();
 
-        if (TestCoverageGoal.hasTimeout(mutationResult)) {
-            logger.debug("Found timeout in mutant!");
-            MutationTimeoutStoppingCondition.timeOut(mutation);
-            result.setHasTimeout(true);
+        // The following information is needed if we perform (traditional) strong mutation testing
+        if (strongMutation) {
+            if (TestCoverageGoal.hasTimeout(mutationResult)) {
+                logger.debug("Found timeout in mutant!");
+                MutationTimeoutStoppingCondition.timeOut(mutation);
+                result.setHasTimeout(true);
+            }
+
+            // TODO EvoRepair: This used to be without negation, but that's wrong right?
+            if (!mutationResult.noThrownExceptions()) {
+                result.setHasException(true);
+            }
+
+            int numAssertions = getNumAssertions(originalResult, mutationResult);
+            result.setNumAssertions(numAssertions);
+
+            if (numAssertions == 0) {
+                double impact = getSumDistance(originalResult.getTrace(),
+                        mutationResult.getTrace());
+                result.setImpact(impact);
+            }
         }
 
-        if (mutationResult.noThrownExceptions()) {
-            result.setHasException(true);
+        // The following information is needed for strong patch mutation testing
+        if (strongPatchMutation) {
+            // Check if execution of the mutant resulted in an oracle exception
+            /*
+            boolean mutantThrowsOracleException = mutationResult.getAllThrownExceptions().stream()
+                    .filter(RuntimeException.class::isInstance)
+                    .map(Throwable::getMessage)
+                    .anyMatch(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"));
+
+            // Do the same for the original execution
+            boolean originalThrowsOracleException = originalResult.getAllThrownExceptions().stream()
+                    .filter(RuntimeException.class::isInstance)
+                    .map(Throwable::getMessage)
+                    .anyMatch(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"));
+             */
+            boolean mutantThrowsOracleException = mutationResult.hasOracleException();
+            boolean originalThrowsOracleException = originalResult.hasOracleException();
+
+            // If only the mutated program throws the exception, we have found a regression
+            boolean exceptionOnlyInMutant = mutantThrowsOracleException && !originalThrowsOracleException;
+            result.setHasOracleException(exceptionOnlyInMutant);
+
+            if (exceptionOnlyInMutant) {
+                result.setOracleExceptionFitness(0.0);
+            } else {
+                // If no oracle exception has been triggered, we want to minimize distance to any oracle exception
+                // in the mutant and maximize it in the original program, i.e. maximize the difference.
+                double oracleExceptionFitness = getOracleExceptionFitness(individual, originalResult, mutationResult);
+                result.setOracleExceptionFitness(oracleExceptionFitness);
+
+                if (Properties.EVOREPAIR_DEBUG && (result.hasTimeout() || result.hasException() || result.getNumAssertions() > 0)) {
+                    logger.warn("Test case kills mutant, but without triggering the oracle (fitness: {})", oracleExceptionFitness);
+                }
+            }
         }
 
-        int numAssertions = getNumAssertions(originalResult, mutationResult);
-        result.setNumAssertions(numAssertions);
-
-        if (numAssertions == 0) {
-            double impact = getSumDistance(originalResult.getTrace(),
-                    mutationResult.getTrace());
-            result.setImpact(impact);
-        }
         return result;
+    }
+
+    /**
+     * Computes fitness as the difference in distance to any oracle exception between the mutant and original program.
+     * To minimize the fitness, the distance should be minimized for the mutant and maximized for the original program.
+     * @param individual the individual/test case to evaluate
+     * @param origResult result of executing the test on the original program
+     * @param mutationResult result of executing the test on the mutant
+     * @return
+     */
+    private double getOracleExceptionFitness(TestChromosome individual,
+                                             ExecutionResult origResult,
+                                             ExecutionResult mutationResult) {
+
+        // Disabling archive since the test may cover the oracle in the mutant, but not original  program
+        Properties.TEST_ARCHIVE = false;
+        // Have to back up fitness values since they might change in the mutated program
+        Map<FitnessFunction<TestChromosome>, Double> fitnessValues = new LinkedHashMap<>(individual.getFitnessValues());
+
+        double minMutantDistance = oracleGoals.stream().mapToDouble(o -> o.getFitness(individual, mutationResult)).min().orElse(2.0);
+        double minOriginalDistance = oracleGoals.stream().mapToDouble(o -> o.getFitness(individual, origResult)).min().orElse(2.0);
+
+        // Restore fitness map
+        individual.setFitnessValues(fitnessValues);
+        Properties.TEST_ARCHIVE = true;
+
+        return minMutantDistance + normalize(2.0 - minOriginalDistance);
     }
 
     private Set<String> getDifference(
@@ -258,7 +342,7 @@ public class StrongMutationTestFitness extends MutationTestFitness {
         return normalize(coverage_impact) + normalize(data_impact) + branch_impact;
     }
 
-    private int getNumAssertions(ExecutionResult origResult,
+    protected int getNumAssertions(ExecutionResult origResult,
                                  ExecutionResult mutant_result) {
         int num = 0;
         if (origResult.test.size() == 0) {
@@ -284,7 +368,7 @@ public class StrongMutationTestFitness extends MutationTestFitness {
         return num;
     }
 
-    private void ensureExecutionResultHasTraces(TestChromosome individual, ExecutionResult result) {
+    protected void ensureExecutionResultHasTraces(TestChromosome individual, ExecutionResult result) {
         if (result.getTraces().isEmpty() && observerClasses.length > 0) {
             ExecutionResult newResult = runTest(individual.getTestCase());
             for (Class<?> observerClass : observerClasses) {
@@ -356,7 +440,7 @@ public class StrongMutationTestFitness extends MutationTestFitness {
 
                 if (mutationResult == null) {
                     ExecutionResult exResult = runTest(individual.getTestCase(), mutation);
-                    mutationResult = getMutationResult(result, exResult);
+                    mutationResult = getMutationResult(individual, result, exResult);
                     individual.setLastExecutionResult(mutationResult, mutation);
                 }
                 if (mutationResult.hasTimeout()) {

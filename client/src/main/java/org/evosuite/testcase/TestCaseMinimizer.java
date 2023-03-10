@@ -216,7 +216,7 @@ public class TestCaseMinimizer {
 
         for (TestFitnessFunction f : fitnessFunctions) {
             if (f.getFitness(c) > 0.0) {
-                logger.warn("minimizeWithCoveredGoals only retains covered goals, goal with non-optimal fitness: {}", f);
+                logger.warn("Goal has been marked as covered but cached fitness is non-zero: {}", f);
             }
         }
 

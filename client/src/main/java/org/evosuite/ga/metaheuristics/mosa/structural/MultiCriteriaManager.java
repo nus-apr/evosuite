@@ -119,7 +119,8 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
                     break; // exception coverage is handled by calculateFitness
                 case PATCH:
                     throw new RuntimeException("PATCH criterion is currently not handled/implemented.");
-                case PATCHLINE:
+                case FIXLOCATION:
+                case ORACLE:
                 case LINE:
                     addDependencies4Line();
                     break;
@@ -158,7 +159,7 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
             }
         }
 
-        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS && Properties.EVOREPAIR_DYNAMOSA_PRUNE_BRANCHES) {
+        if (Properties.EVOREPAIR_TEST_GENERATION && Properties.EVOREPAIR_DYNAMOSA_PRUNE_BRANCHES) {
             // Determine set of branches that our goals directly depend on
             Set<BranchCoverageTestFitness> directDependencies = dependencies.keySet().stream()
                     .filter(branch -> !dependencies.get(branch).isEmpty())
@@ -200,8 +201,6 @@ public class MultiCriteriaManager extends StructuralGoalManager implements Seria
         // initialize current goals
         // We can directly target root context goals as they don't have any dependencies themselves
         this.currentGoals.addAll(rootContextBranchGoals);
-
-        // TODO EvoRepair: Need to remove any branches here?
         this.currentGoals.addAll(graph.getRootBranches());
     }
 

@@ -1,8 +1,6 @@
 package org.evosuite.coverage.patch;
 
 import org.evosuite.coverage.line.LineCoverageTestFitness;
-import org.evosuite.coverage.patch.communication.OracleLocationPool;
-import org.evosuite.coverage.patch.communication.json.OracleLocation;
 import org.evosuite.coverage.patch.communication.json.TargetLocation;
 import org.evosuite.instrumentation.LinePool;
 import org.evosuite.testsuite.AbstractFitnessFactory;
@@ -12,15 +10,12 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverageTestFitness> {
+public class FixLocationCoverageFactory extends AbstractFitnessFactory<LineCoverageTestFitness> {
 
-    private static final Logger logger = LoggerFactory.getLogger(PatchLineCoverageFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(FixLocationCoverageFactory.class);
 
     // Set of hash codes of all fix location goals
     private static final Set<Integer> fixLocationHashCodes = new LinkedHashSet<>();
-
-    // Set of hash codes of all oracle location (thrown custom exception) hash codes
-    private static final Set<Integer> oracleLocationHashCodes = new LinkedHashSet<>();
 
     private static final Set<Integer> fixLocations = new LinkedHashSet<>();
 
@@ -38,33 +33,15 @@ public class PatchLineCoverageFactory extends AbstractFitnessFactory<LineCoverag
                 fixLocationHashCodes.add(fixLocationGoal.hashCode());
             }
         }
-
-        // Add goals for custom exceptions thrown by instrumented methods
-        // TODO EvoRepair: Refactor, having this many nested for loops cannot be the way
-        Map<String, Map<String, Set<OracleLocation>>> oracleLocations = OracleLocationPool.getInstance().getOracleLocations();
-        for (String className : oracleLocations.keySet()) {
-            for (String methodName : oracleLocations.get(className).keySet()) {
-                for (OracleLocation loc : oracleLocations.get(className).get(methodName)) {
-                    for (LineCoverageTestFitness oracleLocationGoal : getCoverageGoals(className, loc.getCustomExceptionLines())) {
-                        goals.add(oracleLocationGoal);
-                        oracleLocationHashCodes.add(oracleLocationGoal.hashCode());
-                    }
-                }
-            }
-        }
         goalComputationTime = System.currentTimeMillis() - start;
         if (goals.isEmpty()) {
-            logger.warn("No PatchLineGoals were created, check if the specified target locations actually exist.");
+            logger.warn("No fix location goals were created, check if the specified target locations actually exist.");
         }
         return goals;
     }
 
     public static Set<Integer> getFixLocationHashCodes() {
         return fixLocationHashCodes;
-    }
-
-    public static Set<Integer> getOracleLocationHashCodes() {
-        return oracleLocationHashCodes;
     }
 
     public static Set<Integer> getFixLocations() {

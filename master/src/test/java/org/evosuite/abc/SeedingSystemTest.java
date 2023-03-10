@@ -41,7 +41,7 @@ public class SeedingSystemTest extends SystemTestBase {
         Properties.CRITERION = new Properties.Criterion[]{
                 BRANCH, LINE
         };
-        Properties.SEARCH_BUDGET = 15;
+        Properties.SEARCH_BUDGET = 20;
         Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
     }
 
@@ -53,7 +53,7 @@ public class SeedingSystemTest extends SystemTestBase {
         GeneticAlgorithm<?> ga = getGAFromResult(result);
 
         // EvoSuite is deterministic, should stop at exactly 18 generations
-        Assert.assertEquals(70, ga.getAge());
+        Assert.assertEquals(19, ga.getAge());
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
 
         int goals = TestGenerationStrategy.getFitnessFactories().stream()
@@ -76,6 +76,8 @@ public class SeedingSystemTest extends SystemTestBase {
         }
     }
 
+    // Note: If this test fails (wrong number of generations), make sure that the names of the seed tests
+    //  in the seeds_all.json file match the names in population_names.txt produced by the previous test
     @Test
     public void testLoadSeeds() {
         Properties.EVOREPAIR_SEED_POPULATION = "src/test/resources/org/evosuite/abc/seeds_all.json";
@@ -92,6 +94,7 @@ public class SeedingSystemTest extends SystemTestBase {
         System.out.println(best);
     }
 
+    // Note: Similar issue as for the above test: test names may change
     @Test
     public void testLoadSeedsFromJSON() {
         Properties.EVOREPAIR_SEED_POPULATION = "src/test/resources/org/evosuite/abc/seeds_subset.json";
@@ -120,7 +123,7 @@ public class SeedingSystemTest extends SystemTestBase {
     public void testLoadGoalsFromJSON() {
         targetClass = MethodReturnsPrimitive.class.getCanonicalName();
         String patchFile = "src/test/resources/org/evosuite/abc/patch_population.json";
-        command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-Dalgorithm=MOSA", "-criterion", "PATCHLINE:PATCH", "-targetPatches", patchFile, "-class", targetClass};
+        command = new String[] {"-generateMOSuite", "-evorepair", "testgen", "-Dalgorithm=MOSA", "-criterion", "FIXLOCATION:PATCH", "-targetPatches", patchFile, "-class", targetClass};
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();

@@ -10,6 +10,7 @@ import org.evosuite.setup.CallContext;
 import org.evosuite.setup.DependencyAnalysis;
 import org.evosuite.setup.callgraph.CallGraph;
 import org.evosuite.testsuite.AbstractFitnessFactory;
+import org.evosuite.utils.ArrayUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,19 +31,43 @@ public class ContextLineFactory extends AbstractFitnessFactory<ContextLineTestFi
 
         CallGraph callGraph = DependencyAnalysis.getCallGraph();
 
-        for (LineCoverageTestFitness lineGoal : new PatchLineCoverageFactory().getCoverageGoals()) {
-            for (BranchCoverageTestFitness dependencyGoal: lineGoal.getControlDependencyGoals()) {
+        if (ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.FIXLOCATION)) {
+            for (LineCoverageTestFitness lineGoal : new FixLocationCoverageFactory().getCoverageGoals()) {
+                for (BranchCoverageTestFitness dependencyGoal : lineGoal.getControlDependencyGoals()) {
 
-                Set<CallContext> callContexts = callGraph.getAllContextsFromTargetClass(dependencyGoal.getClassName(),
-                        dependencyGoal.getMethod(), Properties.EVOREPAIR_USE_SUB_CONTEXTS);
+                    Set<CallContext> callContexts = callGraph.getAllContextsFromTargetClass(dependencyGoal.getClassName(),
+                            dependencyGoal.getMethod(), Properties.EVOREPAIR_USE_SUB_CONTEXTS);
 
-                for (CallContext context : callContexts) {
-                    CBranchTestFitness contextGoal = new CBranchTestFitness(dependencyGoal.getBranchGoal(), context);
-                    ContextLineTestFitness goal = new ContextLineTestFitness(lineGoal, contextGoal);
-                    goals.add(goal);
+                    for (CallContext context : callContexts) {
+                        CBranchTestFitness contextGoal = new CBranchTestFitness(dependencyGoal.getBranchGoal(), context);
+                        ContextLineTestFitness goal = new ContextLineTestFitness(lineGoal, contextGoal);
+                        goals.add(goal);
+                    }
                 }
             }
+        } else {
+            logger.warn("Fix location criterion is not enabled, so not context goals will be produced for it.");
         }
+
+        if (ArrayUtil.contains(Properties.CRITERION, Properties.Criterion.ORACLE)) {
+            for (OracleExceptionTestFitness oracleExceptionGoal : new OracleExceptionFactory().getCoverageGoals()) {
+                for (BranchCoverageTestFitness dependencyGoal : oracleExceptionGoal.getControlDependencyGoals()) {
+
+                    Set<CallContext> callContexts = callGraph.getAllContextsFromTargetClass(dependencyGoal.getClassName(),
+                            dependencyGoal.getMethod(), Properties.EVOREPAIR_USE_SUB_CONTEXTS);
+
+                    for (CallContext context : callContexts) {
+                        CBranchTestFitness contextGoal = new CBranchTestFitness(dependencyGoal.getBranchGoal(), context);
+                        ContextLineTestFitness goal = new ContextLineTestFitness(oracleExceptionGoal, contextGoal);
+                        goals.add(goal);
+                    }
+                }
+            }
+        } else {
+            logger.warn("Oracle exception criterion is not enabled, so not context goals will be produced for it.");
+        }
+
+
         logger.info("Created " + goals.size() + " goals");
         return goals;
     }

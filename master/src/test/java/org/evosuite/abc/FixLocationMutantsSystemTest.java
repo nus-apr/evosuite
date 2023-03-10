@@ -18,10 +18,10 @@ import org.junit.Test;
 import java.net.URL;
 import java.util.List;
 
-public class PatchLocationMutantsSystemTest extends SystemTestBase {
+public class FixLocationMutantsSystemTest extends SystemTestBase {
 
     @Test
-    public void testPatchMutationFitness() {
+    public void testFixLocationMutationFitness() {
         EvoSuite evosuite = new EvoSuite();
         String targetClass = MethodReturnsPrimitive.class.getCanonicalName();
         Properties.TARGET_CLASS = targetClass;
@@ -41,13 +41,13 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
                 .mapToInt(List::size).sum();
         Assert.assertEquals("Wrong number of goals: ", 47, goals);
 
-        // No full coverage because there seems to be a stubborn mutant that can't be killed
-        Assert.assertEquals("Non-optimal coverage: ", 0.99, best.getCoverage(), 0.01);
+        // No full coverage because there are mutants that can't be killed (3/47, see notes in test below)
+        Assert.assertTrue("Non-optimal coverage: " + best.getCoverage(), best.getCoverage() > 0.93);
 
     }
 
     @Test
-    public void testMOSAPatchMutationFitness() {
+    public void testMOSAFixLocationMutationFitness() {
         EvoSuite evosuite = new EvoSuite();
         String targetClass = MethodReturnsPrimitive.class.getCanonicalName();
         Properties.TARGET_CLASS = targetClass;
@@ -65,9 +65,15 @@ public class PatchLocationMutantsSystemTest extends SystemTestBase {
         int goals = TestGenerationStrategy.getFitnessFactories().get(0).getCoverageGoals().size(); // assuming single fitness function
         Assert.assertEquals("Wrong number of goals: ", 47, goals);
 
+        // Note: Recall that we have to compute coverage this way because the TestGenerationContext gets resetted (which also clears the archive)
         int coveredGoals = computeCoveredGoalsFromResult(result);
-        // No full coverage because there seems to be a stubborn mutant that can't be killed
-        Assert.assertEquals("Non-optimal number of covered goals: ", coveredGoals, 46);
+        /* Note: No full coverage because some mutants cannot be killed, in particular:
+         *  1) MethodReturnsPrimitive.testChar(II)C:43 - InsertUnaryOp IINC 1 x (output/branching diff is unsat)
+         *  2) MethodReturnsPrimitive.testChar(II)C:43 - InsertUnaryOp IINC -1 y (output/branching diff is unsat)
+         *  3) MethodReturnsPrimitive.testChar(II)C:43 - ReplaceComparisonOperator <= -> < (equivalent mutant)
+         *  For 3), infection distance is computed as d=abs(x-y). Since x != y (previous condition), d > 0 for all x and y (i.e., state cannot be infected).
+         */
+        Assert.assertEquals("Non-optimal number of covered goals: ", coveredGoals, 44);
     }
 
     // Ensures that mutants have only been applied to patch fix locations

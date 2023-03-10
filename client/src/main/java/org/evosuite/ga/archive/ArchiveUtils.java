@@ -39,6 +39,7 @@ import org.evosuite.coverage.mutation.OnlyMutationTestFitness;
 import org.evosuite.coverage.mutation.StrongMutationTestFitness;
 import org.evosuite.coverage.mutation.WeakMutationTestFitness;
 import org.evosuite.coverage.patch.ContextLineTestFitness;
+import org.evosuite.coverage.patch.OracleExceptionTestFitness;
 import org.evosuite.coverage.patch.PatchCoverageTestFitness;
 import org.evosuite.coverage.rho.RhoCoverageTestFitness;
 import org.evosuite.coverage.statement.StatementCoverageTestFitness;
@@ -161,8 +162,13 @@ public final class ArchiveUtils {
                         return true;
                     }
                     break;
-                case PATCHLINE:
+                case FIXLOCATION:
                     if (goal instanceof LineCoverageTestFitness) {
+                        return true;
+                    }
+                    break;
+                case ORACLE:
+                    if (goal instanceof OracleExceptionTestFitness) {
                         return true;
                     }
                     break;

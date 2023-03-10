@@ -31,9 +31,13 @@ public class MutationExecutionResult {
 
     private double impact = 0.0;
 
+    private double oracleExceptionFitness = 4.0;
+
     boolean hasTimeout = false;
 
     boolean hasException = false;
+
+    boolean hasOracleException = false;
 
     public MutationExecutionResult clone() {
         MutationExecutionResult result = new MutationExecutionResult();
@@ -81,6 +85,14 @@ public class MutationExecutionResult {
         this.impact = impact;
     }
 
+    public double getOracleExceptionFitness() {
+        return oracleExceptionFitness;
+    }
+
+    public void setOracleExceptionFitness(double distance) {
+        this.oracleExceptionFitness = distance;
+    }
+
     /**
      * <p>hasTimeout</p>
      *
@@ -115,5 +127,13 @@ public class MutationExecutionResult {
      */
     public void setHasException(boolean hasException) {
         this.hasException = hasException;
+    }
+
+    public boolean hasOracleException() {
+        return hasOracleException;
+    }
+
+    public void setHasOracleException(boolean hasOracleException) {
+        this.hasOracleException = hasOracleException;
     }
 }

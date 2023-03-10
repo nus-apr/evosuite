@@ -111,14 +111,17 @@ public class TestSuiteGeneratorHelper {
             case TRYCATCH:
                 LoggingUtils.getEvoLogger().info("  - Try-Catch Branch Coverage");
                 break;
-            case PATCHLINE:
-                LoggingUtils.getEvoLogger().info("  - Patch Line Coverage");
+            case FIXLOCATION:
+                LoggingUtils.getEvoLogger().info("  - Fix Location Coverage");
                 break;
-            case PATCH:
-                LoggingUtils.getEvoLogger().info("  - Patch Coverage");
+            case ORACLE:
+                LoggingUtils.getEvoLogger().info("  - Oracle Exception Coverage");
                 break;
             case CONTEXTLINE:
                 LoggingUtils.getEvoLogger().info("  - Context Target Line Coverage");
+                break;
+            case PATCH:
+                LoggingUtils.getEvoLogger().info("  - Patch Coverage");
                 break;
             default:
                 throw new IllegalArgumentException("Unrecognized criterion: " + criterion);

@@ -28,7 +28,8 @@ import org.evosuite.coverage.branch.BranchPool;
 import org.evosuite.coverage.mutation.Mutation;
 import org.evosuite.coverage.mutation.MutationPool;
 import org.evosuite.coverage.mutation.MutationTimeoutStoppingCondition;
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
+import org.evosuite.coverage.patch.FixLocationCoverageFactory;
+import org.evosuite.coverage.patch.OracleExceptionFactory;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
@@ -109,8 +110,8 @@ public class TestGenerationResultBuilder {
     }
 
     private void fillInformationFromFitnessFactories(TestGenerationResultImpl<?> result) {
-        result.setFixLocationGoals(PatchLineCoverageFactory.getFixLocationHashCodes());
-        result.setOracleLocationGoals(PatchLineCoverageFactory.getOracleLocationHashCodes());
+        result.setFixLocationGoals(FixLocationCoverageFactory.getFixLocationHashCodes());
+        result.setOracleLocationGoals(OracleExceptionFactory.getOracleLocationHashCodes());
     }
 
     private void fillInformationFromConfiguration(TestGenerationResultImpl<?> result) {

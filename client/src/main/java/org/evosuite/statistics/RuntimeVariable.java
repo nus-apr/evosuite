@@ -253,12 +253,12 @@ public enum RuntimeVariable {
     LineCoverageTimeline,
     LineCoverageBitString,
     /**
-     * The obtained patch line coverage
+     * The obtained fix location coverage
      */
-    PatchLineCoverage,
-    PatchLineFitnessTimeline,
-    PatchLineCoverageTimeline,
-    PatchLineCoverageBitString,
+    FixLocationCoverage,
+    FixLocationFitnessTimeline,
+    FixLocationCoverageTimeline,
+    FixLocationCoverageBitString,
     /**
      * The obtained patch coverage
      */
@@ -273,6 +273,13 @@ public enum RuntimeVariable {
     ContextLineFitnessTimeline,
     ContextLineCoverageTimeline,
     ContextLineCoverageBitString,
+    /**
+     * The obtained oracle exception coverage
+     */
+    OracleExceptionCoverage,
+    OracleExceptionFitnessTimeline,
+    OracleExceptionCoverageTimeline,
+    OracleExceptionCoverageBitString,
     /**
      * The obtained output value coverage
      */

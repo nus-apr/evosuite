@@ -39,9 +39,9 @@ import org.evosuite.coverage.method.MethodTraceCoverageSuiteFitness;
 import org.evosuite.coverage.mutation.OnlyMutationSuiteFitness;
 import org.evosuite.coverage.mutation.WeakMutationSuiteFitness;
 import org.evosuite.coverage.patch.ContextLineSuiteFitness;
+import org.evosuite.coverage.patch.OracleExceptionSuiteFitness;
 import org.evosuite.coverage.patch.PatchCoverageSuiteFitness;
-import org.evosuite.coverage.patch.PatchLineCoverageSuiteFitness;
-import org.evosuite.coverage.patch.communication.json.TargetLocationFitnessMetrics;
+import org.evosuite.coverage.patch.FixLocationCoverageSuiteFitness;
 import org.evosuite.coverage.rho.RhoCoverageSuiteFitness;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.result.TestGenerationResult;
@@ -160,12 +160,14 @@ public class SearchStatistics implements Listener<ClientStateInformation> {
         sequenceOutputVariableFactories.put(RuntimeVariable.WeakMutationCoverageTimeline.name(), new WeakMutationCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.OnlyMutationFitnessTimeline.name(), new OnlyMutationFitnessSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.OnlyMutationCoverageTimeline.name(), new OnlyMutationCoverageSequenceOutputVariableFactory());
-        sequenceOutputVariableFactories.put(RuntimeVariable.PatchLineFitnessTimeline.name(), new PatchLineFitnessSequenceOutputVariableFactory());
-        sequenceOutputVariableFactories.put(RuntimeVariable.PatchLineCoverageTimeline.name(), new PatchLineCoverageSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.FixLocationFitnessTimeline.name(), new FixLocationFitnessSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.FixLocationCoverageTimeline.name(), new FixLocationCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.PatchFitnessTimeline.name(), new PatchFitnessSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.PatchCoverageTimeline.name(), new PatchCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.ContextLineFitnessTimeline.name(), new ContextLineFitnessSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.ContextLineCoverageTimeline.name(), new ContextLineCoverageSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.OracleExceptionFitnessTimeline.name(), new OracleExceptionFitnessSequenceOutputVariableFactory());
+        sequenceOutputVariableFactories.put(RuntimeVariable.OracleExceptionCoverageTimeline.name(), new OracleExceptionCoverageSequenceOutputVariableFactory());
         sequenceOutputVariableFactories.put(RuntimeVariable.DiversityTimeline.name(),
                 DirectSequenceOutputVariableFactory.getDouble(RuntimeVariable.DiversityTimeline));
 
@@ -801,27 +803,51 @@ public class SearchStatistics implements Listener<ClientStateInformation> {
         }
     }
 
-    private static class PatchLineFitnessSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+    private static class FixLocationFitnessSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
 
-        public PatchLineFitnessSequenceOutputVariableFactory() {
-            super(RuntimeVariable.PatchLineFitnessTimeline);
+        public FixLocationFitnessSequenceOutputVariableFactory() {
+            super(RuntimeVariable.FixLocationFitnessTimeline);
         }
 
         @Override
         public Double getValue(TestSuiteChromosome individual) {
-            return individual.getFitnessInstanceOf(PatchLineCoverageSuiteFitness.class);
+            return individual.getFitnessInstanceOf(FixLocationCoverageSuiteFitness.class);
         }
     }
 
-    private static class PatchLineCoverageSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+    private static class FixLocationCoverageSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
 
-        public PatchLineCoverageSequenceOutputVariableFactory() {
-            super(RuntimeVariable.PatchLineCoverageTimeline);
+        public FixLocationCoverageSequenceOutputVariableFactory() {
+            super(RuntimeVariable.FixLocationCoverageTimeline);
         }
 
         @Override
         public Double getValue(TestSuiteChromosome individual) {
-            return individual.getCoverageInstanceOf(PatchLineCoverageSuiteFitness.class);
+            return individual.getCoverageInstanceOf(FixLocationCoverageSuiteFitness.class);
+        }
+    }
+
+    private static class OracleExceptionFitnessSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+
+        public OracleExceptionFitnessSequenceOutputVariableFactory() {
+            super(RuntimeVariable.OracleExceptionFitnessTimeline);
+        }
+
+        @Override
+        public Double getValue(TestSuiteChromosome individual) {
+            return individual.getFitnessInstanceOf(OracleExceptionSuiteFitness.class);
+        }
+    }
+
+    private static class OracleExceptionCoverageSequenceOutputVariableFactory extends SequenceOutputVariableFactory<Double> {
+
+        public OracleExceptionCoverageSequenceOutputVariableFactory() {
+            super(RuntimeVariable.OracleExceptionCoverageTimeline);
+        }
+
+        @Override
+        public Double getValue(TestSuiteChromosome individual) {
+            return individual.getCoverageInstanceOf(OracleExceptionSuiteFitness.class);
         }
     }
 

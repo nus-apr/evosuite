@@ -24,7 +24,6 @@ import org.evosuite.Properties;
 import org.evosuite.classpath.ResourceList;
 import org.evosuite.coverage.mutation.Mutation;
 import org.evosuite.coverage.mutation.MutationObserver;
-import org.evosuite.coverage.patch.PatchLineCoverageFactory;
 import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.graphs.GraphPool;
 import org.evosuite.graphs.cfg.BytecodeInstruction;
@@ -190,7 +189,7 @@ public class PatchMutationInstrumentation implements MethodInstrumentation {
                     // Reset number of mutants for new fix location
                     if (currentFixLocation != v.getLineNumber()) {
                         currentFixLocation = v.getLineNumber();
-                        maxMutantsForCurrentFixLocation = (int) (Properties.EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION * PatchLineCoverageFactory.getTargetLineWeight(className, currentFixLocation));
+                        maxMutantsForCurrentFixLocation = (int) (Properties.EVOREPAIR_MAX_MUTANTS_PER_FIX_LOCATION * FixLocationCoverageFactory.getTargetLineWeight(className, currentFixLocation));
                         numMutants = 0;
                     }
                 }*/

@@ -174,12 +174,6 @@ public class CoverageCriteriaAnalyzer {
             case ONLYLINE:
             case LINE:
                 return RuntimeVariable.LineCoverage;
-            case PATCHLINE:
-                return RuntimeVariable.PatchLineCoverage;
-            case PATCH:
-                return RuntimeVariable.PatchCoverage;
-            case CONTEXTLINE:
-                return RuntimeVariable.ContextLineCoverage;
             case OUTPUT:
                 return RuntimeVariable.OutputCoverage;
             case INPUT:
@@ -188,6 +182,14 @@ public class CoverageCriteriaAnalyzer {
                 return RuntimeVariable.IBranchCoverage;
             case TRYCATCH:
                 return RuntimeVariable.TryCatchCoverage;
+            case FIXLOCATION:
+                return RuntimeVariable.FixLocationCoverage;
+            case ORACLE:
+                return RuntimeVariable.OracleExceptionCoverage;
+            case CONTEXTLINE:
+                return RuntimeVariable.ContextLineCoverage;
+            case PATCH:
+                return RuntimeVariable.PatchCoverage;
             default:
                 throw new RuntimeException("Criterion not supported: " + criterion);
 
@@ -348,8 +350,8 @@ public class CoverageCriteriaAnalyzer {
                 return RuntimeVariable.LineCoverageBitString;
             case TRYCATCH:
                 return null;
-            case PATCHLINE:
-                return RuntimeVariable.PatchLineCoverageBitString;
+            case FIXLOCATION:
+                return RuntimeVariable.FixLocationCoverageBitString;
             case PATCH:
                 return RuntimeVariable.PatchCoverageBitString;
             default:

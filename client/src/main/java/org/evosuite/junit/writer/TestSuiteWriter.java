@@ -30,7 +30,10 @@ import org.evosuite.TimeController;
 import org.evosuite.coverage.dataflow.DefUseCoverageTestFitness;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.coverage.patch.ContextLineTestFitness;
+import org.evosuite.coverage.patch.OracleExceptionTestFitness;
+import org.evosuite.coverage.patch.communication.json.OracleExceptionFitnessMetrics;
 import org.evosuite.coverage.patch.communication.json.TargetLocationFitnessMetrics;
+import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.junit.UnitTestAdapter;
 import org.evosuite.junit.naming.methods.CoverageGoalTestNameGenerationStrategy;
@@ -287,48 +290,59 @@ public class TestSuiteWriter implements Opcodes {
                                          TestGenerationResult<TestChromosome> result,
                                          String outputPath) {
 
-        // TODO EvoRepair: Use generic flag to indicate that EvoRepair is enabled
-        if (!Properties.SERIALIZE_GA && Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+        if (!Properties.SERIALIZE_GA && Properties.EVOREPAIR_TEST_GENERATION) {
             return;
         }
 
         LoggingUtils.getEvoLogger().info("* Writing target location stats to {}", outputPath);
 
         GeneticAlgorithm<?> ga = result.getGeneticAlgorithm();
-        // Mapping between fitness class to fitness functions to minimal fitness value
-        Map<Class<?>, Map<TestFitnessFunction, Double>> minFitnessValuesMap = new LinkedHashMap<>();
 
-        // Mapping between fitness functions to number of covering test cases
-        Map<TestFitnessFunction, Integer> numCoveringTestsMap = new LinkedHashMap<>();
+        /*
+         * Step 1: Setup
+         * For each goal, compute the number of covering tests and min fitness of closest not covering tests.
+         */
+
+        // Mapping between fitness class to fitness functions to number of covering test cases
+        Map<Class<?>, Map<TestFitnessFunction, Integer>> goalToNumCoveringTests = new LinkedHashMap<>();
+
+        // Mapping between fitness class to fitness functions to minimal fitness value
+        Map<Class<?>, Map<TestFitnessFunction, Double>> goalToMinFitness = new LinkedHashMap<>();
 
         // Compute values for maps
-        computeMinFitnessAndNumCoveringTests((List<TestFitnessFunction>) ga.getFitnessFunctions(),
-                testSuite.getTestChromosomes(), minFitnessValuesMap, numCoveringTestsMap);
+        computeNumCoveringTestsAndMinFitness((List<TestFitnessFunction>) ga.getFitnessFunctions(),
+                testSuite.getTestChromosomes(), goalToNumCoveringTests, goalToMinFitness);
 
         try {
+            /*
+             * Step 2: Write out basic summary stats
+             * For each class of fitness function, write out summarized coverage stats.
+             */
             File outputDir = new File(outputPath);
-
             if (!outputDir.exists()) { // should already be created
                 logger.warn("Error while writing statistics: dir {} does not exist.", outputDir);
                 return;
             }
+            writeCoverageSummary(outputDir, goalToNumCoveringTests);
 
-            // Write overall coverage stats
-            writeCoverageSummary(outputDir, minFitnessValuesMap);
+            /*
+             * Step 3: Compute target goal mappings to compute stats
+             * To compute target location specific stats, we need the following mappings:
+             * 1) Target location to corresponding context goals
+             * 2) Context goal description to simple identifier (to make stats more readable)
+             * 3) Simple context goal identifier to complete description (to retrieve the full context description from an id)
+             */
 
-            // Compute and write coverage summary for target locations
-            List<TargetLocationFitnessMetrics> fixLocationMetrics = new ArrayList<>();
-            List<TargetLocationFitnessMetrics> oracleLocationMetrics = new ArrayList<>();
-
-            // Mapping from context goals to min fitness values
-            Map <TestFitnessFunction, Double> allContextGoalFitnessValues = minFitnessValuesMap.getOrDefault(ContextLineTestFitness.class, Collections.emptyMap());
+            // Mapping from context goal to number of tests that cover it and min fitness of tests not yet covering it
+            Map <TestFitnessFunction, Integer> contextGoalsToNumCoveringTests = goalToNumCoveringTests.getOrDefault(ContextLineTestFitness.class, Collections.emptyMap());
+            Map <TestFitnessFunction, Double> contextGoalsToMinFitness = goalToMinFitness.getOrDefault(ContextLineTestFitness.class, Collections.emptyMap());
 
             // TODO EvoRepair: At this point, we should just output the target line stats, no need to do any further computations
-            if (allContextGoalFitnessValues.isEmpty()) {
+            if (contextGoalsToNumCoveringTests.isEmpty()) {
                 logger.warn("No registered ContextLineGoals. No context line stats will be produced.");
             }
 
-            // Mapping from line goals to context goals
+            // Mapping from target location goal to context goals
             Map <TestFitnessFunction, Set<TestFitnessFunction>> targetGoalToContextGoalMap = new LinkedHashMap<>();
 
             // Mapping between context branch IDs and more readable names
@@ -336,10 +350,13 @@ public class TestSuiteWriter implements Opcodes {
             Map <String, String> contextIdToNameMap = new LinkedHashMap<>();
 
             int contextBranchID = 0;
-            for (TestFitnessFunction fitnessFunction : allContextGoalFitnessValues.keySet()) {
+            for (TestFitnessFunction fitnessFunction : contextGoalsToNumCoveringTests.keySet()) {
+                // Assign IDs to contexts
                 int id = contextBranchID++;
                 contextToIdMap.put(fitnessFunction, "Context-" + id);
                 contextIdToNameMap.put("Context-" + id, fitnessFunction.toString());
+
+                // Assign context goal to target location goal
                 ContextLineTestFitness contextGoal = (ContextLineTestFitness) fitnessFunction;
                 LineCoverageTestFitness lineGoal = contextGoal.getLineGoal();
                 if (!targetGoalToContextGoalMap.containsKey(lineGoal)) {
@@ -348,50 +365,98 @@ public class TestSuiteWriter implements Opcodes {
                 targetGoalToContextGoalMap.get(lineGoal).add(contextGoal);
             }
 
-            // For each line goal, determine context goal stats
-            Map<TestFitnessFunction, Double>  lineFitnessMap = minFitnessValuesMap.getOrDefault(LineCoverageTestFitness.class, Collections.emptyMap());
-            for (TestFitnessFunction fitnessFunction : lineFitnessMap.keySet()) {
+            /*
+             * Step 4: Compute stats for target location goals
+             * For all target location goals (fix location + oracle exception), we compute the following stats:
+             * 1) The number of tests in the test suite covering the goal
+             * 2) The (minimum) fitness of the next closest test to cover this goal
+             * 3) The number of contexts this goal can be covered from
+             * 4) The number of contexts that have been covered by a test
+             * 5) For each context, the number of tests that cover it
+             * 6) For each context, the (minimum) fitness of the next closest test to cover it
+             *
+             * For oracle exception targets, we additionally determine the following stats:
+             * 7) The number of tests that trigger the exception and also cover a fix location
+             * 8) The (minimum) distance to any fix location out of all tests that trigger the exception but cover no fix location
+             * 9) For each context, the number of tests that trigger the exception in this context and also cover a fix location
+             * 10) For each context, The (minimum) distance to any fix location for all tests that trigger the exception in this context
+             */
+
+            // Number of covering tests and minimum fitness for fix location and oracle exception goals
+            Map<TestFitnessFunction, Integer>  targetLocationGoalToNumCoveringTests = new LinkedHashMap<>();
+            targetLocationGoalToNumCoveringTests.putAll(goalToNumCoveringTests.getOrDefault(LineCoverageTestFitness.class, Collections.emptyMap()));
+            targetLocationGoalToNumCoveringTests.putAll(goalToNumCoveringTests.getOrDefault(OracleExceptionTestFitness.class, Collections.emptyMap()));
+
+            Map<TestFitnessFunction, Double>  targetLocationGoalToMinFitness = new LinkedHashMap<>();
+            targetLocationGoalToMinFitness.putAll(goalToMinFitness.getOrDefault(LineCoverageTestFitness.class, Collections.emptyMap()));
+            targetLocationGoalToMinFitness.putAll(goalToMinFitness.getOrDefault(OracleExceptionTestFitness.class, Collections.emptyMap()));
+
+            // Stats for fix location and oracle exception goals
+            List<TargetLocationFitnessMetrics> fixLocationMetrics = new ArrayList<>();
+            List<OracleExceptionFitnessMetrics> oracleExceptionMetrics = new ArrayList<>();
+
+            // For each target location (fix location, oracle exception) goal, determine context goal stats
+            for (TestFitnessFunction fitnessFunction : targetLocationGoalToNumCoveringTests.keySet()) {
                 // Determine context goals
-                LineCoverageTestFitness lineGoal = (LineCoverageTestFitness) fitnessFunction;
+                LineCoverageTestFitness targetLocationGoal = (LineCoverageTestFitness) fitnessFunction; // Could also be OracleExceptionTestFitness
 
                 // Get stats for context goals
-                Map<String, Double> contextGoalFitnessValuesMap = new LinkedHashMap<>();
-                Map<String, Integer> contextGoalCoveringTestsMap = new LinkedHashMap<>();
+                Map<String, Integer> contextGoalToNumCoveringTests = new LinkedHashMap<>();
+                Map<String, Double> contextGoalToMinFitness = new LinkedHashMap<>();
 
-                Set<TestFitnessFunction> contextGoals = targetGoalToContextGoalMap.getOrDefault(lineGoal, Collections.emptySet());
+                Set<TestFitnessFunction> contextGoals = targetGoalToContextGoalMap.getOrDefault(targetLocationGoal, Collections.emptySet());
 
                 int numTotalContexts = contextGoals.size();
                 int numCoveredContexts = 0;
 
                 for (TestFitnessFunction contextGoal : contextGoals) {
-                    double minContextFitness = allContextGoalFitnessValues.get(contextGoal);
-                    if (minContextFitness == 0.0) {
+                    int numCoveringTests = contextGoalsToNumCoveringTests.get(contextGoal);
+                    if (numCoveringTests > 0) {
                         numCoveredContexts++;
                     }
-                    contextGoalFitnessValuesMap.put(contextToIdMap.get(contextGoal), minContextFitness);
-                    contextGoalCoveringTestsMap.put(contextToIdMap.get(contextGoal), numCoveringTestsMap.get(contextGoal));
+                    contextGoalToMinFitness.put(contextToIdMap.get(contextGoal), contextGoalsToMinFitness.get(contextGoal));
+                    contextGoalToNumCoveringTests.put(contextToIdMap.get(contextGoal), numCoveringTests);
                 }
 
-                String className = lineGoal.getClassName();
-                int lineNumber = lineGoal.getLine();
-                double minFitness = lineFitnessMap.get(lineGoal);
-                int numCoveringTests = numCoveringTestsMap.get(lineGoal);
+                String className = targetLocationGoal.getClassName();
+                int lineNumber = targetLocationGoal.getLine();
+                int numCoveringTests = targetLocationGoalToNumCoveringTests.get(targetLocationGoal);
+                double minFitness = targetLocationGoalToMinFitness.get(targetLocationGoal);
 
-                TargetLocationFitnessMetrics metrics = new TargetLocationFitnessMetrics(className, lineNumber, minFitness,
-                        numCoveringTests, numTotalContexts, numCoveredContexts, contextGoalFitnessValuesMap, contextGoalCoveringTestsMap);
+                if (targetLocationGoal instanceof OracleExceptionTestFitness) {
+                    int numFixLocationCoveringTests = getNumFixLocationCoveringTestsForGoal(targetLocationGoal,
+                            Archive.getMultiCriteriaArchive().getTargetLineGoals(), testSuite.getTestChromosomes());
 
-                // Check if the line goal is a fix location or oracle location goal
-                int lineGoalHash = fitnessFunction.hashCode();
-                if (result.getFixLocationGoals().contains(lineGoalHash)) {
-                    fixLocationMetrics.add(metrics);
-                } else if (result.getOracleLocationGoals().contains(lineGoalHash)) {
-                    oracleLocationMetrics.add(metrics);
+                    double minFixLocationFitness = getMinFixLocationFitnessForGoal(targetLocationGoal,
+                            Archive.getMultiCriteriaArchive().getTargetLineGoals(), testSuite.getTestChromosomes());
+
+                    Map<String, Integer> contextToNumFixLocationCoveringTests = new LinkedHashMap<>();
+                    Map<String, Double> contextToMinFixLocationFitness = new LinkedHashMap<>();
+
+                    for (TestFitnessFunction contextGoal : contextGoals) {
+                        int numContextFixLocationCoveringTests = getNumFixLocationCoveringTestsForGoal(contextGoal,
+                                Archive.getMultiCriteriaArchive().getTargetLineGoals(), testSuite.getTestChromosomes());
+                        contextToNumFixLocationCoveringTests.put(contextToIdMap.get(contextGoal), numContextFixLocationCoveringTests);
+
+                        double minContextFixLocationFitness = getMinFixLocationFitnessForGoal(contextGoal,
+                                Archive.getMultiCriteriaArchive().getTargetLineGoals(), testSuite.getTestChromosomes());
+                        contextToMinFixLocationFitness.put(contextToIdMap.get(contextGoal), minContextFixLocationFitness);
+                    }
+
+                    OracleExceptionFitnessMetrics metrics = new OracleExceptionFitnessMetrics(className, lineNumber, numCoveringTests,
+                            minFitness, numTotalContexts, numCoveredContexts, contextGoalToNumCoveringTests, contextGoalToMinFitness,
+                            numFixLocationCoveringTests, minFixLocationFitness, contextToNumFixLocationCoveringTests, contextToMinFixLocationFitness
+                            );
+                    oracleExceptionMetrics.add(metrics);
+
                 } else {
-                    logger.warn("Can't find hash of {} in fix location or oracle location hash sets.", fitnessFunction);
+                    TargetLocationFitnessMetrics metrics = new TargetLocationFitnessMetrics(className, lineNumber, numCoveringTests,
+                            minFitness, numTotalContexts, numCoveredContexts, contextGoalToNumCoveringTests, contextGoalToMinFitness);
+                    fixLocationMetrics.add(metrics);
                 }
             }
 
-            writeTargetLocationSummary(outputDir, fixLocationMetrics, oracleLocationMetrics, contextIdToNameMap);
+            writeTargetLocationSummary(outputDir, fixLocationMetrics, oracleExceptionMetrics, contextIdToNameMap);
         } catch (IOException e) {
             logger.warn("Error while writing statistics: " + e.getMessage());
         }
@@ -401,42 +466,63 @@ public class TestSuiteWriter implements Opcodes {
      * Compute minimum fitness and number of covering tests for each fitness function
      * @param fitnessFunctions List of all fitness functions
      * @param tests List of all tests
-     * @param minFitnessValuesMap (empty) mapping from classes of fitness functions to fitness functions to min fitness values
-     * @param numCoveringTestsMap (empty) mapping from fitness functions to number of covering tests
+     * @param goalToNumCoveringTests (empty) mapping from classes of fitness functions to fitness functions to number of covering tests
+     * @param goalToMinFitness (empty) mapping from classes of fitness functions to fitness functions to min fitness values
      */
-    private void computeMinFitnessAndNumCoveringTests(List<TestFitnessFunction> fitnessFunctions, List<TestChromosome> tests,
-                                                      Map<Class<?>, Map<TestFitnessFunction, Double>> minFitnessValuesMap,
-                                                      Map<TestFitnessFunction, Integer> numCoveringTestsMap) {
+    private void computeNumCoveringTestsAndMinFitness(List<TestFitnessFunction> fitnessFunctions, List<TestChromosome> tests,
+                                                      Map<Class<?>, Map<TestFitnessFunction, Integer>> goalToNumCoveringTests,
+                                                      Map<Class<?>, Map<TestFitnessFunction, Double>> goalToMinFitness) {
 
         for (TestFitnessFunction ff : fitnessFunctions) {
-            if (!minFitnessValuesMap.containsKey(ff.getClass())) {
-                minFitnessValuesMap.put(ff.getClass(), new LinkedHashMap<>());
+            // How many tests already cover this goal?
+            if (!goalToNumCoveringTests.containsKey(ff.getClass())) {
+                goalToNumCoveringTests.put(ff.getClass(), new LinkedHashMap<>());
             }
 
             int numCoveringSolutions = (int) tests.stream().mapToDouble(t -> t.getFitness(ff)).filter(f -> f == 0.0).count();
-            numCoveringTestsMap.put(ff, numCoveringSolutions);
+            goalToNumCoveringTests.get(ff.getClass()).put(ff, numCoveringSolutions);
 
-            double minFitness = tests.stream().mapToDouble(t -> t.getFitness(ff)).min().orElse(-1);
-            minFitnessValuesMap.get(ff.getClass()).put(ff, minFitness);
+
+            // How close is the next test to cover the goal? I.e., only consider remaining tests that don't already cover the goal
+            if (!goalToMinFitness.containsKey(ff.getClass())) {
+                goalToMinFitness.put(ff.getClass(), new LinkedHashMap<>());
+            }
+            // If all tests cover this goal, return 0.0
+            double minFitness = tests.stream().mapToDouble(t -> t.getFitness(ff)).filter(f -> f > 0.0).min().orElse(0.0);
+            goalToMinFitness.get(ff.getClass()).put(ff, minFitness);
         }
-
     }
 
-    private void writeCoverageSummary(File outputDir, Map<Class<?>, Map<TestFitnessFunction, Double>> minFitnessValuesMap) throws IOException {
+
+    private int getNumFixLocationCoveringTestsForGoal(TestFitnessFunction goal, Collection<LineCoverageTestFitness> fixLocationGoals, List<TestChromosome> tests) {
+        return (int) tests.stream().filter(t -> t.getFitness(goal) == 0.0 && fixLocationGoals.stream().anyMatch(f -> t.getFitness(f) == 0.0)).count();
+    }
+
+    private double getMinFixLocationFitnessForGoal(TestFitnessFunction goal, Collection<LineCoverageTestFitness> fixLocationGoals, List<TestChromosome> tests) {
+        return tests.stream()
+                .filter(t -> t.getFitness(goal) == 0.0) // All tests covering this goal
+                .mapToDouble(t -> fixLocationGoals.stream().mapToDouble(t::getFitness).min().orElse(0.0)) // Min fix location distance
+                .filter(fitness -> fitness > 0.0) // Filter out fitness values of tests covering a fix location
+                .min().orElse(0.0); // Minimum distance (or 0 if all tests cover a fix location)
+    }
+
+    private void writeCoverageSummary(File outputDir, Map<Class<?>, Map<TestFitnessFunction, Integer>> goalToNumCoveringTests) throws IOException {
         // General coverage stats
         File f_stats = new File(outputDir.getAbsolutePath() + File.separator + "coverage_stats.csv");
         BufferedWriter out_coverage = new BufferedWriter(new FileWriter(f_stats));
-        out_coverage.write("CRITERION, GOALS, COVERED, UNCOVERED" + "\n");
+        out_coverage.write("CRITERION, GOALS, COVERED, UNCOVERED, NUM_COVERING_TESTS" + "\n");
 
         StringBuilder sb_coverage = new StringBuilder();
 
         // Write out general stats
-        for (Class<?> fitnessClass : minFitnessValuesMap.keySet()) {
+        for (Class<?> fitnessClass : goalToNumCoveringTests.keySet()) {
             int covered = 0;
+            int totalCoveringTests = 0;
             int uncovered = 0;
-            for (TestFitnessFunction fitnessFunction : minFitnessValuesMap.get(fitnessClass).keySet()) {
-                double fitness = minFitnessValuesMap.get(fitnessClass).get(fitnessFunction);
-                if (fitness == 0.0) {
+            for (TestFitnessFunction fitnessFunction : goalToNumCoveringTests.get(fitnessClass).keySet()) {
+                double numCoveringTests = goalToNumCoveringTests.get(fitnessClass).get(fitnessFunction);
+                totalCoveringTests += numCoveringTests;
+                if (numCoveringTests > 0) {
                     covered++;
                 } else {
                     uncovered++;
@@ -449,6 +535,8 @@ public class TestSuiteWriter implements Opcodes {
             sb_coverage.append(covered);
             sb_coverage.append(",");
             sb_coverage.append(uncovered);
+            sb_coverage.append(",");
+            sb_coverage.append(totalCoveringTests);
             sb_coverage.append("\n");
         }
 
@@ -457,7 +545,7 @@ public class TestSuiteWriter implements Opcodes {
     }
 
     private void writeTargetLocationSummary(File outputDir, List<TargetLocationFitnessMetrics> fixLocationMetrics,
-                                            List<TargetLocationFitnessMetrics> oracleLocationMetrics,
+                                            List<OracleExceptionFitnessMetrics> oracleExceptionMetrics,
                                             Map <String, String> contextIdToNameMap) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -466,7 +554,7 @@ public class TestSuiteWriter implements Opcodes {
         mapper.writeValue(f_fixLocationStats, fixLocationMetrics);
 
         File f_oracleLocationStats = new File(outputDir.getAbsolutePath() + File.separator + "oracleLocation_stats.json");
-        mapper.writeValue(f_oracleLocationStats, oracleLocationMetrics);
+        mapper.writeValue(f_oracleLocationStats, oracleExceptionMetrics);
 
         File f_contextIdToNameMap = new File(outputDir.getAbsolutePath() + File.separator + "contextIdToFullNameMap.json");
         mapper.writeValue(f_contextIdToNameMap, contextIdToNameMap);

@@ -29,6 +29,7 @@ import org.evosuite.instrumentation.mutation.ReplaceVariable;
 import org.evosuite.rmi.ClientServices;
 import org.evosuite.statistics.RuntimeVariable;
 import org.evosuite.testsuite.AbstractFitnessFactory;
+import org.evosuite.utils.LoggingUtils;
 
 import java.util.*;
 
@@ -42,6 +43,8 @@ import java.util.*;
 public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness> {
 
     private boolean strong = true;
+
+    private boolean patchStrong = false;
 
     protected List<MutationTestFitness> goals = null;
 
@@ -60,8 +63,12 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
      *
      * @param strongMutation a boolean.
      */
-    public MutationFactory(boolean strongMutation) {
+    public MutationFactory(boolean strongMutation, boolean patchStrongMutation) {
         this.strong = strongMutation;
+        this.patchStrong = patchStrongMutation;
+        if (!(strong || patchStrong)) {
+            throw new IllegalArgumentException("Either strong mutation or strong patch mutation criteria must be enabled for strong mutation testing!");
+        }
     }
 
     /* (non-Javadoc)
@@ -91,7 +98,7 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
         goals = new ArrayList<>();
 
         List<Mutation> mutants;
-        if (Properties.EVOREPAIR_USE_FIX_LOCATION_GOALS) {
+        if (Properties.EVOREPAIR_TEST_GENERATION) {
             // Use all mutants
             mutants = MutationPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getMutants();
         } else {
@@ -105,10 +112,13 @@ public class MutationFactory extends AbstractFitnessFactory<MutationTestFitness>
             // We need to return all mutants to make coverage values and bitstrings consistent
             //if (MutationTimeoutStoppingCondition.isDisabled(m))
             //	continue;
-            if (strong)
-                goals.add(new StrongMutationTestFitness(m));
-            else
+            if (strong || patchStrong) {
+                if (strong) goals.add(new StrongMutationTestFitness(m, strong, patchStrong));
+                if (patchStrong) goals.add(new StrongPatchMutationTestFitness(m, strong, patchStrong));
+            }
+            else {
                 goals.add(new WeakMutationTestFitness(m));
+            }
         }
 
         ClientServices.getInstance().getClientNode().trackOutputVariable(RuntimeVariable.Mutants, goals.size());

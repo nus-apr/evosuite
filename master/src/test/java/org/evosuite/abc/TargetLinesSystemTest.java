@@ -6,6 +6,7 @@ import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.SystemTestBase;
 import org.evosuite.coverage.TestFitnessFactory;
+import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.coverage.patch.PatchPool;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.strategy.TestGenerationStrategy;
@@ -27,7 +28,7 @@ public class TargetLinesSystemTest extends SystemTestBase {
         Properties.TARGET_CLASS = targetClass;
 
         URL resource = this.getClass().getResource("patch_population.json");
-        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass };
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "FIXLOCATION", "-targetPatches", resource.getPath(), "-class", targetClass };
         Object result = evosuite.parseCommandLine(command);
 
         PatchPool patchPool = PatchPool.getInstance();
@@ -42,13 +43,13 @@ public class TargetLinesSystemTest extends SystemTestBase {
     }
 
     @Test
-    public void testPatchLineFitness() {
+    public void testFixLocationFitness() {
         EvoSuite evosuite = new EvoSuite();
         String targetClass = MethodReturnsPrimitive.class.getCanonicalName();
         Properties.TARGET_CLASS = targetClass;
         URL resource = this.getClass().getResource("patch_population.json");
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass};
+        String[] command = new String[] {"-evorepair", "testgen", "-generateSuite", "-criterion", "FIXLOCATION", "-targetPatches", resource.getPath(), "-class", targetClass};
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
@@ -64,23 +65,23 @@ public class TargetLinesSystemTest extends SystemTestBase {
     }
 
     @Test
-    public void testMOSAPatchLineFitness() {
+    public void testMOSAfixLocationFitness() {
         EvoSuite evosuite = new EvoSuite();
         String targetClass = MethodReturnsPrimitive.class.getCanonicalName();
         Properties.TARGET_CLASS = targetClass;
         URL resource = this.getClass().getResource("patch_population.json");
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass };
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "BRANCH:FIXLOCATION", "-targetPatches", resource.getPath(), "-class", targetClass };
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
         TestSuiteChromosome best = (TestSuiteChromosome) ga.getBestIndividual();
         System.out.println("EvolvedTestSuite:\n" + best);
 
-        int goals = TestGenerationStrategy.getFitnessFactories().get(0).getCoverageGoals().size(); // assuming single fitness function
+        int goals = TestGenerationStrategy.getFitnessFactories().get(1).getCoverageGoals().size(); // assuming single fitness function
         Assert.assertEquals("Wrong number of goals: ", 5, goals);
 
-        int coveredGoals = computeCoveredGoalsFromResult(result);
+        int coveredGoals = computeCoveredGoalsFromResult(result, LineCoverageTestFitness.class);
         Assert.assertEquals("Non-optimal coverage: ", 5, coveredGoals);
     }
 
@@ -90,7 +91,7 @@ public class TargetLinesSystemTest extends SystemTestBase {
         String targetClass = ClassWithInnerClass.class.getCanonicalName();
         URL resource = this.getClass().getResource("patch_population_with_inner_classes.json");
 
-        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "PATCHLINE", "-targetPatches", resource.getPath(), "-class", targetClass };
+        String[] command = new String[] {"-evorepair", "testgen", "-generateMOSuite", "-criterion", "FIXLOCATION", "-targetPatches", resource.getPath(), "-class", targetClass };
 
         Object result = evosuite.parseCommandLine(command);
         GeneticAlgorithm<?> ga = getGAFromResult(result);
@@ -101,7 +102,7 @@ public class TargetLinesSystemTest extends SystemTestBase {
         Assert.assertEquals("Wrong number of goals: ", 3, goals);
 
         // MOSATestSuiteAdapter.getBestIndividuals:95 sets the suite fitness to 1.0 for some reason, even if all goals have been covered
-        // TODO EvoRepair: investigate
-        Assert.assertEquals("Non-optimal fitness: ", 1.0, best.getFitness(), 0.01);
+        // Note: This seems to be fixed now
+        Assert.assertEquals("Non-optimal fitness: ", 0.0, best.getFitness(), 0.01);
     }
 }
