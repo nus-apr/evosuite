@@ -278,8 +278,10 @@ public class CommandLineParameters {
     }
 
     public static void handleEvoRepairOptions(List<String> javaOpts, CommandLine line) {
+        // Initialize
+        Properties.getInstance();
+
         // Enable evorepair flag for custom test generation objectives and search
-		Properties.getInstance();
         setPropertyAndAddToJavaOpts("evorepairTestGeneration", "true", javaOpts);
 
         // Enable MOSAPatch
