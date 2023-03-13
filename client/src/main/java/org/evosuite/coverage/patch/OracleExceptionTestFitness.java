@@ -1,11 +1,16 @@
 package org.evosuite.coverage.patch;
 
+import org.evosuite.Properties;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
+import org.evosuite.ga.archive.Archive;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.execution.ExecutionResult;
 
+
 public class OracleExceptionTestFitness extends LineCoverageTestFitness {
     private static final long serialVersionUID = 5599225319249281208L;
+
+    private boolean blind = false;
 
     /**
      * Constructor - fitness is specific to a method
@@ -19,6 +24,15 @@ public class OracleExceptionTestFitness extends LineCoverageTestFitness {
         super(className, methodName, line);
     }
 
+    public OracleExceptionTestFitness(String className, String methodName, Integer line, boolean blind) {
+        super(className, methodName, line);
+        this.blind = blind;
+        if (blind && !branchFitnesses.isEmpty()) {
+            logger.error("Created blind OracleExceptionGoal even though the target location has been instrumented.");
+            this.blind = false;
+        }
+    }
+
     /**
      * {@inheritDoc}
      * <p>
@@ -30,17 +44,28 @@ public class OracleExceptionTestFitness extends LineCoverageTestFitness {
      */
     @Override
     public double getFitness(TestChromosome individual, ExecutionResult result) {
-        // Super handles updateIndividual and updateArchive
-        double fitness = super.getFitness(individual, result);
+        double fitness;
 
-        if (fitness == 0.0) {
-            boolean throwsOracleException = result.getAllThrownExceptions().stream()
-                    .filter(RuntimeException.class::isInstance)
-                    .map(Throwable::getMessage)
-                    .anyMatch(msg -> msg != null && msg.equals("[Defects4J_BugReport_Violation]"));
+        if (blind) {
+            fitness = result.hasOracleException() ? 0.0 : 1.0;
+            updateIndividual(individual, fitness);
 
-            if (!throwsOracleException) {
-                logger.error("Test covers oracle exception location but no exception was thrown!");
+            if (fitness == 0.0) {
+                individual.getTestCase().addCoveredGoal(this);
+            }
+
+            if (Properties.TEST_ARCHIVE) {
+                Archive.getArchiveInstance().updateArchive(this, individual, fitness);
+            }
+
+        } else {
+            // Super handles updateIndividual and updateArchive
+            fitness = super.getFitness(individual, result);
+
+            if (fitness == 0.0) {
+                if (!result.hasOracleException()) {
+                    logger.error("Test covers oracle exception location but no exception was thrown!");
+                }
             }
         }
 

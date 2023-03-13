@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class OracleExceptionFactory extends AbstractFitnessFactory<OracleExceptionTestFitness> {
 
@@ -30,10 +31,17 @@ public class OracleExceptionFactory extends AbstractFitnessFactory<OracleExcepti
         for (String className : oracleLocations.keySet()) {
             for (String methodName : oracleLocations.get(className).keySet()) {
                 for (OracleLocation loc : oracleLocations.get(className).get(methodName)) {
-                    for (OracleExceptionTestFitness oracleLocationGoal : getCoverageGoals(className, loc.getCustomExceptionLines())) {
-                        goals.add(oracleLocationGoal);
-                        oracleLocationHashCodes.add(oracleLocationGoal.hashCode());
+                    List<OracleExceptionTestFitness> oracleGoals = getCoverageGoals(className, loc.getCustomExceptionLines());
+
+                    if (oracleGoals.isEmpty()) {
+                        logger.warn("Creating blind oracle goals for method {}:{}.", className, methodName);
+                        loc.getCustomExceptionLines().stream()
+                                .map(l -> new OracleExceptionTestFitness(className, methodName, l, true))
+                                .forEach(oracleGoals::add);
                     }
+
+                    goals.addAll(oracleGoals);
+                    oracleGoals.stream().mapToInt(OracleExceptionTestFitness::hashCode).forEach(oracleLocationHashCodes::add);
                 }
             }
         }
@@ -55,12 +63,13 @@ public class OracleExceptionFactory extends AbstractFitnessFactory<OracleExcepti
     public List<OracleExceptionTestFitness> getCoverageGoals(String className, List<Integer> targetLines) {
 
         if (!LinePool.getKnownClasses().contains(className)) {
-            logger.debug("Unable to find class in LinePool: " + className);
+            logger.warn("Unable to find oracle exception class in LinePool: " + className);
             return Collections.emptyList();
         }
 
         if (!isCUT(className)) {
-            throw new IllegalArgumentException("Class containing oracle exception line is not part of CUT: " + className);
+            logger.warn("Class containing oracle exception line is not part of CUT: " + className);
+            return Collections.emptyList();
         }
 
         List<OracleExceptionTestFitness> goals = new ArrayList<>();
