@@ -20,6 +20,7 @@
 package org.evosuite.ga.metaheuristics.mosa;
 
 
+import org.evosuite.Properties;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.metaheuristics.TestSuiteAdapter;
 import org.evosuite.testcase.TestChromosome;
@@ -56,6 +57,13 @@ public class MOSATestSuiteAdapter extends TestSuiteAdapter<AbstractMOSA> {
     public List<TestSuiteChromosome> getBestIndividuals() {
         // get final test suite (i.e., non dominated solutions in Archive)
         TestSuiteChromosome bestTestCases = Archive.getArchiveInstance().mergeArchiveAndSolution(new TestSuiteChromosome());
+
+        if (Properties.ARCHIVE_TYPE == Properties.ArchiveType.MULTI_CRITERIA_COVERAGE) {
+            for (TestChromosome oracleSolution : Archive.getMultiCriteriaArchive().getOracleExceptionSolutions()) {
+                bestTestCases.addTest(oracleSolution); // TODO EvoRepair: This might add duplicate tests
+            }
+        }
+
         if (bestTestCases.getTestChromosomes().isEmpty()) {
             for (TestChromosome test : getAlgorithm().getBestIndividuals()) {
                 bestTestCases.addTest(test);
