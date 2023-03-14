@@ -425,21 +425,21 @@ public class TestSuiteWriter implements Opcodes {
 
                 if (targetLocationGoal instanceof OracleExceptionTestFitness) {
                     int numFixLocationCoveringTests = getNumFixLocationCoveringTestsForGoal(targetLocationGoal,
-                            Archive.getMultiCriteriaArchive().getTargetLineGoals(), testSuite.getTestChromosomes());
+                            Archive.getMultiCriteriaArchive().getFixLocationGoals(), testSuite.getTestChromosomes());
 
                     double minFixLocationFitness = getMinFixLocationFitnessForGoal(targetLocationGoal,
-                            Archive.getMultiCriteriaArchive().getTargetLineGoals(), testSuite.getTestChromosomes());
+                            Archive.getMultiCriteriaArchive().getFixLocationGoals(), testSuite.getTestChromosomes());
 
                     Map<String, Integer> contextToNumFixLocationCoveringTests = new LinkedHashMap<>();
                     Map<String, Double> contextToMinFixLocationFitness = new LinkedHashMap<>();
 
                     for (TestFitnessFunction contextGoal : contextGoals) {
                         int numContextFixLocationCoveringTests = getNumFixLocationCoveringTestsForGoal(contextGoal,
-                                Archive.getMultiCriteriaArchive().getTargetLineGoals(), testSuite.getTestChromosomes());
+                                Archive.getMultiCriteriaArchive().getFixLocationGoals(), testSuite.getTestChromosomes());
                         contextToNumFixLocationCoveringTests.put(contextToIdMap.get(contextGoal), numContextFixLocationCoveringTests);
 
                         double minContextFixLocationFitness = getMinFixLocationFitnessForGoal(contextGoal,
-                                Archive.getMultiCriteriaArchive().getTargetLineGoals(), testSuite.getTestChromosomes());
+                                Archive.getMultiCriteriaArchive().getFixLocationGoals(), testSuite.getTestChromosomes());
                         contextToMinFixLocationFitness.put(contextToIdMap.get(contextGoal), minContextFixLocationFitness);
                     }
 

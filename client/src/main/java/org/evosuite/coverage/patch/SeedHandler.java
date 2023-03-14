@@ -71,7 +71,7 @@ public class SeedHandler {
             return;
         }
 
-        Map<LineCoverageTestFitness, Map<Set<Integer>, TestChromosome>> targetLineSolutions = Archive.getMultiCriteriaArchive().getTargetLineSolutionMap();
+        Map<LineCoverageTestFitness, Map<Set<Integer>, TestChromosome>> fixLocationSolutions = Archive.getMultiCriteriaArchive().getFixLocationSolutionMap();
 
         // Check if dir exists, if not create
         File parent = outputFile.getParentFile();
@@ -80,9 +80,9 @@ public class SeedHandler {
         }
 
         try (ObjectOutputStream out = new DebuggingObjectOutputStream(new FileOutputStream(outputFile))) {
-            out.writeObject(targetLineSolutions);
+            out.writeObject(fixLocationSolutions);
             out.flush();
-            logger.info("{} target line solutions have been serialized to: {}.", targetLineSolutions.keySet().size(), outputFile.getPath());
+            logger.info("{} fix location solutions have been serialized to: {}.", fixLocationSolutions.keySet().size(), outputFile.getPath());
         } catch (IOException e) {
             logger.error("Failed to open/handle " + outputFile.getAbsolutePath() + " for writing: " + e.getMessage());
         }

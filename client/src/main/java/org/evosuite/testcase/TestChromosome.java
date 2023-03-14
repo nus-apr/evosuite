@@ -647,6 +647,14 @@ public final class TestChromosome extends AbstractTestChromosome<TestChromosome>
         return lastExecutionResult != null && !lastExecutionResult.noThrownExceptions();
     }
 
+    public boolean hasOracleException() {
+        return lastExecutionResult != null && lastExecutionResult.hasOracleException();
+    }
+
+    public boolean coversFixLocation() {
+        return test.coversFixLocation();
+    }
+
 
     /**
      * {@inheritDoc}

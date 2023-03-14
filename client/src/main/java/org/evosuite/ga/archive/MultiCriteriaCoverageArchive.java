@@ -2,7 +2,9 @@ package org.evosuite.ga.archive;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.line.LineCoverageTestFitness;
+import org.evosuite.coverage.patch.OracleExceptionTestFitness;
 import org.evosuite.instrumentation.LinePool;
+import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestCaseMinimizer;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -29,7 +31,9 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
     private static final Logger logger = LoggerFactory.getLogger(MultiCriteriaCoverageArchive.class);
 
     // Map from line goals to line coverage sets to tests
-    protected final Map<LineCoverageTestFitness, Map<Set<Integer>, TestChromosome>> targetLineSolutions =  new LinkedHashMap<>();
+    protected final Map<LineCoverageTestFitness, Map<Set<Integer>, TestChromosome>> fixLocationSolutions = new LinkedHashMap<>();
+
+    protected final Map<OracleExceptionTestFitness, List<TestChromosome>> oracleExceptionSolutions = new LinkedHashMap<>();
 
     // Map storing partial solutions (solutions covering an uncovered goal but no line goal yet)
     protected final Map<TestFitnessFunction, TestChromosome> partialSolutions = new LinkedHashMap<>();
@@ -37,16 +41,22 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
 
     public static final MultiCriteriaCoverageArchive instance = new MultiCriteriaCoverageArchive();
 
-    public Set<LineCoverageTestFitness> getTargetLineGoals() {
-        return targetLineSolutions.keySet();
+    public Set<LineCoverageTestFitness> getFixLocationGoals() {
+        return fixLocationSolutions.keySet();
+    }
+
+    public Set<OracleExceptionTestFitness> getOracleExceptionGoals() {
+        return oracleExceptionSolutions.keySet();
     }
 
     @Override
     public void addTarget(TestFitnessFunction target) {
         super.addTarget(target);
 
-        if (target instanceof LineCoverageTestFitness) {
-            targetLineSolutions.put((LineCoverageTestFitness) target, new LinkedHashMap<>());
+        if (target.getClass() == LineCoverageTestFitness.class) {
+            fixLocationSolutions.put((LineCoverageTestFitness) target, new LinkedHashMap<>());
+        } else if (target.getClass() == OracleExceptionTestFitness.class) {
+            oracleExceptionSolutions.put((OracleExceptionTestFitness) target, new ArrayList<>());
         }
     }
 
@@ -58,9 +68,11 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
         }
 
         // Line goals are handled separately, since they are already considered as "full solutions"
-        if (target instanceof LineCoverageTestFitness) {
-            handleCoveredLineGoal(target, solution, fitnessValue);
+        if (target.getClass() ==  LineCoverageTestFitness.class) {
+            handleCoveredFixLocation(target, solution);
             return;
+        } else if (target.getClass() == OracleExceptionTestFitness.class) {
+            handleCoveredOracleException(target, solution);
         }
 
         // For any other class of goal, we have to check if it also covers a line goal;
@@ -75,9 +87,13 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
         // Perform basic checks usually done by super
         validateSolution(target, solution, fitnessValue);
 
-        boolean isCoveringTargetLine = getTargetLineGoals().stream().anyMatch(ff -> solution.getFitness(ff) == 0.0);
+        //boolean isCoveringFixLocation = fixLocationSolutions.keySet().stream().anyMatch(ff -> solution.getFitness(ff) == 0.0);
+        //boolean isTriggeringOraclException = oracleExceptionSolutions.keySet().stream().anyMatch(ff -> solution.getFitness(ff) == 0.0);
+        boolean isCoveringFixLocation = solution.coversFixLocation();
+        boolean isTriggeringOracleException = solution.hasOracleException();
+
         // This is a full solution, let super add it to the coverage archive, remove from map of partial solutions
-        if (isCoveringTargetLine) {
+        if (isCoveringFixLocation || isTriggeringOracleException) {
             super.updateArchive(target, solution, fitnessValue);
             this.partialSolutions.remove(target);
             return;
@@ -100,9 +116,8 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
         }
     }
 
-    private void handleCoveredLineGoal(TestFitnessFunction target,
-                                       TestChromosome solution,
-                                       double fitnessValue) {
+    private void handleCoveredFixLocation(TestFitnessFunction target,
+                                          TestChromosome solution) {
 
         // Minimize test w.r.t. covered line goals
         if (Properties.EVOREPAIR_MINIMIZE_TARGET_LINE_SOLUTIONS) {
@@ -118,7 +133,7 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
         }
 
         // Add solution to archive (or replace existing solution)
-        super.updateArchive(target, solution, fitnessValue);
+        super.updateArchive(target, solution, 0.0);
 
         // Add solution to archive of target line covering solutions
         LineCoverageTestFitness lineGoal = (LineCoverageTestFitness) target;
@@ -131,7 +146,7 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             // Check if we already have a solution for this trace, replace if the new solution is better
-            Map<Set<Integer>, TestChromosome> solutions = targetLineSolutions.get(lineGoal);
+            Map<Set<Integer>, TestChromosome> solutions = fixLocationSolutions.get(lineGoal);
             if (solutions.containsKey(coveredMethodLines)) {
                 TestChromosome currentSolution = solutions.get(coveredMethodLines);
 
@@ -146,8 +161,30 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
         } else {
             logger.warn("Found solution with covered goal but no execution result.");
         }
-
     }
+
+    private void handleCoveredOracleException(TestFitnessFunction target,
+                                              TestChromosome candidateSolution) {
+
+        List<TestChromosome> solutions = oracleExceptionSolutions.get((OracleExceptionTestFitness) target);
+
+        // Remove all statements after the oracle exception
+        ExecutionResult executionResult = candidateSolution.getLastExecutionResult();
+        if (!executionResult.noThrownExceptions()) {
+            candidateSolution.getTestCase().chop(executionResult.getFirstPositionOfThrownException() + 1);
+        }
+
+        // Don't add duplicate tests - since all tests are chopped we directly test for equality
+        TestCase candidateTest = candidateSolution.getTestCase();
+        for (TestChromosome solution : solutions) {
+            if (candidateTest.equals(solution.getTestCase())) {
+                return;
+            }
+        }
+
+        solutions.add(candidateSolution);
+    }
+
 
     private void validateSolution(TestFitnessFunction target,
                                   TestChromosome solution,
@@ -164,16 +201,24 @@ public class MultiCriteriaCoverageArchive extends CoverageArchive {
         }
     }
 
-    public List<TestChromosome> getTargetLineSolutions() {
+    public List<TestChromosome> getFixLocationSolutions() {
         List<TestChromosome> solutions = new ArrayList<>();
-        for (LineCoverageTestFitness lineGoal: targetLineSolutions.keySet()) {
-            solutions.addAll(targetLineSolutions.get(lineGoal).values());
+        for (LineCoverageTestFitness lineGoal: fixLocationSolutions.keySet()) {
+            solutions.addAll(fixLocationSolutions.get(lineGoal).values());
         }
         return solutions;
     }
 
-    public Map<LineCoverageTestFitness, Map<Set<Integer>, TestChromosome>> getTargetLineSolutionMap() {
-        return targetLineSolutions;
+    public List<TestChromosome> getOracleExceptionSolutions() {
+        List<TestChromosome> solutions = new ArrayList<>();
+        for (OracleExceptionTestFitness oracleGoal : oracleExceptionSolutions.keySet()) {
+            solutions.addAll(oracleExceptionSolutions.get(oracleGoal));
+        }
+        return solutions;
+    }
+
+    public Map<LineCoverageTestFitness, Map<Set<Integer>, TestChromosome>> getFixLocationSolutionMap() {
+        return fixLocationSolutions;
     }
 
 

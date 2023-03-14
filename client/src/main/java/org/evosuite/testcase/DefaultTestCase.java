@@ -24,6 +24,7 @@ import org.evosuite.assertion.Assertion;
 import org.evosuite.assertion.InspectorAssertion;
 import org.evosuite.assertion.PrimitiveFieldAssertion;
 import org.evosuite.contracts.ContractViolation;
+import org.evosuite.coverage.line.LineCoverageTestFitness;
 import org.evosuite.ga.ConstructionFailedException;
 import org.evosuite.runtime.util.Inputs;
 import org.evosuite.setup.TestClusterUtils;
@@ -76,6 +77,8 @@ public class DefaultTestCase implements TestCase, Serializable {
      * Coverage goals this test covers
      */
     private transient Set<TestFitnessFunction> coveredGoals = new LinkedHashSet<>();
+
+    private boolean coversFixLocation = false;
 
     /**
      * Violations revealed by this test
@@ -153,8 +156,17 @@ public class DefaultTestCase implements TestCase, Serializable {
      */
     @Override
     public void addCoveredGoal(TestFitnessFunction goal) {
-        coveredGoals.add(goal);
         // TODO: somehow adds the same goal more than once (fitnessfunction.equals()?)
+        if(coveredGoals.add(goal)) { // New goal added, check if it is a fix location
+            if (goal.getClass() == LineCoverageTestFitness.class) {
+                coversFixLocation = true;
+            }
+        }
+    }
+
+    @Override
+    public boolean coversFixLocation() {
+        return coversFixLocation;
     }
 
     /**
@@ -383,6 +395,7 @@ public class DefaultTestCase implements TestCase, Serializable {
             copy.setAssertions(s.copyAssertions(t, 0));
         }
         t.coveredGoals.addAll(coveredGoals);
+        t.coversFixLocation = coversFixLocation;
         t.accessedEnvironment.copyFrom(accessedEnvironment);
         t.isFailing = isFailing;
         t.id = idGenerator.getAndIncrement(); //always create new ID when making a clone
