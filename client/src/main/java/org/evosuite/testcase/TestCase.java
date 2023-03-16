@@ -78,6 +78,12 @@ public interface TestCase extends Iterable<Statement>, Cloneable, Listenable<Voi
     void removeCoveredGoal(TestFitnessFunction goal);
 
     /**
+     * Return whether the test covers a fix location
+     * @return true, if the test covers at least one fix location. false otherwise
+     */
+    boolean coversFixLocation();
+
+    /**
      * Keep track of an additional test failure
      *
      * @param violation a {@link org.evosuite.contracts.ContractViolation} object.

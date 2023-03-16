@@ -50,9 +50,9 @@ public class LineCoverageTestFitness extends TestFitnessFunction {
     /**
      * Target line
      */
-    private final String className;
-    private final String methodName;
-    private final Integer line;
+    protected final String className;
+    protected final String methodName;
+    protected final Integer line;
 
     protected transient BytecodeInstruction goalInstruction;
     protected transient List<BranchCoverageTestFitness> branchFitnesses = new ArrayList<>();

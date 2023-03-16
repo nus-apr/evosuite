@@ -37,7 +37,7 @@ public class DynaMOSAPatch extends DynaMOSA {
         super.evolve();
 
         // Attempt to produce additional solutions by crossover of partial solutions with line solutions
-        List<TestChromosome> targetLineSolutions = Archive.getMultiCriteriaArchive().getTargetLineSolutions();
+        List<TestChromosome> targetLineSolutions = Archive.getMultiCriteriaArchive().getFixLocationSolutions();
 
         // Need at least one target line solution to crossover partial solutions with
         if (targetLineSolutions.isEmpty()) {
