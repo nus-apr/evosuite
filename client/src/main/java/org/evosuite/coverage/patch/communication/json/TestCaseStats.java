@@ -2,6 +2,7 @@ package org.evosuite.coverage.patch.communication.json;
 
 import org.evosuite.Properties;
 import org.evosuite.coverage.FitnessFunctions;
+import org.evosuite.coverage.mutation.StrongPatchMutationTestFitness;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
@@ -40,6 +41,9 @@ public class TestCaseStats {
         Set<Class<?>> fitnessClasses = Arrays.stream(Properties.CRITERION)
                 .map(FitnessFunctions::getTestFitnessFunctionClass)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        // FIXME: Temporary workaround since StrongPatchMutation does not use its own factory
+        fitnessClasses.add(StrongPatchMutationTestFitness.class);
 
         this.fitnessValues = new LinkedHashMap<>();
         for (Entry<FitnessFunction<TestChromosome>, Double> entry : tc.getFitnessValues().entrySet()) {
