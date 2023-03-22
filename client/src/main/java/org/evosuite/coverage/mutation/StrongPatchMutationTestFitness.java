@@ -109,4 +109,9 @@ public class StrongPatchMutationTestFitness extends StrongMutationTestFitness {
         return "Patch " + mutation.toString();
     }
 
+    @Override
+    public String toSimpleString() {
+        return "Patch " + mutation.toSimpleString();
+    }
+
 }

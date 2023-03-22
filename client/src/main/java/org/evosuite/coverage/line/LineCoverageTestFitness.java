@@ -208,6 +208,11 @@ public class LineCoverageTestFitness extends TestFitnessFunction {
         return className + (methodName.isEmpty() ? "" : "." + methodName) + ": Line " + line;
     }
 
+    @Override
+    public String toSimpleString() {
+        return className + ": Line " + line;
+    }
+
     /**
      * {@inheritDoc}
      */

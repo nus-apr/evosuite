@@ -12,11 +12,19 @@ import org.evosuite.testcase.TestChromosome;
 import org.evosuite.testcase.TestFitnessFunction;
 import org.evosuite.testcase.execution.ExecutionResult;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class ContextLineTestFitness extends TestFitnessFunction {
 
     private static final long serialVersionUID = 7193796202600984135L;
+
+    // Assign unique IDs to each CallContext to make output stats more readable
+    private final static Map<CallContext, Integer> contextToId = new LinkedHashMap<>();
+
+    private final int contextId;
+
     /**
      * Target line
      */
@@ -45,6 +53,17 @@ public class ContextLineTestFitness extends TestFitnessFunction {
         if (!valid) {
             throw new IllegalStateException("Branch " + contextFitnessGoal.getBranchGoal() + " is not a control dependency of " + this);
         }
+
+        CallContext context = contextFitnessGoal.getContext();
+        if (!ContextLineTestFitness.contextToId.containsKey(context)) {
+            int newId = ContextLineTestFitness.contextToId.size();
+            ContextLineTestFitness.contextToId.put(context, newId);
+        }
+        contextId = ContextLineTestFitness.contextToId.get(context);
+    }
+
+    public int getContextId() {
+        return contextId;
     }
 
     /**
@@ -160,6 +179,11 @@ public class ContextLineTestFitness extends TestFitnessFunction {
         sb.append(" in context: ");
         sb.append(contextFitnessGoal);
         return sb.toString();
+    }
+
+    @Override
+    public String toSimpleString() {
+        return className + ": Line " + line + " in " + "Context-" + contextId;
     }
 
     @Override

@@ -9,9 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-/*
- * TODO: When asking the orchestrator for patch mutation score, send test data as file location rather than source code.
- */
 
 public class PatchPool {
     private static final Logger logger = LoggerFactory.getLogger(PatchPool.class);

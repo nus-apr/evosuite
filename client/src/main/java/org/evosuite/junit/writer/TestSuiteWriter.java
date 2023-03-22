@@ -33,6 +33,7 @@ import org.evosuite.coverage.patch.ContextLineTestFitness;
 import org.evosuite.coverage.patch.OracleExceptionTestFitness;
 import org.evosuite.coverage.patch.communication.json.OracleExceptionFitnessMetrics;
 import org.evosuite.coverage.patch.communication.json.TargetLocationFitnessMetrics;
+import org.evosuite.coverage.patch.communication.json.TestCaseStats;
 import org.evosuite.ga.archive.Archive;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.junit.UnitTestAdapter;
@@ -62,6 +63,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.evosuite.junit.writer.TestSuiteWriterUtils.*;
 
@@ -349,15 +351,13 @@ public class TestSuiteWriter implements Opcodes {
             Map <TestFitnessFunction, String> contextToIdMap = new LinkedHashMap<>();
             Map <String, String> contextIdToNameMap = new LinkedHashMap<>();
 
-            int contextBranchID = 0;
             for (TestFitnessFunction fitnessFunction : contextGoalsToNumCoveringTests.keySet()) {
-                // Assign IDs to contexts
-                int id = contextBranchID++;
-                contextToIdMap.put(fitnessFunction, "Context-" + id);
-                contextIdToNameMap.put("Context-" + id, fitnessFunction.toString());
+                ContextLineTestFitness contextGoal = (ContextLineTestFitness) fitnessFunction;
+                String contextId = "Context-" + contextGoal.getContextId();
+                contextToIdMap.put(contextGoal, contextId);
+                contextIdToNameMap.put(contextId, contextGoal.toString());
 
                 // Assign context goal to target location goal
-                ContextLineTestFitness contextGoal = (ContextLineTestFitness) fitnessFunction;
                 LineCoverageTestFitness lineGoal = contextGoal.getLineGoal();
                 if (!targetGoalToContextGoalMap.containsKey(lineGoal)) {
                     targetGoalToContextGoalMap.put(lineGoal, new LinkedHashSet<>());
@@ -457,6 +457,7 @@ public class TestSuiteWriter implements Opcodes {
             }
 
             writeTargetLocationSummary(outputDir, fixLocationMetrics, oracleExceptionMetrics, contextIdToNameMap);
+            writeTestCaseStats(outputDir, testSuite.getTestChromosomes());
         } catch (IOException e) {
             logger.warn("Error while writing statistics: " + e.getMessage());
         }
@@ -558,6 +559,13 @@ public class TestSuiteWriter implements Opcodes {
 
         File f_contextIdToNameMap = new File(outputDir.getAbsolutePath() + File.separator + "contextIdToFullNameMap.json");
         mapper.writeValue(f_contextIdToNameMap, contextIdToNameMap);
+    }
+
+    private void writeTestCaseStats(File outputDir, List<TestChromosome> testChromosomes) throws IOException {
+        List<TestCaseStats> testCaseStats = testChromosomes.stream().map(TestCaseStats::new).collect(Collectors.toList());
+        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+        File outputFile = new File(outputDir.getAbsolutePath() + File.separator + "testCase_stats.json");
+        mapper.writeValue(outputFile, testCaseStats);
     }
 
 
