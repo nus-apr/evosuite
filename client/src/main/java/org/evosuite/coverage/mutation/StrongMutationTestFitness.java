@@ -509,6 +509,11 @@ public class StrongMutationTestFitness extends MutationTestFitness {
     }
 
     @Override
+    public String toSimpleString() {
+        return "Strong " + mutation.toSimpleString();
+    }
+
+    @Override
     public boolean isCovered(TestChromosome individual, ExecutionResult result) {
         boolean covered = false;
         if (individual.getLastExecutionResult(mutation) == null) {
