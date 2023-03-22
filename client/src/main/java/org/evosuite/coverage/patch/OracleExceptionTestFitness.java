@@ -57,7 +57,6 @@ public class OracleExceptionTestFitness extends LineCoverageTestFitness {
             if (Properties.TEST_ARCHIVE) {
                 Archive.getArchiveInstance().updateArchive(this, individual, fitness);
             }
-
         } else {
             // Super handles updateIndividual and updateArchive
             fitness = super.getFitness(individual, result);
@@ -70,5 +69,10 @@ public class OracleExceptionTestFitness extends LineCoverageTestFitness {
         }
 
         return fitness;
+    }
+
+    @Override
+    public String toSimpleString() {
+        return className + ": Oracle Exception Line " + line;
     }
 }

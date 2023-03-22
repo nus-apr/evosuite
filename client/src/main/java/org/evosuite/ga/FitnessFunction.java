@@ -105,4 +105,8 @@ public abstract class FitnessFunction<T extends Chromosome<T>> implements Serial
     public boolean updateCoveredGoals() {
         return false;
     }
+
+    public String toSimpleString() {
+        return toString();
+    }
 }

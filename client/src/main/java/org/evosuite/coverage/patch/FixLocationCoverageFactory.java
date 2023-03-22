@@ -14,9 +14,6 @@ public class FixLocationCoverageFactory extends AbstractFitnessFactory<LineCover
 
     private static final Logger logger = LoggerFactory.getLogger(FixLocationCoverageFactory.class);
 
-    // Set of hash codes of all fix location goals
-    private static final Set<Integer> fixLocationHashCodes = new LinkedHashSet<>();
-
     private static final Set<Integer> fixLocations = new LinkedHashSet<>();
 
     @Override
@@ -30,7 +27,6 @@ public class FixLocationCoverageFactory extends AbstractFitnessFactory<LineCover
             for (LineCoverageTestFitness fixLocationGoal : getCoverageGoals(c, new ArrayList<>(patchPool.getFixLocationsForClass(c, false)))) {
                 goals.add(fixLocationGoal);
                 fixLocations.add(fixLocationGoal.getLine());
-                fixLocationHashCodes.add(fixLocationGoal.hashCode());
             }
         }
         goalComputationTime = System.currentTimeMillis() - start;
@@ -40,9 +36,6 @@ public class FixLocationCoverageFactory extends AbstractFitnessFactory<LineCover
         return goals;
     }
 
-    public static Set<Integer> getFixLocationHashCodes() {
-        return fixLocationHashCodes;
-    }
 
     public static Set<Integer> getFixLocations() {
         return fixLocations;

@@ -33,23 +33,6 @@ public interface TestGenerationResult<T extends Chromosome<T>> extends Serializa
     enum Status {SUCCESS, TIMEOUT, ERROR}
 
     /**
-     * The hash codes of the fix location goals
-     */
-    Set<Integer> getFixLocationGoals();
-
-    /**
-     * Setter for the fix location goals
-     * @param fixLocationGoals hash codes of the fix location goals
-     */
-    void setFixLocationGoals(Set<Integer> fixLocationGoals);
-
-    /**
-     * Analogous methods for oracle location goals
-     */
-    Set<Integer> getOracleLocationGoals();
-    void setOracleLocationGoals(Set<Integer> oracleLocationGoals);
-
-    /**
      * Did test generation succeed?
      */
     Status getTestGenerationStatus();

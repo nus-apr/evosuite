@@ -192,6 +192,24 @@ public class BranchCoverageTestFitness extends TestFitnessFunction {
         return goal.toString();
     }
 
+    @Override
+    public String toSimpleString() {
+        StringBuilder sb = new StringBuilder(getClassName());
+        sb.append(":");
+        if (goal.getBranch() != null) {
+            sb.append(" ");
+            sb.append(goal.getBranch().toSimpleString());
+            if (goal.getValue())
+                sb.append(" - true");
+            else
+                sb.append(" - false");
+        } else {
+            sb.append(" root-Branch");
+        }
+
+        return sb.toString();
+    }
+
     /**
      * {@inheritDoc}
      */

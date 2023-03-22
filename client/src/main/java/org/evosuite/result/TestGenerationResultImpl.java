@@ -66,10 +66,6 @@ class TestGenerationResultImpl<T extends Chromosome<T>> implements TestGeneratio
 
     private final Map<String, String> testComments = new LinkedHashMap<>();
 
-    private final Set<Integer> fixLocationGoals = new LinkedHashSet<>();
-
-    private final Set<Integer> oracleLocationGoals = new LinkedHashSet<>();
-
     private String testSuiteCode = "";
 
     private String targetClass = "";
@@ -82,24 +78,6 @@ class TestGenerationResultImpl<T extends Chromosome<T>> implements TestGeneratio
     private GeneticAlgorithm<T> ga = null;
 
     private ExplorationAlgorithmBase dse = null;
-
-    public Set<Integer> getFixLocationGoals() {
-        return fixLocationGoals;
-    }
-
-    public void setFixLocationGoals(Set<Integer> fixLocationGoals) {
-        this.fixLocationGoals.clear();
-        this.fixLocationGoals.addAll(fixLocationGoals);
-    }
-
-    public Set<Integer> getOracleLocationGoals() {
-        return oracleLocationGoals;
-    }
-
-    public void setOracleLocationGoals(Set<Integer> oracleLocationGoals) {
-        this.oracleLocationGoals.clear();
-        this.oracleLocationGoals.addAll(oracleLocationGoals);
-    }
 
     /**
      * Did test generation succeed?
