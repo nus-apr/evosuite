@@ -1083,6 +1083,7 @@ public class TestSuiteWriter implements Opcodes {
             }
         }
 
+        // TODO EvoRepair: How to handle this case?
         if (wasSecurityException) {
             builder.append(BLOCK_SPACE);
             builder.append("Future<?> future = " + Scaffolding.EXECUTOR_SERVICE
@@ -1099,6 +1100,12 @@ public class TestSuiteWriter implements Opcodes {
                 builder.append(NEWLINE);
             }
             CODE_SPACE = INNER_INNER_INNER_BLOCK_SPACE;
+        } else if (Properties.EVOREPAIR_TEST_GENERATION) {
+            // Add try-catch block around test
+            builder.append(BLOCK_SPACE);
+            builder.append("try {");
+            builder.append(NEWLINE);
+            CODE_SPACE = INNER_BLOCK_SPACE; // indent all test code
         }
 
         for (String line : adapter.getTestString(id, test,
@@ -1132,6 +1139,17 @@ public class TestSuiteWriter implements Opcodes {
             long time = Properties.TIMEOUT + 1000; // we add one second just to be sure, that to avoid issues with test cases taking exactly TIMEOUT ms
             builder.append(BLOCK_SPACE);
             builder.append("future.get(" + time + ", TimeUnit.MILLISECONDS);");
+            builder.append(NEWLINE);
+        } else if (Properties.EVOREPAIR_TEST_GENERATION) {
+            // Add custom catch-block at the end of test code
+            builder.append(BLOCK_SPACE);
+            builder.append("} catch(Throwable t) {");
+            builder.append(NEWLINE);
+            builder.append(INNER_BLOCK_SPACE);
+            builder.append("verifyException(t.getClass().getName(), t);");
+            builder.append(NEWLINE);
+            builder.append(BLOCK_SPACE);
+            builder.append("}");
             builder.append(NEWLINE);
         }
 

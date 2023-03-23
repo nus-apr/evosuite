@@ -1400,7 +1400,10 @@ public class TestCodeVisitor extends TestVisitor {
             }
         }
         if (shouldUseTryCatch(exception, statement.isDeclaredException(exception))) {
-            result += "try { " + NEWLINE + "  ";
+            // The try-block has already been generated to wrap the complete test code
+            if (!Properties.EVOREPAIR_TEST_GENERATION) {
+                result += "try { " + NEWLINE + "  ";
+            }
         }
 
 
@@ -1474,9 +1477,11 @@ public class TestCodeVisitor extends TestVisitor {
                 result += generateFailAssertion(statement, exception);
             }
 
-            result += NEWLINE + "}";// end try block
-
-            result += generateCatchBlock(statement, exception);
+            // Don't generate catch block here if using EvoRepair, will be generated at the end to wrap complete test
+            if (!Properties.EVOREPAIR_TEST_GENERATION) {
+                result += NEWLINE + "}";// end try block
+                result += generateCatchBlock(statement, exception);
+            }
         }
 
         testCode += result + NEWLINE;
@@ -1652,7 +1657,11 @@ public class TestCodeVisitor extends TestVisitor {
             }
 
             result = className + " " + getVariableName(retval) + " = null;" + NEWLINE;
-            result += "try {" + NEWLINE + "  ";
+
+            // The try-block has already been generated to wrap the complete test code
+            if (!Properties.EVOREPAIR_TEST_GENERATION) {
+                result += "try {" + NEWLINE + "  ";
+            }
         } else {
             result += getClassName(retval) + " ";
         }
@@ -1674,9 +1683,11 @@ public class TestCodeVisitor extends TestVisitor {
                 result += generateFailAssertion(statement, exception);
             }
 
-            result += NEWLINE + "}";// end try block
-
-            result += generateCatchBlock(statement, exception);
+            // Don't generate catch block here if using EvoRepair, will be generated at the end to wrap complete test
+            if (!Properties.EVOREPAIR_TEST_GENERATION) {
+                result += NEWLINE + "}";// end try block
+                result += generateCatchBlock(statement, exception);
+            }
         }
 
         testCode += result + NEWLINE;
