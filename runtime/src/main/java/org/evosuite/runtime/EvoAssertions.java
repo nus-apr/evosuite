@@ -55,6 +55,15 @@ public class EvoAssertions {
         assertThrownBy(sourceClass, t);
     }
 
+    public static void verifyOracleException(Throwable t) throws AssertionError {
+        if (t instanceof RuntimeException) {
+            String msg = t.getMessage();
+            if (msg != null && msg.equals("[Defects4J_BugReport_Violation]")) {
+                throw new RuntimeException("[Defects4J_BugReport_Violation]");
+            }
+        }
+    }
+
     /**
      * Check if the given exception was thrown in the given class
      *
