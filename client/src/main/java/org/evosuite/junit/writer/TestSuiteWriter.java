@@ -1146,7 +1146,7 @@ public class TestSuiteWriter implements Opcodes {
             builder.append("} catch(Throwable t) {");
             builder.append(NEWLINE);
             builder.append(INNER_BLOCK_SPACE);
-            builder.append("verifyException(t.getClass().getName(), t);");
+            builder.append("verifyOracleException(t);");
             builder.append(NEWLINE);
             builder.append(BLOCK_SPACE);
             builder.append("}");
