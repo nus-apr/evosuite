@@ -54,7 +54,6 @@ public class TestGenerationResultBuilder {
         result.setErrorMessage(errorMessage);
         getInstance().fillInformationFromConfiguration(result);
         getInstance().fillInformationFromTestData(result);
-        getInstance().fillInformationFromFitnessFactories(result);
         getInstance().resetTestData();
         return result;
     }
@@ -64,7 +63,6 @@ public class TestGenerationResultBuilder {
         result.setStatus(Status.TIMEOUT);
         getInstance().fillInformationFromConfiguration(result);
         getInstance().fillInformationFromTestData(result);
-        getInstance().fillInformationFromFitnessFactories(result);
         getInstance().resetTestData();
         return result;
     }
@@ -74,7 +72,6 @@ public class TestGenerationResultBuilder {
         result.setStatus(Status.SUCCESS);
         getInstance().fillInformationFromConfiguration(result);
         getInstance().fillInformationFromTestData(result);
-        getInstance().fillInformationFromFitnessFactories(result);
         getInstance().resetTestData();
         return result;
     }
@@ -107,11 +104,6 @@ public class TestGenerationResultBuilder {
         for (Mutation m : MutationPool.getInstance(TestGenerationContext.getInstance().getClassLoaderForSUT()).getMutants()) {
             uncoveredMutants.add(new MutationInfo(m));
         }
-    }
-
-    private void fillInformationFromFitnessFactories(TestGenerationResultImpl<?> result) {
-        result.setFixLocationGoals(FixLocationCoverageFactory.getFixLocationHashCodes());
-        result.setOracleLocationGoals(OracleExceptionFactory.getOracleLocationHashCodes());
     }
 
     private void fillInformationFromConfiguration(TestGenerationResultImpl<?> result) {

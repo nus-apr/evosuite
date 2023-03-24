@@ -1374,15 +1374,37 @@ public class TestCodeVisitor extends TestVisitor {
      */
     @Override
     public void visitMethodStatement(MethodStatement statement) {
-        String result = "";
+        StringBuilder sb = new StringBuilder();
         VariableReference retval = statement.getReturnValue();
         GenericMethod method = statement.getMethod();
         Throwable exception = getException(statement);
         List<VariableReference> parameters = statement.getParameterReferences();
         boolean isGenericMethod = method.hasTypeParameters();
 
-        if (exception != null && !statement.isDeclaredException(exception)) {
-            result += "// Undeclared exception!" + NEWLINE;
+        if (exception != null) {
+            if(!statement.isDeclaredException(exception)) {
+                sb.append("// Undeclared exception: ");
+            } else {
+                sb.append("// Declared exception: ");
+            }
+            sb.append(exception.getClass().getName());
+            sb.append(NEWLINE);
+            // adding the message of the exception
+            String exceptionMessage;
+            try {
+                if (exception.getMessage() != null) {
+                    exceptionMessage = exception.getMessage().replace("*/", "*_/");
+                } else {
+                    exceptionMessage = "no message in exception (getMessage() returned null)";
+                }
+            } catch (Exception exceptionThrownExecutionGetMessage) {
+                exceptionMessage = "no message (getMessage() has thrown an exception)";
+            }
+            for (String msg : exceptionMessage.split("\n")) {
+                sb.append("// ");
+                sb.append(StringEscapeUtils.escapeJava(msg));
+                sb.append(NEWLINE);
+            }
         }
 
         boolean lastStatement = statement.getPosition() == statement.getTestCase().size() - 1;
@@ -1393,14 +1415,25 @@ public class TestCodeVisitor extends TestVisitor {
                 && !unused) {
             if (exception != null) {
                 if (!lastStatement || statement.hasAssertions())
-                    result += getClassName(retval) + " " + getVariableName(retval)
-                            + " = " + retval.getDefaultValueString() + ";" + NEWLINE;
+                    sb.append(getClassName(retval));
+                    sb.append(" ");
+                    sb.append(getVariableName(retval));
+                    sb.append(" = ");
+                    sb.append(retval.getDefaultValueString());
+                    sb.append(";");
+                    sb.append(NEWLINE);
             } else {
-                result += getClassName(retval) + " ";
+                sb.append(getClassName(retval));
+                sb.append(" ");
             }
         }
         if (shouldUseTryCatch(exception, statement.isDeclaredException(exception))) {
-            result += "try { " + NEWLINE + "  ";
+            // The try-block has already been generated to wrap the complete test code
+            if (!Properties.EVOREPAIR_TEST_GENERATION) {
+                sb.append("try { ");
+                sb.append(NEWLINE);
+                sb.append("  ");
+            }
         }
 
 
@@ -1408,78 +1441,105 @@ public class TestCodeVisitor extends TestVisitor {
                 parameters, isGenericMethod,
                 method.isOverloaded(parameters), 0);
 
-        String callee_str = "";
+        StringBuilder callee_sb = new StringBuilder();
         if (!unused && !retval.isAssignableFrom(method.getReturnType())
                 && !retval.getVariableClass().isAnonymousClass()
                 // Static generic methods are a special case where we shouldn't add a cast
                 && !(isGenericMethod && method.getParameterTypes().length == 0 && method.isStatic())) {
             String name = getClassName(retval);
             if (!name.matches(".*\\.\\d+$")) {
-                callee_str = "(" + name + ")";
+                callee_sb.append("(");
+                callee_sb.append(name);
+                callee_sb.append(")");
             }
         }
         if (method.isStatic()) {
-            callee_str += getClassName(method.getMethod().getDeclaringClass());
+            callee_sb.append(getClassName(method.getMethod().getDeclaringClass()));
         } else {
             VariableReference callee = statement.getCallee();
 
             if (callee instanceof ConstantValue) {
-                callee_str += "((" + getClassName(method.getMethod().getDeclaringClass())
-                        + ")" + getVariableName(callee) + ")";
+                callee_sb.append("((");
+                callee_sb.append(getClassName(method.getMethod().getDeclaringClass()));
+                callee_sb.append(")");
+                callee_sb.append(getVariableName(callee));
+                callee_sb.append(")");
             } else {
                 // If the method is not public and this is a subclass in a different package we need to cast
                 if (!method.isPublic() && !method.getDeclaringClass().equals(callee.getVariableClass()) && callee.isAssignableTo(method.getMethod().getDeclaringClass())) {
                     String packageName1 = ClassUtils.getPackageName(method.getDeclaringClass());
                     String packageName2 = ClassUtils.getPackageName(callee.getVariableClass());
                     if (!packageName1.equals(packageName2)) {
-                        callee_str += "((" + getClassName(method.getMethod().getDeclaringClass())
-                                + ")" + getVariableName(callee) + ")";
+                        callee_sb.append("((");
+                        callee_sb.append(getClassName(method.getMethod().getDeclaringClass()));
+                        callee_sb.append(")");
+                        callee_sb.append(getVariableName(callee));
+                        callee_sb.append(")");
                     } else {
-                        callee_str += getVariableName(callee);
+                        callee_sb.append(getVariableName(callee));
                     }
                 } else if (!callee.isAssignableTo(method.getMethod().getDeclaringClass())) {
                     try {
                         // If the concrete callee class has that method then it's ok
                         callee.getVariableClass().getDeclaredMethod(method.getName(), method.getRawParameterTypes());
-                        callee_str += getVariableName(callee);
+                        callee_sb.append(getVariableName(callee));
                     } catch (NoSuchMethodException e) {
                         // If not we need to cast to the subtype
-                        callee_str += "((" + getTypeName(method.getMethod().getDeclaringClass()) + ") " + getVariableName(callee) + ")";
+                        callee_sb.append("((");
+                        callee_sb.append(getTypeName(method.getMethod().getDeclaringClass()));
+                        callee_sb.append(") ");
+                        callee_sb.append(getVariableName(callee));
+                        callee_sb.append(")");
                         // TODO: Here we could check if this is actually possible
                         // ...but what would we do?
                         // if(!ClassUtils.getAllSuperclasses(method.getMethod().getDeclaringClass()).contains(callee.getVariableClass())) {
                         //}
                     }
                 } else {
-                    callee_str += getVariableName(callee);
+                    callee_sb.append(getVariableName(callee));
                 }
             }
         }
 
         if (retval.isVoid()) {
-            result += callee_str + "." + method.getName() + "(" + parameter_string + ");";
+            sb.append(callee_sb);
+            sb.append(".");
+            sb.append(method.getName());
+            sb.append("(");
+            sb.append(parameter_string);
+            sb.append(");");
         } else {
             // if (exception == null || !lastStatement)
-            if (!unused)
-                result += getVariableName(retval) + " = ";
+            if (!unused) {
+                sb.append(getVariableName(retval));
+                sb.append(" = ");
+            }
             // If unused, then we don't want to print anything:
             //else
             //	result += getClassName(retval) + " " + getVariableName(retval) + " = ";
 
-            result += callee_str + "." + method.getName() + "(" + parameter_string + ");";
+            sb.append(callee_sb);
+            sb.append(".");
+            sb.append(method.getName());
+            sb.append("(");
+            sb.append(parameter_string);
+            sb.append(");");
         }
 
         if (shouldUseTryCatch(exception, statement.isDeclaredException(exception))) {
             if (Properties.ASSERTIONS) {
-                result += generateFailAssertion(statement, exception);
+                sb.append(generateFailAssertion(statement, exception));
             }
 
-            result += NEWLINE + "}";// end try block
-
-            result += generateCatchBlock(statement, exception);
+            // Don't generate catch block here if using EvoRepair, will be generated at the end to wrap complete test
+            if (!Properties.EVOREPAIR_TEST_GENERATION) {
+                sb.append(NEWLINE);
+                sb.append("}");// end try block
+                sb.append(generateCatchBlock(statement, exception));
+            }
         }
-
-        testCode += result + NEWLINE;
+        sb.append(NEWLINE);
+        testCode += sb.toString();
         addAssertions(statement);
     }
 
@@ -1652,7 +1712,11 @@ public class TestCodeVisitor extends TestVisitor {
             }
 
             result = className + " " + getVariableName(retval) + " = null;" + NEWLINE;
-            result += "try {" + NEWLINE + "  ";
+
+            // The try-block has already been generated to wrap the complete test code
+            if (!Properties.EVOREPAIR_TEST_GENERATION) {
+                result += "try {" + NEWLINE + "  ";
+            }
         } else {
             result += getClassName(retval) + " ";
         }
@@ -1674,9 +1738,11 @@ public class TestCodeVisitor extends TestVisitor {
                 result += generateFailAssertion(statement, exception);
             }
 
-            result += NEWLINE + "}";// end try block
-
-            result += generateCatchBlock(statement, exception);
+            // Don't generate catch block here if using EvoRepair, will be generated at the end to wrap complete test
+            if (!Properties.EVOREPAIR_TEST_GENERATION) {
+                result += NEWLINE + "}";// end try block
+                result += generateCatchBlock(statement, exception);
+            }
         }
 
         testCode += result + NEWLINE;

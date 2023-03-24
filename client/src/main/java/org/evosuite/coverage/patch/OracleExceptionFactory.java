@@ -14,12 +14,6 @@ public class OracleExceptionFactory extends AbstractFitnessFactory<OracleExcepti
 
     private static final Logger logger = LoggerFactory.getLogger(OracleExceptionFactory.class);
 
-    // Set of hash codes of all oracle location (thrown custom exception) hash codes
-    private static final Set<Integer> oracleLocationHashCodes = new LinkedHashSet<>();
-
-    public static Set<Integer> getOracleLocationHashCodes() {
-        return oracleLocationHashCodes;
-    }
 
     @Override
     public List<OracleExceptionTestFitness> getCoverageGoals() {
@@ -41,7 +35,6 @@ public class OracleExceptionFactory extends AbstractFitnessFactory<OracleExcepti
                     }
 
                     goals.addAll(oracleGoals);
-                    oracleGoals.stream().mapToInt(OracleExceptionTestFitness::hashCode).forEach(oracleLocationHashCodes::add);
                 }
             }
         }

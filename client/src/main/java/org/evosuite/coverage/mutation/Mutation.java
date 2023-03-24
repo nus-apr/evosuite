@@ -240,6 +240,11 @@ public class Mutation implements Comparable<Mutation> {
                 + " - " + mutationName;
     }
 
+    public String toSimpleString() {
+        return "Mutation " + id + ": " + className + ":" + lineNo
+                + " - " + mutationName;
+    }
+
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */

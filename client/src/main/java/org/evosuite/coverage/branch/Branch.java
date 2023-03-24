@@ -276,6 +276,27 @@ public class Branch implements Serializable, Comparable<Branch> {
         return r;
     }
 
+    public String toSimpleString() {
+        StringBuilder sb = new StringBuilder("Branch ");
+        sb.append(instruction.getInstructionType());
+        if (isSwitch) {
+            sb.append(" Line ");
+            sb.append(instruction.getLineNumber());
+            if (targetCaseValue != null) {
+                sb.append(" Case ");
+                sb.append(targetCaseValue);
+            }
+            else {
+                sb.append(" Default-Case");
+            }
+        } else {
+            sb.append(" Line ");
+            sb.append(instruction.getLineNumber());
+        }
+
+        return sb.toString();
+    }
+
     /**
      * <p>
      * isInstrumented
