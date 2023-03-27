@@ -172,6 +172,7 @@ public class SeedHandler {
             // The tests to filter out from the population
             Set<String> seedsToKeep = seedPopulation.getTests().stream()
                     .map(SeedTest::getName)
+                    .map(s -> s.substring(0, s.indexOf("#")))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             // Mapping between the original testIds and killed patches (since testIds are not unique between populations)
