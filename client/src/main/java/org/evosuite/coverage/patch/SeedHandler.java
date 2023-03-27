@@ -175,10 +175,11 @@ public class SeedHandler {
                     .map(s -> s.substring(0, s.indexOf("#")))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
+            // NOTE: Uncommented for now as this is not used
             // Mapping between the original testIds and killed patches (since testIds are not unique between populations)
             // FIXME: Using String maps and then changing to Integer maps for TestIds is confusing
-            Map<String, Set<String>> originalSeedToKills = new LinkedHashMap<>();
-            seedPopulation.getTests().forEach(seedTest -> originalSeedToKills.put(seedTest.getName(), seedTest.getKills()));
+            //Map<String, Set<String>> originalSeedToKills = new LinkedHashMap<>();
+            //seedPopulation.getTests().forEach(seedTest -> originalSeedToKills.put(seedTest.getName().substring(0, seedTest.getName().indexOf("#")), seedTest.getKills()));
 
             List<TestChromosome> allSeeds = TestSuiteSerialization.loadTests(seedPopulation.getSerializedSuite());
 
@@ -187,16 +188,16 @@ public class SeedHandler {
                 if (seedsToKeep.contains(testId)) {
                     TestChromosome tc = seed.clone(); // Necessary to create fresh and unique testIds
                     result.add(tc);
-                    killMatrix.put(tc.getTestCase().getID(), originalSeedToKills.get(testId));
+                    //killMatrix.put(tc.getTestCase().getID(), originalSeedToKills.get(testId));
                 }
             }
         }
 
-        logger.info("Read kill matrix with {} entries.", killMatrix.keySet().size());
+        //logger.info("Read kill matrix with {} entries.", killMatrix.keySet().size());
         logger.info("Read test population of size {}.", result.size());
 
         seedTestPopulation = result;
-        PatchCoverageTestFitness.setKillMatrix(killMatrix);
+        //PatchCoverageTestFitness.setKillMatrix(killMatrix);
         seedTests.addAll(seedTestPopulation);
         return seedTestPopulation;
     }

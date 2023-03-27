@@ -1,5 +1,6 @@
 package org.evosuite.coverage.patch;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.evosuite.coverage.patch.communication.json.Patch;
 import org.evosuite.testsuite.AbstractFitnessFactory;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ public class PatchCoverageFactory extends AbstractFitnessFactory<PatchCoverageTe
         }
 
          */
+    throw new RuntimeException("PatchCoverage fitness function is currently not supported/unused!");
     }
 
     @Override
