@@ -161,7 +161,7 @@ public class SeedHandler {
         }
 
         // The mapping between test-ids to the killed patch-ids
-        Map<Integer, Set<String>> killMatrix = new LinkedHashMap<>();
+        //Map<Integer, Set<String>> killMatrix = new LinkedHashMap<>();
 
         /**
          * For each seed population file, we filter out the chosen seeds and add them to the final population
