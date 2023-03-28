@@ -441,7 +441,7 @@ public abstract class AbstractMOSA extends GeneticAlgorithm<TestChromosome> {
 
             if (seeds.size()<= Properties.POPULATION) {
                 this.population.addAll(seeds);
-                this.generateInitialPopulation(Properties.POPULATION - population.size());
+                this.generateRandomPopulation(Properties.POPULATION - population.size());
             } else {
                 this.population.addAll(seeds.stream().limit(Properties.POPULATION).collect(Collectors.toCollection(LinkedHashSet::new)));
             }
